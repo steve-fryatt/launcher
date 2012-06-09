@@ -1,0 +1,10 @@
+# Launcher - Messages
+# (c) Stephen Fryatt, 2003
+#
+# UK Version
+
+TaskName:Launcher
+Version:0.30 (%0)
+
+TaskSpr:application
+SupportURL:http://www.stevefryatt.org.uk/software/utils/

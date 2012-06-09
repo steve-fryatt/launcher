@@ -1,0 +1,14 @@
+| >!Run	
+|
+| Run file for !Launcher
+|
+| (c) Stephen Fryatt, 2003
+| 0.30 (20 September 2003)
+
+Set Launcher$Dir  <Obey$Dir>
+
+|IconSprites <Launcher$Dir>.!Sprites
+
+WimpSlot -min 64k -max 64k
+
+Run <Launcher$Dir>.!RunImage %*0

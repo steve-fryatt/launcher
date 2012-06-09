@@ -1,0 +1,40 @@
+/* Launcher - Menus
+ * (c) Stephen Fryatt, 2002
+ *
+ * Version 0.30
+ * 14 Sep 2003
+ */
+
+menu (main_menu, "Launcher")
+{
+  item ("Info")
+  {
+    d_box (prog_info);
+    dotted;
+  }
+  item ("Button")
+  {
+    submenu (button_menu);
+  }
+  item ("New button...")
+  {
+    dotted;
+  }
+  item ("Save buttons");
+  item ("Choices...")
+  {
+    dotted;
+  }
+  item ("Quit");
+}
+
+
+menu (button_menu, "Button")
+{
+  item ("Edit button...");
+  item ("Move button")
+  {
+    dotted;
+  }
+  item ("Delete button");
+}

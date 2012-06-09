@@ -1,0 +1,816 @@
+<document title="Locate">
+<define name="version" value="0.89">
+<define name="date" value="8 December 2004" length=30 align="right">
+
+
+
+
+<literal mode="Strong" file="!Root">
+Locate
+#SpriteFile Sprites
+#Sprite 8,0 Logo
+#Align Right
+{f*/:A flexible file search utility for RISC OS†}
+Version $$version$$ ($$date$$)†
+#Below
+#Line
+#Align Centre
+Locate is {f*:Freeware}: please read the <License>
+
+#Indent 2
+#Table Columns 4
+è <Introduction>
+è <Installation>
+
+è <Simple searches=>Simple>
+è <Viewing the results=>Results>
+è <Advanced use=>Advanced>
+è <Configuration>
+è <Filer Action=>Plugin>
+
+è <Version History=>History>
+è <Future Plans=>ToDo>
+
+#Endtable
+#Indent
+#Line
+#Align Left
+If you have any comments about Locate, or would like to report any bugs that you find, you can email me at the address below.
+
+Updates to Locate and more programs for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
+
+#Align Centre
+© Stephen Fryatt, 2001 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
+Filetype Menu code provided by Harriet Bazley
+
+A plain text version of this manual is available <here=>*Filer_Run <Locate$HelpText\>>.
+#Align Left
+</literal>
+
+
+
+
+<literal mode="Text">
+=============================================================================
+Locate - Flexible file search for RISC OS                        Version $$version$$
+
+(C) Stephen Fryatt, 2001                       $$date$$
+=============================================================================
+</literal>
+
+
+
+
+
+<literal mode="HTML">
+<html>
+<head>
+<title>Locate</title>
+</head>
+
+<body>
+<h1 align="center">Locate</h1>
+<p align="center"><b>Flexible file search for RISC OS</b> - &copy; Stephen Fryatt, 2001<br>
+Version $$version$$ ($$date$$)</p>
+
+</literal>
+
+
+
+
+
+<chapter title="License" file="License">
+
+<cite>Locate</cite> is <strong>Freeware</strong>.  Copyright is held by the author, Stephen Fryatt, 2001.
+
+<cite>Locate</cite> may be copied freely, so long as it remains unaltered with all its files and documentation intact.  All copies should have their <file>Choices</file> file (if present) deleted from within the application to ensure that new users receive Locate in its default state.
+
+If you wish to distribute Locate, please contact me to get my permission. This is so that I can ensure that you have the latest version available. <cite>Locate</cite> may not be sold, although Public Domain libraries may charge for the cost of discs.
+
+No guarantee is made as to the suitability or stability of <cite>Locate</cite> for any particular purpose.  No liability can be accepted by the author for any problems or damage caused by the use of <cite>Locate</cite>.
+
+</chapter>
+
+
+
+
+<chapter title="Introduction" file="Introduction">
+
+<cite>Locate</cite> is a file find utility for RISC OS.  It will search a specified directory for files that match a set of conditions.  These conditions include the filename (including wildcards), file size, modification date, filetype and attributes.
+
+<cite>Locate</cite> is loosely based on similar utilities available on other platforms: particularly <cite>File Find</cite> on the '9x versions of <cite>Windows</cite>.
+
+</chapter>
+
+
+
+
+<chapter title="Installing Locate" file="Installation">
+
+<cite>Locate</cite> requires RISC OS 3.1 or later.  It can be run off a hard disc or floppy disc.
+
+To install <cite>Locate</cite> on a hard disc, copy the <file>!Locate</file> application to a suitable directory.
+
+Under RISC OS <cite>Select</cite>, <cite>Locate</cite> will act as a <cite>Filer</cite> plugin for Find by default.  See the <link ref="Plugin">Filer Action Plugin</link> section for details of how to disable this feature.
+
+</chapter>
+
+
+
+
+<chapter title="Simple Searches" file="Simple">
+
+To use <cite>Locate</cite>, run it in the usual way by double-clicking on its icon.  When its icon appears on the icon-bar, click <mouse>select</mouse> on the <cite>Locate</cite> icon to open the <window>search window</window>.
+
+<subhead title="RISC OS Select Filer plugin">
+
+If you have RISC OS <cite>Select</cite>, <cite>Locate</cite> will also perform searches when the <menu>Find</menu> option in the Filer menu is used.  By default this will bypass the search window, simply searching for objects with the given name in the selected directories.  Unlike the Filer's normal find option, the <cite>Locate</cite> plugin uses wildcards in the filename as described below.
+
+To add more parameters to the search, stop the search from the <link ref="Results">results window menu</link> and use the <menu>Modify search...</menu> option.  It is possible to have the <menu>Find</menu> option open a search window instead of starting a search directly: to change the behaviour of the plugin, see the <link ref="Configuration">choices window</link>.  Instructions for disabling the plugin are also available in the <link ref="Plugin">Filer Action Plugin</link> section, to allow the standard Filer Action search to be used instead.
+
+
+
+
+<subhead title="Setting the search directory">
+
+Before searching, you must make sure that the <icon>Search in</icon> field contains the path-names of the directories that you wish to search, separated by commas.  All the files contained in these directories and their subdirectories will be checked recursively.  You can open all the directories shown to check their locations by double-clicking on the directory icon on the right of the field.
+
+To change the location, you can simply type the required paths into the field.  However, it is easier to use drag-and-drop to change the location.  Dragging files, applications or directories into the field will add the paths of the objects to the list (files add the path of the parent directory).  Dragging with <key>shift</key> held down will <em>replace</em> the paths that are already shown with the new path.  Dragging the directory icon to the right of the field to a filer window will replace the field contents with the path of the directory.
+
+If an object is dragged to <cite>Locate</cite>'s icon-bar icon, the search window is opened ready to search that path.  The icon-bar icon can also be dragged to locations in the same way as the directory icon in the search window.
+
+<box>
+Hint: on RISC OS 4 you can drag the directory onto a filer icon to set the search path to the default directory (usually the root on that drive).
+</box>
+
+The default path used for the search is set in the <link ref="Configuration">choices window</link>.
+
+
+
+
+<subhead title="Entering the filename">
+
+Enter the filename to you are looking for into the <icon>File name</icon> field.
+
+Names are matched exactly: <code>Report</code> would match <code>report</code> but not <code>Reporter</code>.  For more flexibility, wildcards are allowed.  <code>#</code> will match any single character, so <code>Reporte#</code> would match <code>Reporter</code> and <code>Reported</code> but not <code>Reporters</code>.  <code>*</code> will match any zero or more characters, so <code>Report*</code> would match <code>Report</code>, <code>Reported</code> etc.  Wildcards can appear anywhere in the name.  To search for a substring (in the same way that the Filer's search option does), put an asterisk at each end of the name (for example <code>*SubStr*</code>).
+
+By default the case of the name is ignored; un-tick the <icon>Ignore case</icon> switch to cause the case to matter (but remember that all RISC OS FileCore filing systems are case insensitive anyway).
+
+
+
+
+<subhead title="Starting the search">
+
+Assuming that you don't care about any <link ref="Advanced">other properties</link>, click on <icon>Search</icon> to locate all the files with matching names.  After a short pause, the <link ref="Results">results window</link> will open and any matching objects will start to appear within it.  If any errors are returned by the filing system being searched (such as "broken directory"), <cite>Locate</cite> will remember them and continue the search in the parent directory to where the error occurred.  This means that any objects in the directory where the error occurred (including directories) that had not been checked will be missed; unfortunately it is not possible to just skip the object that caused the error, due to the way RISC OS works.  Any errors encountered will be shown in the results window.
+
+Clicking <mouse>select</mouse> on <icon>Cancel</icon> will close the window without performing the search; clicking with <mouse>adjust</mouse> will reset all the fields to their original values.
+
+<subhead title="The Search Window Menu">
+
+Clicking Menu will open a menu containing one option:
+
+<menu>Save search</menu> allows the settings in the search window to be saved for future use.  The settings are saved exactly as they are at that point, including remembering which options tab is visible (this is useful for setting up quick searches where only one specific parameter will change).
+
+</chapter>
+
+
+
+
+<chapter title="Viewing the Results" file="Results">
+
+The <window>results window</window> contains a list of the matching objects from a given search.  A full pathname is shown for each object, but they may be truncated from the start if they are too long to fit in the width: this in indicated by the name starting with '...'.  Clicking <mouse>select</mouse> or <mouse>adjust</mouse> will select items in the usual 'Filer' way.  If a search is continuing in the background, objects will be added to the window as they are found; the info field at the bottom of the window will show the directory currently being searched.  At the end of the search the number of matching objects and the number of errors that occurred will be shown.
+
+If errors were suppressed during the search, any that occurred will be shown in the results window.  They appear amongst the files, with a red 'hazard triangle' and their text in red.  The error returned is shown, along with the path of the directory being searched when the problem occurred (not the file that caused the error, although in some cases - eg. <cite>ArcFS</cite> errors - these may actually be the same thing).
+
+Double-clicking <mouse>select</mouse> on an object will Filer_Run it: files will be loaded, applications run and directories opened.  Holding down <key>shift</key> will have the expected effects: all files will be loaded into a text editor and application directories will be opened.  Double-clicking <mouse>adjust</mouse> will open the parent directory of the object (to 'view' it); this can also be done for the selected item from the menu.  Finally, objects and selections can be dragged out of the window to load them into applications; currently this will not work for Filer windows.
+
+Selections can be made by clicking on items with <mouse>select</mouse> or <mouse>adjust</mouse> in the usual way; multiple objects can be altered at once by dragging a box around them with <mouse>select</mouse> or <mouse>adjust</mouse> (this supports auto-scrolling under RISC OS 4).
+
+If an entry in the window is greyed out, the object referred to has been moved since the results were generated.  This is most likely to occur if a set of results is saved and re-loaded, as all the file info details are re-scanned at this point; otherwise it will only occur if an attempt is made to double-click on an object that has moved.
+
+
+
+
+<subhead title="The Results Window Menu">
+
+Clicking Menu opens a menu giving various options relating to the results.  These are:
+
+The <menu>Display</menu> submenu, which leads to the options <menu>Path only</menu> and <menu>Full info</menu>.  These toggle the display between only showing the path names of the objects and showing full details of size, type, attributes and the last-modified date.
+
+<menu>Save</menu> leads to several save options.  <menu>Results</menu> leads to a save window allowing the results (and the search parameters that created them) to be saved out in a file that can be loaded back into <cite>Locate</cite>.  <menu>Path names</menu> will allow a list of all the path names (or the current selection) to be saved out as a text file.  Direct transfer to other applications is possible and the complete names (not the truncated ones shown) will be saved.  Finally, <menu>Search</menu> leads to a save window allowing the search parameters from the search to be saved out in a file that can be loaded back into <cite>Locate</cite>. Re-loading this file will open the search window exactly as it was when the search was carried out.
+
+<menu>Select all</menu> will select all the items in the window.
+
+<menu>Clear selection</menu> will de-select any selected items.
+
+<menu>Object info</menu> leads to a window giving full details of the selected item.
+
+<menu>Open parent</menu> opens the directory containing the object, in the same way as <mouse>adjust</mouse>-double-clicking on it.
+
+<menu>Copy names</menu> will copy the names of the files (or those that are currently selected) on to the global clipboard, ready to be pasted into another application.
+
+<menu>Modify search...</menu> opens a search window containing the parameters used before (clicking <mouse>select</mouse> on the icon-bar icon always opens a blank <link ref="Simple">search window</link>, although <mouse>adjust</mouse> will recall the last search parameters used).  Note that you can only ever have one search window open at a time (but as many results windows as you have the free memory for - up to the application space limit of 28Kb or course...).
+
+<menu>Stop search</menu> will halt a search that is continuing in the background, keeping the window open with the results that have been found so far.  You cannot re-start a stopped search.
+
+</chapter>
+
+
+
+
+<chapter title="Advanced Use" file="Advanced">
+
+It is possible to make <cite>Locate</cite> check more than just the filename of the objects being searched.  Options are available for size, modification date (or age), object file type, attributes and contents; they are split between several sub-windows to make things easier.  To view and enter the options for a given attribute, click <mouse>select</mouse> on the relevant tab on the left of the <window>search window</window>.  The options available are:
+
+<list>
+<li><link ref="Size">File size</link>
+<li><link ref="Date">Creation or modification date</link>
+<li><link ref="Type">Object or file type</link>
+<li><link ref="Attributes">Object attributes</link>
+<li><link ref="Contents">File contents</link>
+</list>
+
+Notice that all the sections (Size, Date. Type, Attributes and Contents) are always active; it's not just the one that is visible when you click on <icon>Search</icon>.  This allows you to (say) search for "all text files between 1Kb and 10Kb in size, created before 27th January 1996, which are locked"; it can also be confusing if you forget that you set an option.
+
+Note that if you don't care what filename is found, it is quicker to leave the <icon>File name</icon> field blank than to search on a <code>*</code> wildcard.  This is because a blank field causes the whole wildcard search to be skipped, rather than checking each name against the <code>*</code> term.
+
+
+
+
+<subhead title="Search Options">
+
+There are also various options that can be set to control how the search is carried out (and not what files are matched); these can be seen by clicking on <icon>Show search options</icon>.  The default settings can be changed from the <link ref="Configuration">choices window</link>.
+
+It is possible to speed up a search by de-selecting <icon>Search in background</icon> before starting the search.  In this case, <cite>Locate</cite> will take over the machine until it has finished; it does make the search faster.  Searches carried out like this can be aborted by pressing <key>escape</key> while the hourglass in on the screen.
+
+If an image filing system is causing errors to be generated when <cite>Locate</cite> tries to read the files within one of its image directories, select <icon>Ignore Image FS's contents</icon>.  This will cause <cite>Locate</cite> to check the name and attributes of the image file itself (for example a <cite>Spark</cite> archive) but not of the objects within it.  This is useful, for example, in the situation where you have <cite>ArcFS</cite> loaded and attempt to search a path containing Zip files; without this option on, <cite>ArcFS</cite> will halt the search with errors each time a Zip archive is encountered.
+
+Errors returned by filing systems while the search is being carried out can either be suppressed by selecting <icon>Suppress FS errors</icon> (meaning that they are not reported at the time, but instead get logged in the <link ref="Results">results window</link>) or reported in an error window when they happen (stopping the search until you acknowledge the message).  In the latter case, the errors are not shown in the results window.
+
+Finally, the <icon>Full info display</icon> option determines whether or not the <window>results window</window> starts off in path only or full info mode.
+
+
+
+
+<subhead title="Recalling Old Searches">
+
+<cite>Locate</cite> remembers the parameters used for the last few searches so that they can be re-used easily.  In addition, it is possible to save the parameters along with the results of a search and re-load them later.  This is done from the <link ref="Results">results window menu</link>.
+
+The <menu>Modify search...</menu> option in the <link ref="Results">results window</link> allows the a search window containing the parameters that produced the results shown to be opened.  This also works with re-loaded results.
+
+In addition, clicking <mouse>adjust</mouse> on the icon-bar icon will open a search window containing the parameters from the last search to be carried out.  A history of previous searches is also maintained until Locate is quit; this can be accessed from the History sub-menu of the icon-bar menu.  The number of items in the history is set in the <link ref="Configuration">choices window</link>.
+
+</chapter>
+
+
+
+
+<chapter title="Matching on File Size" file="Size">
+
+To check for certain sizes of file, select the <icon>Size</icon> option in the left margin of the <link ref="Advanced">search window</link>.  Choose a search criteria from the drop down list (the default is <code>not important</code> meaning that the size is ignored).  Having selected a criteria, it is possible to enter the required size(s) into the fields below; select the units required for each field.  The larger units match a spread either side of the specified size, so 1Kb would match from 1Kb-512bytes to 1Kb+512bytes.
+   
+Directories and applications will always match the size test, as their sizes are not very meaningful.
+
+</chapter>
+
+
+
+
+<chapter title="Matching on Creation or Modification Date" file="Date">
+
+To check for certain modification dates, select <icon>Date</icon> in the left margin of the <link ref="Advanced">search window</link>.  It is possible to specify this option in terms of an absolute date or as an 'age' relative to now: pick one using the options at the top left.  Only the selected one contributes to the search criteria: you cannot specify both date and age
+
+Again choose a search criteria.  If using the absolute date option, enter the dates and times as appropriate.  Dates are specified in the form 'DD/MM/YYYY' and are rounded up or down if being used as upper or lower limits.  To specify a specific time, increase this notation to 'DD/MM/YYYY.HH:MM'.
+
+Clicking on the <icon>Set...</icon> button on the right of the date fields will open a dialogue box which allows the date to be set more easily (without remembering the order of the components required by <cite>Locate</cite>).  Enter the details in the box as required and click on <icon>Set</icon>.
+   
+If specifying the dates in terms of age, pick a unit from the drop down menu by the field and enter the required value.  Note that <code>month</code> is treated as being 30 days and <code>year</code> as being 365 days; this may be made more more intelligent in a future version.  Also note that dates and ages work in opposite directions: as dates get 'bigger' the objects get more recent; as ages get 'bigger' the objects get older.
+
+The datestamps of directories and applications are tested, but the results may not always be as expected.  For applications the Filer shows the datestamp to be that of the <file>!RunImage</file> file inside (if one is present).  <cite>Locate</cite> will check the datestamp of the application directory itself, as shown by using <command>*Info</command> at the command line.  Untyped files do not have datestamps, so these will <strong>always</strong> match whatever date constraints are set.
+
+The default criteria for date is <code>not important</code>, meaning that the datestamp will be ignored.
+
+</chapter>
+
+
+
+
+<chapter title="Matching on Object or File Type" file="Type">
+
+To check for certain object types, select <icon>Type</icon> in the left margin of the <link ref="Advanced">search window</link>.  By default all objects (files, directories and applications) will be matched; deselect those that you don't care about from the list.
+
+If you are matching files, you can also specify the types that you want to match or ignore.  Chose a matching criteria from the drop down list (the default is to match all types) and enter the types into the field below; these can either be hexadecimal numbers such as <code>ff9</code> or the textual equivalents such as <code>Sprite</code> (if one has been defined) or a mixture of the two.  To enter more than one type, separate them by commas; eg: <code>Sprite, JPEG, GIF, TIFF</code> would match Sprites, JPEgs and GIFs (it could just as well be entered as <code>Sprite, JPEG, 695, ff0</code> or even <code>ff9, c85, 695, ff0</code>).  Clicking on the drop-down menu icon to the right of the types field will give a list of currently known filetypes; if <mouse>select</mouse> is used the list will be alphabetical but if <mouse>adjust</mouse> is used it will be numerical (by filetype).  This menu can optionally have the file icons shown, depending on the option in the <link ref="Configuration">Choices window</link>.
+
+To match untyped files (those with real Load and Exec addresses), enter the special type <code>Untyped</code>.
+
+Although image directories will be viewed as directories when actually looking for files to check (assuming their ImageFS is currently loaded), their actual filetype is matched for the purposes of this test and they are treated as files.
+
+</chapter>
+
+
+
+
+<chapter title="Matching on Object attributes" file="Attributes">
+
+To check the file attributes, select <icon>Attributes</icon> in the left margin of the <link ref="Advanced">search window</link>.  To check a given attribute, select its entry and set the icons on the right as required.
+   
+All object types will be compared, even though it is not possible to give applications and directories private read and write access (at least under ADFS).  For this reason, <cite>Locate</cite> will only ever match files if these options are set to match <code>Yes</code>.
+
+</chapter>
+
+
+
+
+<chapter title="Matching on File contents" file="Contents">
+
+To check the file contents, select <icon>Contents</icon> in the left margin of the <link ref="Advanced">search window</link>.  Pick the search criteria from the drop-down menu: the default is not to check the file contents.  In the field below, enter the text to search for; this text is looked for within the file and can contain the usual wildcards (<code>#</code> to match any single character and <code>*</code> to match any zero or more characters, both including control characters).  The text is matched case sensitively unless <icon>Ignore case</icon> is ticked.
+
+If <icon>Allow control chars</icon> is selected, certain control characters can be entered using <code>\</code> sequences.  These are as follows:
+
+<list>
+<li><code>\a</code> - Bell (ASCII 7)
+<li><code>\b</code> - Backspace (ASCII 8)
+<li><code>\f</code> - Formfeed (ASCII 12)
+<li><code>\n</code> - Newline (ASCII 10)
+<li><code>\r</code> - Carriage Return (ASCII 13)
+<li><code>\t</code> - Tab (ASCII 9)
+<li><code>\v</code> - Vertical Tab (ASCII 11)
+<li><code>\\</code> - Backslash (ASCII 92)
+</list>
+
+The codes are always case-insensitive (so <code>\t</code> and <code>\T</code> are the same whatever the setting of the <icon>Ignore case</icon> switch); if any other character follows the <code>\</code>, both will be ignored.  If <icon>Allow control chars</icon> is off, no conversion takes place and <code>\t</code> would match the text <code>\t</code> in the file.
+
+Since searching file contents takes time, this check will only occur if all the other criteria set have been checked and found to match.  For this reason, it is a good idea to try and narrow down the search as much as possible (for example by specifying a list of filetypes to try, or a filename if known).
+
+</chapter>
+
+
+
+
+<chapter title="Configuration" file="Configuration">
+
+Selecting <menu>Choices...</menu> from the icon-bar menu allows the default behaviour of <cite>Locate</cite> to be changed.
+
+The <icon>Default search options</icon> section controls how the search options are set for new searches (these are remembered along with the other parameters for recalled searches).  The <icon>Search directory</icon> field contains the default directory to be searched: either type a path in or drag an object into the field.  <icon>Search in background</icon>, <icon>Ignore Image FSs' contents</icon>, <icon>Suppress FS errors</icon> and <icon>Full info display</icon> are the same as those in the search window.
+
+The <icon>History list</icon> section contains options relating to the history.  The <icon>History contains the last X searches</icon> field sets the length of the history list on the icon-bar menu.  If set to zero, the history feature will be disabled (this also affects <mouse>adjust</mouse> clicks on the icon bar).  <icon>Confirm new additions</icon> controls how new entries are added to the history.  When on, a window is opened each time a search is carried out, allowing the name of the entry to be changed or the whole entry to be discarded.  When off, new entries are simply added to the history with a default name.
+
+The <icon>Plugin behaviour</icon> section is only available to users of RISC OS <cite>Select</cite>, where <cite>Locate</cite> can act as a plugin for the <menu>Find</menu> option in the Filer.  <icon>Quit after use (no icon)</icon> determines how <cite>Locate</cite> behaves if it is started by the Filer to deal with a search.  If selected, no icon is placed on the icon bar and <cite>Locate</cite> will quit as soon as all its windows have been closed.  If not, <cite>Locate</cite> will behave as though it was loaded by the user.  If <icon>Open search window</icon> is selected, the search window will open after <menu>Find</menu> is selected in the Filer, with the relevant fields filled in.  If it is not selected, the <link ref="Results">results window</link> will open immediately; the search can be stopped and the parameters altered using the menu in the normal way.  Fully disabling the plugin operation must be done from within the <file>!Boot</file> and <file>!Run</file> files of <cite>Locate</cite>: see the <link ref="Plugin">Filer Action Plugin</link> section for details.
+
+When <icon>Scroll to new matches</icon> is on, the <link ref="Results">results window</link> scrolls down as new matches are found so that the last entry is always visible.  When off, the window does not scroll and new matches may be added out of sight.
+
+<icon>Icons in filetype menu</icon> specifies whether or not file icons are shown in the menu of filetypes that is available in the Types section of the search window.
+
+Click on <icon>Apply</icon> to use the changes or <icon>Save</icon> to save them and then use them (in both cases <mouse>adjust</mouse> will keep the window open).  Click on <icon>Cancel</icon> with <mouse>select</mouse> to close the window and forget the changes; click with <mouse>adjust</mouse> to reset the window contents to the state they were in when the window was last opened.
+
+
+<subhead title="Other configuration options">
+
+There are a few configuration options that are not included in the <window>choices window</window>.  These are features that most users will not need to alter, but they can help in some specific cases.
+
+The extra options are set by adding tokens to <cite>Locate</cite>'s <file>Choices</file> file.  This will be stored as <file>Choices:Locate.Choices</file> on machines with the new boot structure (ie. anything running RISC OS 3.5 or later); if not, it will be found at <file>!Locate.Choices</file>.  If the file is in neither of these locations, open the <window>choices window</window> and click on <icon>Save</icon> to cause a blank file to be written out.
+
+There are two options that can be set.  The first is <code>PathBufSize</code>, which is the size in bytes of the <icon>Search in</icon> field in the <window>search window</window>.  By default this is 4095 bytes long (4K); if you find yourself getting the message "There was not enough space in the search path buffer to add the new path" from <cite>Locate</cite>, you should increase this value.
+
+The second option is <code>OSGBPBReadSize</code>.  This determines the maximum number of objects that <cite>Locate</cite> will read each time it gets catalogue information from the disc it is searching.  The default of reading up to 1000 items in one go makes the searches significantly faster. If necessary, this can be reduced to resolve problems with some filing systems; for example, setting the number of objects read to 1, so that <cite>Locate</cite> will get each set of details separately. This will slow the search down.
+
+To set these options, load the <file>Choices</file> file into a text editor and add the options you require.  Each option should go on a new line.  An example file, containing a few options from the <window>choices window</window> might look like this:
+
+<codeblock>
+# >ADFS::Gromit.$.!BOOT.Choices.Locate.Choices
+#
+# Config file for Locate
+# Last automatically generated on Fri,02 Aug 2002
+
+SearchPath: ADFS::Wallace.$.Programming
+ConfirmHistoryAdd: Off
+PathBufSize: 8190
+OSGBPBReadSize: 1
+</codeblock>
+
+This will set the <icon>Search in</icon> field to 8K long (8190 bytes) and read one object at a time.  <code>SearchPath</code> and <code>ConfirmHistoryAdd</code> are set from the <window>choices window</window> and can be ignored.  The lines starting with <code>#</code> are comments and are ignored by <cite>Locate</cite>; blank lines are also ignored.
+
+Once the file has been changed and saved, quit and re-start <cite>Locate</cite> for the new options to take effect.  The extra entries in the file will be preserved if the choices are saved in the normal way from the <window>choices window</window>.
+
+If you manage to corrupt the <file>Choices</file> file, it can be deleted and <cite>Locate</cite> will create a new copy when the choices are next saved.  You will, however, lose any non-default settings you had made.
+
+</chapter>
+
+
+
+
+<chapter title="Filer Action Plugin" file="Plugin">
+
+<cite>Locate</cite> acts as a Filer Action Plugin under RISC OS <cite>Select</cite>, so that the <menu>Find</menu> option in the Filer menu causes <cite>Locate</cite> to be used instead of the standard search.
+
+For this to work, click the mouse or press <key>return</key> over the text field of the <menu>Find</menu> option.  Any text that is entered will be put into the <icon>File name</icon> field of the search window, and selected applications and directories are put into the <icon>Search in</icon> field.  Any files selected at the time will be ignored, as <cite>Locate</cite> can not search for files <em>in</em> files; if the current selection consists entirely of files, the parent directory is used instead.
+
+This feature can be disabled if required.  <key>Shift</key>-double-click on <file>!Locate</file> and load the <file>!Boot</file> and <file>!Run</file> files into a text editor (<key>shift</key>-double-click on them).  Find the line in each file that reads:
+
+<codeblock>
+Set Alias$@FilerAction_Find Run &lt;Obey$Dir&gt;.!Run -plugin
+</codeblock>
+
+Comment it out by inserting a vertical bar in front of it, like this:
+
+<codeblock>
+|Set Alias$@FilerAction_Find Run &lt;Obey$Dir&gt;.!Run -plugin
+</codeblock>
+
+Re-save the two files and after the machine has been re-started <cite>Locate</cite> will no longer behave as a plugin.
+
+To restore the plugin action, repeat the process but remove the vertical bar.
+
+Other details of the plugin operation can be set from the <link ref="Configuration">choices window</link>.
+
+</chapter>
+
+
+
+
+<chapter title="Version History" file="History">
+
+This is a complete list of all the changes made to the publicly released versions of <cite>Locate</cite>.  Note that some of the changes are very small and won't seem that important in general use.
+
+<subhead title="0.10 (20 March 2001)">
+
+<list>
+<li>Initial release version.
+</list>
+
+<subhead title="0.11 (23 March 2001)">
+
+<list>
+<li>Corrected default shading of icons in search window.
+<li>Implemented correct Tab caret movement in the <link ref="Simple">search window</link>.
+<li>Fixed Wimp_TextOp code so that it works under RISC OS 3.1.
+</list>
+  
+<subhead title="0.20 (27 March 2001)">
+
+<list>
+<li>Improved error handling within search loop, so that claimed memory is returned.
+<li>Transferred <link ref="Results">results window</link> formatting to ARM code for speed.
+<li><link ref="Results">Results windows</link> are re-formatted when the Desktop Font is changed, to ensure that as much text as possible is visible.
+<li>The option of case sensitivity added to filename matching.
+<li>Interactive help support is fully implemented.
+<li>The filetype menu in the search window is implemented in a basic way.
+<li>Keypresses are passed on to the Wimp correctly from the search window.
+<li><mouse>Adjust</mouse>-<icon>Cancel</icon> now resets the search window without closing it.
+<li>Fixed possible -- but very unlikely -- problem with MessageTrans file handling.
+<li>Choices window implemented in a limited way (only allowing the search path to be changed).
+<li>Fixed problem with broken pointers when clicking over empty section of results window.
+<li>Results can be saved out as text files.
+</list>
+
+<subhead title="0.21 (12 April 2001)">
+
+<list>
+<li>Fixed bug in search code that caused aborts and random crashes if the code returned to BASIC with the overflow flag set.
+</list>
+
+<subhead title="0.30 (19 April 2001)">
+
+<list>
+<li>Searches can now multi-task if required.
+<li>Clicking <mouse>select</mouse> on the icon-bar will bring the search window to the front if it's already open.
+<li>The item under the pointer is transiently selected when the results window menu is called up and menu options now act on the selected item if appropriate.
+<li>Implemented 'Open parent' menu option.
+<li><key>Escape</key> will exit from singletasking searches.
+<li>Further improvements to error trapping during searches.  It is now possible to continue a search if a filer error occurs, by dropping out of the current directory.
+<li>Error boxes brought in line with RISC OS 3.5 standards for those using the new(!) OS.
+<li>Caret movement within search window completed.
+<li>Dragging objects to the icon-bar will open a search window to search that path.
+<li>It is possible to ignore the contents of Image FS's directories (ie. treat them as files).
+<li>The modification dates of files can be specified in terms of age.
+<li>Searches on dates now work as expected for 'not in' ranges.
+</list>
+
+<subhead title="0.40 (19 June 2001)">
+
+<list>
+<li>Locate no longer crashes if the directory icon in the search window is dragged to a window that supports RAM transfers.
+<li>Corrected some apostrophes in the window templates.
+<li>File-system errors can be logged into the results window without raising an error during the search.
+<li>Search window tidied up, with 'advanced' search options hidden unless required.
+<li>Results can be saved in a format that can be loaded back into Locate, keeping all the search options available.
+<li>Icons redesigned and made more consistent.
+<li>A search history list allows the previous search parameters to be called up quickly for re-use.
+<li>Clicking <mouse>adjust</mouse> on the icon-bar opens the search window with the parameters from the last search.
+<li>Pressing <key>return</key> in choices window now has an effect.
+<li>Multiple filetypes can be searched for, along with the option to look for 'files not of type'.
+<li>Searching no longer tries to match applications and directories on the basis of their size, date or filetype: they now match by default.
+<li>Matching ImageFS's files as files is now possible: they are treated as directories for the files within (if the parent ImageFS is running) and as files for the matching.
+<li>File attributes (read and write access, locking) can now be matched.
+<li>Drag the icon-bar icon to a directory to open a search window for that location.
+<li>Proper use of the <file>!Boot.Choices</file> is now made on systems which support this feature.
+<li>Documentation overhauled and converted to <cite>StrongHelp</cite>.
+</list>
+
+<subhead title="0.50 (22 July 2001)">
+
+<list>
+<li>If no files are found, this now gets reported in the results window.
+<li>An information field is displayed at the bottom of the results window, showing the progress of a multitasking search.
+<li>The results window creation and formatting code has been rationalised.
+<li>Changes made to wildcard filename comparison code to speed it up.
+<li>File contents can now be searched with wildcards.
+<li>Searches can be saved from the search window, without the results.
+<li>Separate sprites for RISC OS 3 and RISC OS 4 now provided.
+<li>Selections can now be changed by drag-box in the results window (supports Wimp_AutoScroll on RISC OS 4).
+<li>No longer uses Wimp sprite pool for results window icons.
+<li>Fixed problem with panes not being located correctly on mode changes and re-sizes.
+<li>Fixed update of history field in choices window when reset.
+</list>
+
+<subhead title="0.60 (30 September 2001)">
+
+<list>
+<li>Files that are no longer present are handled more gracefully when run from the results window.
+<li>Save search option added to results window menu.
+<li>Filetype menu improved (faster generation, alphabetical sorting, icon sprites), using code provided by Harriet Bazley.
+<li>Bug with direct saving from search dialogue box fixed.
+<li>Fixed problem when a search settings file was loaded while the search window was open.
+<li>Interactive help in save window made context sensitive to the data being saved.
+<li>Objects and selections can be dragged out of results windows and on to other parts of the Desktop in the usual way.
+<li>The configured preference for DragASprite is read from CMOS on startup and honoured.
+<li>Datestamps of directories and applications are now checked when a date criteria has been set.
+<li>Fixed bug causing loose panes to be produced by an icon bar click if the search window was open.
+</list>
+
+<subhead title="0.62 (2 October 2001)">
+
+<list>
+<li>Fixed bug introduced in 0.60, which stopped dragging the directory to set the search path from working.
+<li>Support for the global clipboard added to results window.
+</list>
+
+<subhead title="0.65 (12 May 2002)">
+
+<list>
+<li>Added option to stop the results window scrolling down as new matches are found and added.
+<li>Fixed (hopefully) widthing bug in filetype menu under RISC OS 3.1.
+<li>Can now search a comma-separated list of directories.
+<li>Search is now more tolerant of filename termination.
+<li>Filetype menu can be made alphabetical or numerical depending on if <mouse>select</mouse> or <mouse>adjust</mouse> is used.
+<li>History entries can be given names.
+<li>Acts as FilerAction plugin under Select, so that searches can be started from the Filer menu.
+</list>
+
+<subhead title="0.66 (13 May 2002)">
+
+<list>
+<li>Bug which prevented Filer Action plugin from terminating correctly has been fixed.
+</list>
+
+<subhead title="0.67 (14 May 2002)">
+
+<list>
+<li>Bug which caused "Unknown or missing variable" errors as plugin searches ended has been fixed.
+<li>Clicking on the close icon of the 'active' results window during a search no longer crashes Locate (the search terminates correctly).
+</list>
+
+<subhead title="0.70 (10 July 2002)">
+
+<list>
+<li>BASIC string length restriction removed from search path list (now 4095 characters long by default).
+<li>Dragging objects into the path lists with <key>shift</key> held down /replaces/ the contents of the list.
+<li>A warning is given if a search is attempted with no paths specified.
+<li>Overlength strings are now caught on all drop-down menu insertions in the Search window.
+<li>Does not need an icon bar icon or search window when acting as a plugin, and can quit once the search is over.
+<li>Choices window re-designed.
+</list>
+
+<subhead title="0.71 (3 August 2002)">
+
+<list>
+<li>Fixed broken filetypes and file sizes reported when dragging objects out of the results window.
+<li>Bug in search error handling fixed (triggered when error reporting switched on).
+</list>
+
+<subhead title="0.72 (18 August 2002)">
+
+<list>
+<li>Fixed bug introduced in 0.70 that caused Age details to be ignored.
+</list>
+
+<subhead title="0.73 (22 August 2002)">
+
+<list>
+<li>Fixed bug introduced in 0.70 causing the action of the <icon>Ignore ImageFS's contents</icon> option to be inverted.
+<li>Fixed bug with Age searches using start and end values.
+</list>
+
+<subhead title="0.80 (29 September 2002)">
+
+<list>
+<li>Full info display option added for results window (Locate file format upgraded to Version 1).
+<li>Fixed various issues relating to manipulating and dragging selections in the results window.
+<li>Info bar at base of results window is now filled (as per Style Guide).
+<li>Added <menu>Select all</menu> option to results window menu.
+<li>Added <menu>Object info</menu> option to results window menu.
+<li>Menu-selected items in the results window deselect correctly if the menu tree closes.
+<li>Documentation merged into one central file, from which StrongHelp and text versions are derived automatically.  The contents of the original text help were discarded.
+<li>Save boxes now remember their filenames and settings until the menu tree is closed.
+<li>Size of selection drag boxes from results window (if DragASprite support is off) now calculated correctly if the window is scrolled to the end.
+<li>Search error counting bug fixed.
+<li><file>!Locate.!Help</file> updated to set &lt;Locate$HelpText&gt; to point to the plain text version of this file.
+<li>Missing interactive help added for Date/Age options pane.
+<li>Date and time selection windows added, to make entering the modification dates easier.
+<li>Full support for the RISC OS Theme Manager has been added.  Creating additional sprites is left as an exercise for the user.
+<li><window>Results window</window> entries are greyed out if they are found to have been moved since the files were located.
+<li><window>Results window</window> menu fixed so it works correctly with all windows during searching.
+<li><cite>Locate</cite> will refuse to load a file during a search (and hence not fall over in the process).  A better fix is required.
+</list>
+
+<subhead title="0.85 (14 December 2002)">
+
+Public Beta release.
+
+<list>
+<li>Code updated to be 26/32-bit neutral.
+<li>Search routines changed to use OS_GBPB 10, to avoid problems with several filesystems when using OS_GBPB 11.
+<li>Search can support Untyped files correctly (and the correct sprites are used under Select).
+</list>
+
+<subhead title="0.86 (6 February 2003)">
+
+Public Beta release.
+
+<list>
+<li>Corrected use of OS_HeapSort32.
+<li>Corrected bug in History menu width calculations under RISC OS 3.1.
+</list>
+
+<subhead title="0.87 (4 July 2003)">
+
+Public Beta release.
+
+<list>
+<li>Fixed bug that caused corrption of search options when <icon>File name</icon> field was left blank.
+<li>Added <icon>Website</icon> button to <window>Program Info</window> window.
+<li>Potential problem with aborted RAM transfers fixed.
+</list>
+
+<subhead title="0.88 (9 November 2003)">
+
+Public Alpha release.
+
+<list>
+<li>Added <code>-open</code> command line switch to allow a search window to be opened at startup.
+<li>Supplied <cite>StartLocate</cite> utility to allow <cite>Locate</cite> to be used with the <cite>STDMMK</cite> drivers.
+<li>Files with no read permissions are trapped cleanly and logged in the results window if a contents search is attempted.
+<li>Paths are checked for length, with <cite>Locate</cite> aborting the current directory if they get too long for BASIC strings (preventing a crash).
+</list>
+
+<subhead title="0.89 (1 February 2004)">
+
+<list>
+<li>Fixed bug with contents search routines that prevented matches from being reported.
+</list>
+
+<subhead title="0.89a (6 June 2004)">
+
+<list>
+<li>Fixed bug preventing unused keys being passed on from History Add window.
+</list>
+
+<subhead title="0.89b (8 December 2004)">
+
+<list>
+<li>Fixed bug causing filetype searches to fail for typed files when used in conjunction with date or age restrictions.
+</list>
+
+
+</chapter>
+
+
+
+
+<chapter title="Future Plans" file="ToDo">
+
+This version of <cite>Locate</cite> is still not finished and several intended features are not yet implemented.  A list of my future plans is included here; if there is something that you think would be useful that isn't on this list, let me know (my email address is on the index page).
+
+<list>
+<li>'Hotlist' type search history, allowing searches to be bookmarked and accessed quickly (do we need, since we can save searches anyway?).
+<li>Allow single-tasking searches to be paused.
+<li>Cache search results or file locations in a file for faster searching.
+<li>Correctly measure icon sprite widths when laying out the results window.
+<li>Improve memory management, by reducing heap fragmentation (may not be possible, since several Wimp features require static data).
+<li>Search the contents of Squashed files.
+<li>Allow actions to be carried out on found objects (set type, delete, etc.).
+<li>Give the search in field a drop-down menu listing the individual paths; toggle each on and off, and open individual entries?
+<li>Allow Regular Expressions to be used in file contents search.
+<li>Allow searches of search results.
+<li>Add stop/modify search buttons to the status bar (or toolbar).
+<li>Add a hotkey to open the <window>search window</window>.
+<li>Make <window>search window</window> opening configurable, so that any pane can be opened by default.
+</list>
+
+Some of these are very much 'internal' features that won't show up much to the user.  They are only listed here to keep one singe list of things still to be done.
+
+</chapter>
+
+
+
+
+
+<literal mode="Text">
+
+
+Updates and Contacting Me
+-------------------------
+
+  If you have any comments about Locate, or would like to report any bugs
+  that you find, you can email me at the address below.
+
+  Updates to Locate and more programs for RISC OS computers can be found
+  on my website at http://www.stevefryatt.org.uk/software/
+
+  Stephen Fryatt
+  email: steve@stevefryatt.org.uk
+</literal>
+
+
+
+
+<literal mode="Strong" file="!Configure">
+# Configure file for StrongHelp
+# Lines starting with "# " are comments (Note the space)
+# Lines starting with "#Commands" and "#End" are *not* comments.
+
+#Commands
+
+# f0  = Sassoon.Primary           14   Bold  1  Italic  2  Both  3
+# f1  = Sassoon.Primary.Bold      14   Bold  1  Italic  2  Both  3
+# f2  = Homerton.Medium.Oblique   14   Bold  1  Italic  2  Both  3
+# f3  = Homerton.Bold.Oblique     14   Bold  1  Italic  2  Both  3
+
+# The Body font
+
+f0  = Trinity.Medium          14   Bold  1  Italic  2  Both  3
+f1  = Trinity.Bold            14   Bold  1  Italic  2  Both  3
+f2  = Trinity.Medium.Italic   14   Bold  1  Italic  2  Both  3
+f3  = Trinity.Bold.Italic     14   Bold  1  Italic  2  Both  3
+f4  = Trinity.Medium          10
+
+# The Headline fonts
+
+f10 = Homerton.Bold           16
+f11 = Homerton.Bold.Oblique   14
+f12 = Trinity.Bold            14
+f13 = Trinity.Bold.Italic     12
+f14 = Trinity.Medium          10
+f15 = Trinity.Medium.Italic   8
+
+# The fonts used for fCode
+
+f20 = Corpus.Medium           14   Bold 21  Italic 22  Both 23
+f21 = Corpus.Bold             14   Bold 21  Italic 22  Both 23
+f22 = Corpus.Medium.Oblique   14   Bold 21  Italic 22  Both 23
+f23 = Corpus.Bold.Oblique     14   Bold 21  Italic 22  Both 23
+
+# Fonts 24 to 31 are reserved for the manuals themselves.
+
+# The styles..
+
+fStd       = f0
+fLink      = f_
+fStrong    = f*
+fEmphasis  = f/
+fUnderline = f_
+fCode      = f20
+fCite      = f/
+
+fH1        = f10
+fH2        = f11
+fH3        = f12
+fH4        = f13
+fH5        = f14
+fH6        = f15
+
+# Set default background and font
+
+#Background rgb 255,255,255
+Background wimp 1
+fStd
+
+#End
+</literal>
+
+
+
+
+<literal mode="HTML">
+
+<hr noshade>
+<h2>Updates and Contacting Me</h2>
+
+<p>If you have any comments about Locate, or would like to report any bugs that you find, you can email me at the address below.</p>
+
+<p>Updates to Locate and more programs for RISC OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/software/">http://www.stevefryatt.org.uk/software/</a></p>
+
+<p>Stephen Fryatt (email: <a href="mailto:steve@stevefryatt.org.uk">steve@stevefryatt.org.uk</a>)</p>
+</body>
+</html>
+</literal>
