@@ -18,9 +18,11 @@
 #include "oslib/wimp.h"
 #include "oslib/osspriteop.h"
 #include "oslib/uri.h"
+#include "oslib/hourglass.h"
 
 /* SF-Lib header files. */
 
+#include "sflib/config.h"
 #include "sflib/msgs.h"
 #include "sflib/menus.h"
 #include "sflib/resources.h"
@@ -32,7 +34,6 @@
 
 #include "global.h"
 #include "init.h"
-#include "compiledate.h"
 #include "buttons.h"
 
 /* ================================================================================================================== */
@@ -55,13 +56,13 @@ int initialise (void)
 
   hourglass_on ();
 
-  strcpy (resources, "<Launcher$Dir>.Resources");
-  find_resource_path (resources, RES_PATH_LEN);
+  strcpy(resources, "<Launcher$Dir>.Resources");
+  resources_find_path(resources, RES_PATH_LEN);
 
   /* Load the messages file. */
 
   strcpy (res_temp, resources);
-  msgs_init (strcat (res_temp, ".Messages"));
+  msgs_initialise(strcat (res_temp, ".Messages"));
 
   /* Initialise the error message system. */
 
@@ -78,8 +79,8 @@ int initialise (void)
 
   /* Initialise the flex heap. */
 
-  flex_init (task_name, 0, 0);
-  heap_init ();
+  flex_init(task_name, 0, 0);
+  heap_initialise();
 
   /* Read the mode size and details. */
 
@@ -87,22 +88,22 @@ int initialise (void)
 
   /* Load the configuration. */
 
-  initialise_configuration (task_name, "Launcher", "<Launcher$Dir>");
+  config_initialise(task_name, "Launcher", "<Launcher$Dir>");
 
-  init_config_int ("WindowColumns", 7);
-  init_config_opt ("Confirmdelete", 0);
+  config_int_init("WindowColumns", 7);
+  config_opt_init("Confirmdelete", 0);
 
-  load_configuration ();
+  config_load();
 
   /* Load the window templates and menu structure. */
 
   strcpy (res_temp, resources);
-  load_templates (strcat (res_temp, ".Templates"), &windows);
+  load_templates(strcat (res_temp, ".Templates"), &windows);
 
   window_list[0] = windows.prog_info;
 
-  strcpy (res_temp, resources);
-  load_menus (strcat (res_temp, ".Menus"), window_list, menu_list);
+  strcpy(res_temp, resources);
+  menus_load_templates(strcat(res_temp, ".Menus"), window_list, menu_list, 10);
 
   menus.main = menu_list[0];
 
