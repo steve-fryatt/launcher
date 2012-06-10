@@ -83,7 +83,7 @@ int load_buttons_file (char *leaf_name)
 
     if (file != NULL)
     {
-      while ((result = read_config_token_pair (file, token, contents, section)) != sf_READ_CONFIG_EOF)
+      while ((result = config_read_token_pair(file, token, contents, section)) != sf_READ_CONFIG_EOF)
       {
         if (result == sf_READ_CONFIG_NEW_SECTION)
         {
@@ -133,7 +133,7 @@ int load_buttons_file (char *leaf_name)
           }
           else if (strcmp (token, "Boot") == 0)
           {
-            current->filer_boot = read_opt_string (contents);
+            current->filer_boot = config_read_opt_string(contents);
           }
         }
       }
@@ -186,7 +186,7 @@ int save_buttons_file (char *leaf_name)
         fprintf (file, "YPos: %d\n", current->y);
         fprintf (file, "Sprite: %s\n", current->sprite);
         fprintf (file, "RunPath: %s\n", current->command);
-        fprintf (file, "Boot: %s\n", return_opt_string (current->filer_boot));
+        fprintf (file, "Boot: %s\n", config_return_opt_string(current->filer_boot));
 
         current = current->next;
       }
@@ -236,7 +236,7 @@ int create_button_icon (button *button_def)
       error = xwimp_delete_icon (icon_definition.w, button_def->icon);
       if (error != NULL)
       {
-        wimp_program_report (error);
+        error_report_program(error);
       }
 
       button_def->icon = -1;
@@ -273,11 +273,11 @@ void toggle_launch_window (void)
 {
   if (window_open)
   {
-    open_launch_window (0, wimp_BOTTOM);
+    open_launch_window(0, wimp_BOTTOM);
   }
   else
   {
-    open_launch_window (read_config_int ("WindowColumns"), wimp_TOP);
+    open_launch_window(config_int_read("WindowColumns"), wimp_TOP);
   }
 }
 
@@ -339,15 +339,15 @@ int fill_edit_button_window (wimp_i icon)
 
   if (list != NULL)
   {
-    strcpy (indirected_icon_text (windows.edit, 2), list->name);
-    strcpy (indirected_icon_text (windows.edit, 8), list->sprite);
-    strcpy (indirected_icon_text (windows.edit, 11), list->command);
+    icons_strncpy(windows.edit, 2, list->name);
+    icons_strncpy(windows.edit, 8, list->sprite);
+    icons_strncpy(windows.edit, 11, list->command);
 
-    sprintf (indirected_icon_text (windows.edit, 5), "%d", list->x);
-    sprintf (indirected_icon_text (windows.edit, 7), "%d", list->y);
+    icons_printf(windows.edit, 5, "%d", list->x);
+    icons_printf(windows.edit, 7, "%d", list->y);
 
-    set_icon_selected (windows.edit, 10, list->local_copy);
-    set_icon_selected (windows.edit, 13, list->filer_boot);
+    icons_set_selected(windows.edit, 10, list->local_copy);
+    icons_set_selected(windows.edit, 13, list->filer_boot);
   }
 
   edit_button = list;
@@ -362,8 +362,8 @@ int open_edit_button_window (wimp_pointer *pointer)
   extern global_windows windows;
 
 
-  open_window_centred_at_pointer (windows.edit, pointer);
-  put_caret_at_end (windows.edit, 2);
+  windows_open_centred_at_pointer(windows.edit, pointer);
+  icons_put_caret_at_end(windows.edit, 2);
 
   return (0);
 }
@@ -375,13 +375,13 @@ int redraw_edit_button_window (void)
   extern global_windows windows;
 
 
-  wimp_set_icon_state (windows.edit, 2, 0, 0);
-  wimp_set_icon_state (windows.edit, 8, 0, 0);
-  wimp_set_icon_state (windows.edit, 11, 0, 0);
-  wimp_set_icon_state (windows.edit, 5, 0, 0);
-  wimp_set_icon_state (windows.edit, 7, 0, 0);
+  wimp_set_icon_state(windows.edit, 2, 0, 0);
+  wimp_set_icon_state(windows.edit, 8, 0, 0);
+  wimp_set_icon_state(windows.edit, 11, 0, 0);
+  wimp_set_icon_state(windows.edit, 5, 0, 0);
+  wimp_set_icon_state(windows.edit, 7, 0, 0);
 
-  replace_caret_in_window (windows.edit);
+  icons_replace_caret_in_window(windows.edit);
 
   return 1;
 }
@@ -406,15 +406,15 @@ int read_edit_button_window (button *button_def)
 
   if (button_def != NULL)
   {
-    ctrl_strcpy (button_def->name, indirected_icon_text (windows.edit, 2));
-    ctrl_strcpy (button_def->sprite, indirected_icon_text (windows.edit, 8));
-    ctrl_strcpy (button_def->command, indirected_icon_text (windows.edit, 11));
+    icons_copy_text(windows.edit, 2, button_def->name);
+    icons_copy_text(windows.edit, 8, button_def->sprite);
+    icons_copy_text(windows.edit, 11, button_def->command);
 
-    button_def->x = atoi (indirected_icon_text (windows.edit, 5));
-    button_def->y = atoi (indirected_icon_text (windows.edit, 7));
+    button_def->x = atoi(icons_get_indirected_text_addr(windows.edit, 5));
+    button_def->y = atoi(icons_get_indirected_text_addr(windows.edit, 7));
 
-    button_def->local_copy = read_icon_selected (windows.edit, 10);
-    button_def->filer_boot = read_icon_selected (windows.edit, 13);
+    button_def->local_copy = icons_get_selected(windows.edit, 10);
+    button_def->filer_boot = icons_get_selected(windows.edit, 13);
   }
 
   create_button_icon (button_def);
@@ -456,7 +456,7 @@ int press_button (wimp_i icon)
     error = xos_cli (command);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_OK_ICON);
+      error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
     }
 
     free (command);
