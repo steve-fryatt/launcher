@@ -4,7 +4,7 @@
 # UK Version
 
 TaskName:Launcher
-Version:0.30 (%0)
+Version:%0 (%0)
 
 TaskSpr:application
 SupportURL:http://www.stevefryatt.org.uk/software/utils/

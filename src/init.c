@@ -23,6 +23,7 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
+#include "sflib/icons.h"
 #include "sflib/msgs.h"
 #include "sflib/menus.h"
 #include "sflib/resources.h"
@@ -128,6 +129,8 @@ int initialise (void)
 void load_templates (char *template_file, global_windows *windows)
 {
   int                               context = 0, def_size, ind_size;
+	char*			date = BUILD_DATE;
+
 
   byte                              *ind_data;
   const char                        *ind_data_end;
@@ -171,9 +174,9 @@ void load_templates (char *template_file, global_windows *windows)
   window_def = (wimp_window *) malloc (def_size);
   wimp_load_template (window_def, ind_data, ind_data_end, wimp_NO_FONTS, "ProgInfo", context, &def_size, &ind_size);
   windows->prog_info = wimp_create_window (window_def);
-  msgs_param_lookup ("Version",
-                     window_def->icons[6].data.indirected_text.text, window_def->icons[6].data.indirected_text.size,
-                     INFO_BOX_DATE, NULL, NULL, NULL);
+  icons_msgs_param_lookup(windows->prog_info, 6, "Version", BUILD_VERSION, date, NULL, NULL);
+  icons_printf(windows->prog_info, 8, "\xa9 Stephen Fryatt, 2003-%s", date + 7);
+
   free (window_def);
   ind_data = (byte *) ind_size;
 
