@@ -73,7 +73,7 @@ int load_buttons_file (char *leaf_name)
 
   /* Find a buttons file somewhere in the usual config locations. */
 
-  find_config_load_file (filename, sizeof(filename), leaf_name);
+  config_find_load_file (filename, sizeof(filename), leaf_name);
 
   if (*filename != '\0')
   {
@@ -167,7 +167,7 @@ int save_buttons_file (char *leaf_name)
 
   /* Find a buttons file to write somewhere in the usual config locations. */
 
-  find_config_save_file (filename, sizeof(filename), leaf_name);
+  config_find_save_file (filename, sizeof(filename), leaf_name);
 
   if (*filename != '\0')
   {
