@@ -46,8 +46,10 @@
 
 /* ================================================================================================================== */
 
-static void		main_poll_loop(void);
-static void		main_initialise(void);
+static void	main_poll_loop(void);
+static void	main_initialise(void);
+static osbool	main_message_quit(wimp_message *message);
+static osbool	main_message_mode_change(wimp_message *message);
 
 
 /* Declare the global variables that are used. */
@@ -116,11 +118,6 @@ static void main_poll_loop(void)
 			case wimp_MENU_SELECTION:
 				menu_selection_handler (&(blk.selection));
 				break;
-
-			case wimp_USER_MESSAGE:
-			case wimp_USER_MESSAGE_RECORDED:
-				user_message_handler (&(blk.message));
-				break;
 			}
 		}
 	}
@@ -167,6 +164,9 @@ static void main_initialise(void)
 	message_list.messages[3]=message_QUIT;
 	msgs_lookup("TaskName:Launcher", task_name, sizeof(task_name));
 	main_task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, (wimp_message_list *) &message_list, NULL);
+
+	event_add_message_handler(message_QUIT, EVENT_MESSAGE_INCOMING, main_message_quit);
+	event_add_message_handler(message_MODE_CHANGE, EVENT_MESSAGE_INCOMING, main_message_mode_change);
 
 	/* Initialise the flex heap. */
 
@@ -217,6 +217,30 @@ static void main_initialise(void)
 	/* Tidy up and finish initialisation. */
 
 	hourglass_off();
+}
+
+
+/**
+ * Handle incoming Message_Quit.
+ */
+
+static osbool main_message_quit(wimp_message *message)
+{
+	main_quit_flag = TRUE;
+
+	return TRUE;
+}
+
+
+/**
+ * Handle incoming Message_ModeChange.
+ */
+
+static osbool main_message_mode_change(wimp_message *message)
+{
+	// read_mode_size();
+
+	return TRUE;
 }
 
 
@@ -368,29 +392,6 @@ void menu_selection_handler (wimp_selection *selection)
   if (pointer.buttons == wimp_CLICK_ADJUST)
   {
     wimp_create_menu (menus.menu_up, 0, 0);
-  }
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void user_message_handler (wimp_message *message)
-
-/* User message handler.
- *
- * All messages are handled internally, except for Message_Quit which must be passed back up the chain to
- * the calling function so that it can act on it.
- */
-
-{
-  switch (message->action)
-  {
-    case message_QUIT:
-      main_quit_flag=TRUE;
-      break;
-
-    case message_MODE_CHANGE:
-      /* read_mode_size (); */
-      break;
   }
 }
 
