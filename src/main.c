@@ -11,6 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Acorn C header files */
+
+#include "flex.h"
+
 /* OSLib header files */
 
 #include "oslib/hourglass.h"
@@ -19,22 +23,32 @@
 #include "oslib/messagetrans.h"
 #include "oslib/uri.h"
 
+/* SF-Lib header files */
+
+#include "sflib/config.h"
+#include "sflib/debug.h"
+#include "sflib/event.h"
+#include "sflib/errors.h"
+#include "sflib/heap.h"
+#include "sflib/menus.h"
+#include "sflib/msgs.h"
+#include "sflib/resources.h"
+#include "sflib/url.h"
+
 /* Application header files */
 
 #include "global.h"
+
 #include "main.h"
+
 #include "buttons.h"
 #include "init.h"
 
-/* SF-Lib header files */
-
-#include "sflib/menus.h"
-#include "sflib/url.h"
-#include "sflib/msgs.h"
-#include "sflib/debug.h"
-#include "sflib/event.h"
-
 /* ================================================================================================================== */
+
+static void		main_poll_loop(void);
+static void		main_initialise(void);
+
 
 /* Declare the global variables that are used. */
 
@@ -43,13 +57,12 @@ global_menus    menus;
 
 wimp_i          button_menu_icon;
 
-/* Cross file global variables. */
+/*
+ * Cross file global variables
+ */
 
-wimp_t                     task_handle;
-int                        quit_flag = FALSE;
-
-
-static void		main_poll_loop(void);
+wimp_t			main_task_handle;
+osbool			main_quit_flag = FALSE;
 
 /* ================================================================================================================== */
 
@@ -61,14 +74,12 @@ static void		main_poll_loop(void);
 
 int main(void)
 {
-	extern wimp_t                     task_handle;
-
-	initialise();
+	main_initialise();
 
 	main_poll_loop();
 
 	msgs_terminate();
-	wimp_close_down(task_handle);
+	wimp_close_down(main_task_handle);
 
 	return 0;
 }
@@ -83,9 +94,8 @@ static void main_poll_loop(void)
 	wimp_event_no		reason;
 	wimp_block		blk;
 
-  extern int        quit_flag;
 
-	while (!quit_flag) {
+	while (!main_quit_flag) {
 		reason = wimp_poll(wimp_MASK_NULL, &blk, NULL);
 
 		if (!event_process_event(reason, &blk, 0)) {
@@ -115,6 +125,102 @@ static void main_poll_loop(void)
 		}
 	}
 }
+
+
+/**
+ * Application initialisation.
+ */
+
+static void main_initialise(void)
+{
+	static char		task_name[255];
+	char			resources[RES_PATH_LEN], res_temp[RES_PATH_LEN];
+
+	wimp_MESSAGE_LIST(4)	message_list;
+	wimp_icon_create	icon_bar;
+	wimp_w			window_list[10];
+	wimp_menu		*menu_list[10];
+
+	extern global_windows	windows;
+	extern global_menus	menus;
+
+
+	hourglass_on();
+
+	strcpy(resources, "<Launcher$Dir>.Resources");
+	resources_find_path(resources, RES_PATH_LEN);
+
+	/* Load the messages file. */
+
+	snprintf(res_temp, sizeof(res_temp), "%s.Messages", resources);
+	msgs_initialise(res_temp);
+
+	/* Initialise the error message system. */
+
+	error_initialise("TaskName:Launcher", "TaskSpr:!application", NULL);
+
+	/* Initialise with the Wimp. */
+
+	message_list.messages[0]=message_MODE_CHANGE;
+	message_list.messages[1]=message_URI_RETURN_RESULT;
+	message_list.messages[2]=message_ANT_OPEN_URL;
+	message_list.messages[3]=message_QUIT;
+	msgs_lookup("TaskName:Launcher", task_name, sizeof(task_name));
+	main_task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, (wimp_message_list *) &message_list, NULL);
+
+	/* Initialise the flex heap. */
+
+	flex_init(task_name, 0, 0);
+	heap_initialise();
+
+	/* Read the mode size and details. */
+
+	/* read_mode_size(); */
+
+	/* Load the configuration. */
+
+	config_initialise(task_name, "Launcher", "<Launcher$Dir>");
+
+	config_int_init("WindowColumns", 7);
+	config_opt_init("Confirmdelete", 0);
+
+	config_load();
+
+	/* Load the menu structure. */
+
+
+	/* Load the window templates. */
+
+	snprintf(res_temp, sizeof(res_temp), "%s.Templates", resources);
+	load_templates(res_temp, &windows);
+
+	window_list[0] = windows.prog_info;
+
+	snprintf(res_temp, sizeof(res_temp), "%s.Menus", resources);
+	menus_load_templates(res_temp, window_list, menu_list, 10);
+
+	menus.main = menu_list[0];
+
+	/* Initialise the individual modules. */
+
+	url_initialise();
+
+	/* Load the button definitions. */
+
+	load_buttons_file("Buttons");
+	boot_buttons();
+
+	/* Open the launch window. */
+
+	open_launch_window(0, wimp_BOTTOM);
+
+	/* Tidy up and finish initialisation. */
+
+	hourglass_off();
+}
+
+
+
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -236,8 +342,6 @@ void menu_selection_handler (wimp_selection *selection)
 {
   wimp_pointer pointer;
 
-  extern int   quit_flag;
-
 
   wimp_get_pointer_info (&pointer);
 
@@ -257,7 +361,7 @@ void menu_selection_handler (wimp_selection *selection)
     }
     else if (selection->items[0] == 5) /* Quit */
     {
-      quit_flag = TRUE;
+      main_quit_flag = TRUE;
     }
   }
 
@@ -278,13 +382,10 @@ void user_message_handler (wimp_message *message)
  */
 
 {
-  extern int quit_flag;
-
-
   switch (message->action)
   {
     case message_QUIT:
-      quit_flag=TRUE;
+      main_quit_flag=TRUE;
       break;
 
     case message_MODE_CHANGE:

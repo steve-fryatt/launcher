@@ -16,7 +16,6 @@
 
 /* Initialisation functions. */
 
-int initialise (void);
 void load_templates (char *template_file, global_windows *windows);
 
 #endif
