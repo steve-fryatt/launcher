@@ -108,6 +108,8 @@ int initialise (void)
 
   menus.main = menu_list[0];
 
+  url_initialise();
+
   /* Load the button definitions. */
 
   load_buttons_file ("Buttons");

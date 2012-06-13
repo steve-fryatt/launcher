@@ -24,6 +24,7 @@
 #include "global.h"
 #include "main.h"
 #include "buttons.h"
+#include "init.h"
 
 /* SF-Lib header files */
 
@@ -31,6 +32,7 @@
 #include "sflib/url.h"
 #include "sflib/msgs.h"
 #include "sflib/debug.h"
+#include "sflib/event.h"
 
 /* ================================================================================================================== */
 
@@ -46,65 +48,72 @@ wimp_i          button_menu_icon;
 wimp_t                     task_handle;
 int                        quit_flag = FALSE;
 
+
+static void		main_poll_loop(void);
+
 /* ================================================================================================================== */
 
-int main (void)
+
+
+/**
+ * Main code entry point.
+ */
+
+int main(void)
 {
-  extern wimp_t                     task_handle;
+	extern wimp_t                     task_handle;
 
+	initialise();
 
-  initialise ();
+	main_poll_loop();
 
-  poll_loop ();
+	msgs_terminate();
+	wimp_close_down(task_handle);
 
-  msgs_close_file ();
-  wimp_close_down (task_handle);
-
-  return (0);
+	return 0;
 }
 
-/* ================================================================================================================== */
 
-int poll_loop (void)
+/**
+ * Wimp Poll loop.
+ */
+
+static void main_poll_loop(void)
 {
-  wimp_block        blk;
-  int               pollword;
+	wimp_event_no		reason;
+	wimp_block		blk;
 
   extern int        quit_flag;
 
+	while (!quit_flag) {
+		reason = wimp_poll(wimp_MASK_NULL, &blk, NULL);
 
-  while (!quit_flag)
-  {
-    switch (wimp_poll (wimp_MASK_NULL, &blk, &pollword))
-    {
-      case wimp_OPEN_WINDOW_REQUEST:
-        wimp_open_window (&(blk.open));
-        break;
+		if (!event_process_event(reason, &blk, 0)) {
 
-      case wimp_CLOSE_WINDOW_REQUEST:
-        wimp_close_window (blk.close.w);
-        break;
+			switch (reason) {
+			case wimp_OPEN_WINDOW_REQUEST:
+				wimp_open_window (&(blk.open));
+				break;
 
-      case wimp_MOUSE_CLICK:
-        mouse_click_handler (&(blk.pointer));
-        break;
+			case wimp_CLOSE_WINDOW_REQUEST:
+				wimp_close_window (blk.close.w);
+				break;
 
-      case wimp_MENU_SELECTION:
-        menu_selection_handler (&(blk.selection));
-        break;
+			case wimp_MOUSE_CLICK:
+				mouse_click_handler (&(blk.pointer));
+				break;
 
-      case wimp_USER_MESSAGE:
-      case wimp_USER_MESSAGE_RECORDED:
-        user_message_handler (&(blk.message));
-        break;
+			case wimp_MENU_SELECTION:
+				menu_selection_handler (&(blk.selection));
+				break;
 
-      case wimp_USER_MESSAGE_ACKNOWLEDGE:
-        bounced_message_handler (&(blk.message));
-        break;
-    }
-  }
-
-  return 0;
+			case wimp_USER_MESSAGE:
+			case wimp_USER_MESSAGE_RECORDED:
+				user_message_handler (&(blk.message));
+				break;
+			}
+		}
+	}
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -172,7 +181,7 @@ void mouse_click_handler (wimp_pointer *pointer)
         }
 
         button_menu_icon = pointer->i;
-        menus.menu_up = create_standard_menu (menus.main, pointer);
+        menus.menu_up = menus_create_standard_menu (menus.main, pointer);
         break;
     }
   }
@@ -215,7 +224,7 @@ void mouse_click_handler (wimp_pointer *pointer)
       char temp_buf[256];
 
       msgs_lookup ("SupportURL:http://www.stevefryatt.org.uk/software/utils/", temp_buf, sizeof (temp_buf));
-      launch_url (temp_buf);
+      url_launch(temp_buf);
       wimp_create_menu ((wimp_menu *) -1, 0, 0);
     }
   }
@@ -278,30 +287,8 @@ void user_message_handler (wimp_message *message)
       quit_flag=TRUE;
       break;
 
-    case message_URI_RETURN_RESULT:
-      url_bounce (message);
-      break;
-
     case message_MODE_CHANGE:
       /* read_mode_size (); */
-      break;
-  }
-}
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void bounced_message_handler (wimp_message *message)
-
-/* User message handler.
- *
- * All messages are handled internally, except for Message_Quit which must be passed back up the chain to
- * the calling function so that it can act on it.
- */
-
-{
-  switch (message->action)
-  {
-    case message_ANT_OPEN_URL:
-      url_bounce (message);
       break;
   }
 }
