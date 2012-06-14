@@ -4,8 +4,8 @@
  * Desktop application launcher.
  */
 
-#ifndef _LAUNCHER_LAUNCHER
-#define _LAUNCHER_LAUNCHER
+#ifndef LAUNCHER_LAUNCHER
+#define LAUNCHER_LAUNCHER
 
 /* ================================================================================================================== */
 
