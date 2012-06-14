@@ -5,36 +5,30 @@
  * 14 Sep 2003
  */
 
-menu (main_menu, "Launcher")
-{
-  item ("Info")
-  {
-    d_box (prog_info);
-    dotted;
-  }
-  item ("Button")
-  {
-    submenu (button_menu);
-  }
-  item ("New button...")
-  {
-    dotted;
-  }
-  item ("Save buttons");
-  item ("Choices...")
-  {
-    dotted;
-  }
-  item ("Quit");
+menu(main_menu, "Launcher") {
+	item("Info") {
+		d_box(ProgInfo);
+		dotted;
+	}
+	item("Button") {
+		submenu(button_menu);
+	}
+	item("New button...") {
+		dotted;
+	}
+	item("Save buttons");
+	item("Choices...") {
+		dotted;
+	}
+	item("Quit");
 }
 
 
-menu (button_menu, "Button")
+menu(button_menu, "Button")
 {
-  item ("Edit button...");
-  item ("Move button")
-  {
-    dotted;
-  }
-  item ("Delete button");
+	item("Edit button...");
+	item("Move button") {
+		dotted;
+	}
+	item("Delete button");
 }
