@@ -13,6 +13,7 @@
 
 enum templates_menus {
 	TEMPLATES_MENU_MAIN = 0,						/**< The Main Menu.			*/
+	TEMPLATES_BUTTON_MENU,							/**< The Button Submenu.		*/
 	TEMPLATES_MENU_MAX_EXTENT						/**< Determine the number of entries.	*/
 };
 

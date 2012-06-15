@@ -43,7 +43,16 @@ button;
 
 /* Launch functions. */
 
-void initialise_buttons_window (wimp_w window, wimp_icon sample_icon, wimp_icon edge_icon);
+/**
+ * Initialise the buttons window.
+ */
+
+void buttons_initialise(void);
+
+
+
+
+
 int load_buttons_file (char *leaf_name);
 int save_buttons_file (char *leaf_name);
 void boot_buttons (void);

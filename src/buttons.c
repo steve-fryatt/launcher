@@ -17,17 +17,51 @@
 
 #include "sflib/config.h"
 #include "sflib/errors.h"
-#include "sflib/icons.h"
-#include "sflib/windows.h"
+#include "sflib/event.h"
 #include "sflib/heap.h"
+#include "sflib/icons.h"
+#include "sflib/menus.h"
+#include "sflib/msgs.h"
 #include "sflib/string.h"
+#include "sflib/url.h"
+#include "sflib/windows.h"
 
 /* Application header files. */
 
-#include "global.h"
 #include "buttons.h"
 
+#include "ihelp.h"
+#include "main.h"
+#include "templates.h"
+
+
+/* Program Info Window */
+
+#define ICON_PROGINFO_AUTHOR  4
+#define ICON_PROGINFO_VERSION 6
+#define ICON_PROGINFO_WEBSITE 8
+
+/* Main Menu */
+
+#define MAIN_MENU_INFO 0
+#define MAIN_MENU_BUTTON 1
+#define MAIN_MENU_NEW_BUTTON 2
+#define MAIN_MENU_SAVE_BUTTONS 3
+#define MAIN_MENU_CHOICES 4
+#define MAIN_MENU_QUIT 5
+
+/* Button Submenu */
+
+#define BUTTON_MENU_EDIT 0
+#define BUTTON_MENU_MOVE 1
+#define BUTTON_MENU_DELETE 2
+
 /* ================================================================================================================== */
+
+static void	buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
+static void	buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static osbool	buttons_proginfo_web_click(wimp_pointer *pointer);
+
 
 static button           *button_list = NULL, *edit_button = NULL;
 
@@ -43,21 +77,78 @@ static int              button_x_base,
 
 static bool             window_open;
 
+
+static wimp_w		buttons_window = NULL;			/**< The handle of the buttons window.		*/
+static wimp_w		buttons_edit_window = NULL;		/**< The handle of the button edit window.	*/
+static wimp_w		buttons_info_window = NULL;		/**< The handle of the program info window.	*/
+
+static wimp_menu	*buttons_menu = NULL;			/**< The main menu.				*/
+
+static wimp_i		buttons_menu_icon = 0;			/**< The icon over which the main menu opened.	*/
+
+
 /* ================================================================================================================== */
 
-void initialise_buttons_window (wimp_w window, wimp_icon sample_icon, wimp_icon edge_icon)
+
+/**
+ * Initialise the buttons window.
+ */
+
+void buttons_initialise(void)
 {
-  icon_definition.icon = sample_icon;
-  icon_definition.w = window;
+	char*			date = BUILD_DATE;
+	wimp_window		*def = NULL;
 
-  button_x_base = sample_icon.extent.x0;
-  button_y_base = sample_icon.extent.y0;
-  button_width = sample_icon.extent.x1 - sample_icon.extent.x0;
-  button_height = sample_icon.extent.y1 - sample_icon.extent.y0;
 
-  window_offset = edge_icon.extent.x0;
-  window_x_extent = edge_icon.extent.x1;
+	/* Initialise the menus used in the window. */
+
+	buttons_menu = templates_get_menu(TEMPLATES_MENU_MAIN);
+
+	/* Initialise the main Buttons window. */
+
+	def = templates_load_window("Launch");
+	if (def == NULL)
+		error_msgs_report_fatal("BadTemplate");
+
+	def->icon_count = 1;
+	buttons_window = wimp_create_window(def);
+	ihelp_add_window(buttons_window, "Launch", NULL);
+	event_add_window_menu(buttons_window, buttons_menu);
+	event_add_window_menu_prepare(buttons_window, buttons_menu_prepare);
+	event_add_window_menu_selection(buttons_window, buttons_menu_selection);
+
+
+	icon_definition.icon = def->icons[1];
+	icon_definition.w = buttons_window;
+
+	button_x_base = def->icons[1].extent.x0;
+	button_y_base = def->icons[1].extent.y0;
+	button_width = def->icons[1].extent.x1 - def->icons[1].extent.x0;
+	button_height = def->icons[1].extent.y1 - def->icons[1].extent.y0;
+
+	window_offset = def->icons[0].extent.x0;
+	window_x_extent = def->icons[0].extent.x1;
+
+	free(def);
+
+	/* Initialise the Edit window. */
+
+	buttons_edit_window = templates_create_window("Edit");
+	ihelp_add_window(buttons_edit_window, "Edit", NULL);
+
+	/* Initialise the Program Info window. */
+
+	buttons_info_window = templates_create_window("ProgInfo");
+	ihelp_add_window(buttons_info_window, "ProgInfo", NULL);
+	icons_msgs_param_lookup(buttons_info_window, ICON_PROGINFO_VERSION, "Version", BUILD_VERSION, date, NULL, NULL);
+	icons_printf(buttons_info_window, ICON_PROGINFO_AUTHOR, "\xa9 Stephen Fryatt, 2003-%s", date + 7);
+	event_add_window_icon_click(buttons_info_window, ICON_PROGINFO_WEBSITE, buttons_proginfo_web_click);
+	templates_link_menu_dialogue("ProgInfo", buttons_info_window);
+
+
+
 }
+
 
 /* ================================================================================================================== */
 
@@ -288,12 +379,10 @@ void open_launch_window (int columns, wimp_w window_level)
   int open_offset;
   wimp_open window;
 
-  extern global_windows windows;
-
 
   open_offset = (button_x_base - 2*BUTTON_GUTTER - ((columns - 1) * (button_width/2 + BUTTON_GUTTER)));
 
-  window.w = windows.launch;
+  window.w = buttons_window;
 
   window.visible.x0 = 0;
   window.visible.x1 = columns ? window_x_extent - open_offset : window_x_extent - window_offset;
@@ -323,8 +412,6 @@ int fill_edit_button_window (wimp_i icon)
 
   button                *list = button_list;
 
-  extern global_windows windows;
-
   if (icon != -1)
   {
     while (list != NULL && list->icon != icon)
@@ -339,15 +426,15 @@ int fill_edit_button_window (wimp_i icon)
 
   if (list != NULL)
   {
-    icons_strncpy(windows.edit, 2, list->name);
-    icons_strncpy(windows.edit, 8, list->sprite);
-    icons_strncpy(windows.edit, 11, list->command);
+    icons_strncpy(buttons_edit_window, 2, list->name);
+    icons_strncpy(buttons_edit_window, 8, list->sprite);
+    icons_strncpy(buttons_edit_window, 11, list->command);
 
-    icons_printf(windows.edit, 5, "%d", list->x);
-    icons_printf(windows.edit, 7, "%d", list->y);
+    icons_printf(buttons_edit_window, 5, "%d", list->x);
+    icons_printf(buttons_edit_window, 7, "%d", list->y);
 
-    icons_set_selected(windows.edit, 10, list->local_copy);
-    icons_set_selected(windows.edit, 13, list->filer_boot);
+    icons_set_selected(buttons_edit_window, 10, list->local_copy);
+    icons_set_selected(buttons_edit_window, 13, list->filer_boot);
   }
 
   edit_button = list;
@@ -359,11 +446,8 @@ int fill_edit_button_window (wimp_i icon)
 
 int open_edit_button_window (wimp_pointer *pointer)
 {
-  extern global_windows windows;
-
-
-  windows_open_centred_at_pointer(windows.edit, pointer);
-  icons_put_caret_at_end(windows.edit, 2);
+  windows_open_centred_at_pointer(buttons_edit_window, pointer);
+  icons_put_caret_at_end(buttons_edit_window, 2);
 
   return (0);
 }
@@ -372,16 +456,13 @@ int open_edit_button_window (wimp_pointer *pointer)
 
 int redraw_edit_button_window (void)
 {
-  extern global_windows windows;
+  wimp_set_icon_state(buttons_edit_window, 2, 0, 0);
+  wimp_set_icon_state(buttons_edit_window, 8, 0, 0);
+  wimp_set_icon_state(buttons_edit_window, 11, 0, 0);
+  wimp_set_icon_state(buttons_edit_window, 5, 0, 0);
+  wimp_set_icon_state(buttons_edit_window, 7, 0, 0);
 
-
-  wimp_set_icon_state(windows.edit, 2, 0, 0);
-  wimp_set_icon_state(windows.edit, 8, 0, 0);
-  wimp_set_icon_state(windows.edit, 11, 0, 0);
-  wimp_set_icon_state(windows.edit, 5, 0, 0);
-  wimp_set_icon_state(windows.edit, 7, 0, 0);
-
-  icons_replace_caret_in_window(windows.edit);
+  icons_replace_caret_in_window(buttons_edit_window);
 
   return 1;
 }
@@ -396,7 +477,6 @@ int read_edit_button_window (button *button_def)
    * the button for whom the window was opened is updated.
    */
 
-  extern global_windows windows;
 
 
   if (button_def == NULL)
@@ -406,15 +486,15 @@ int read_edit_button_window (button *button_def)
 
   if (button_def != NULL)
   {
-    icons_copy_text(windows.edit, 2, button_def->name);
-    icons_copy_text(windows.edit, 8, button_def->sprite);
-    icons_copy_text(windows.edit, 11, button_def->command);
+    icons_copy_text(buttons_edit_window, 2, button_def->name);
+    icons_copy_text(buttons_edit_window, 8, button_def->sprite);
+    icons_copy_text(buttons_edit_window, 11, button_def->command);
 
-    button_def->x = atoi(icons_get_indirected_text_addr(windows.edit, 5));
-    button_def->y = atoi(icons_get_indirected_text_addr(windows.edit, 7));
+    button_def->x = atoi(icons_get_indirected_text_addr(buttons_edit_window, 5));
+    button_def->y = atoi(icons_get_indirected_text_addr(buttons_edit_window, 7));
 
-    button_def->local_copy = icons_get_selected(windows.edit, 10);
-    button_def->filer_boot = icons_get_selected(windows.edit, 13);
+    button_def->local_copy = icons_get_selected(buttons_edit_window, 10);
+    button_def->filer_boot = icons_get_selected(buttons_edit_window, 13);
   }
 
   create_button_icon (button_def);
@@ -426,10 +506,9 @@ int read_edit_button_window (button *button_def)
 
 int close_edit_button_window (void)
 {
-  extern global_windows windows;
 
 
-  wimp_close_window (windows.edit);
+  wimp_close_window (buttons_edit_window);
 
   edit_button = NULL;
 
@@ -464,3 +543,86 @@ int press_button (wimp_i icon)
 
   return (0);
 }
+
+
+
+
+/**
+ * Prepare the main menu for (re)-opening.
+ *
+ * \param  w			The handle of the menu's parent window.
+ * \param  *menu		Pointer to the menu being opened.
+ * \param  *pointer		Pointer to the Wimp Pointer event block.
+ */
+
+static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
+{
+	if (pointer == NULL)
+		return;
+
+	menus_shade_entry(buttons_menu, MAIN_MENU_BUTTON, (pointer->i > 0) ? FALSE : TRUE);
+	menus_shade_entry(buttons_menu, MAIN_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
+
+        buttons_menu_icon = pointer->i;
+}
+
+
+/**
+ * Handle selections from the main menu.
+ *
+ * \param  w			The window to which the menu belongs.
+ * \param  *menu		Pointer to the menu itself.
+ * \param  *selection		Pointer to the Wimp menu selction block.
+ */
+
+static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
+{
+	wimp_pointer		pointer;
+
+	wimp_get_pointer_info(&pointer);
+
+	switch (selection->items[0]) {
+	/*case MAIN_MENU_HELP:
+		os_cli("%Filer_Run <Locate$Dir>.!Help");
+		break; */
+
+	case MAIN_MENU_BUTTON:
+		switch (selection->items[1]) {
+		case BUTTON_MENU_EDIT:
+			fill_edit_button_window(buttons_menu_icon);
+			open_edit_button_window(&pointer);
+			break;
+		}
+		break;
+
+	case MAIN_MENU_SAVE_BUTTONS:
+		save_buttons_file("Buttons");
+		break;
+
+	case MAIN_MENU_QUIT:
+		main_quit_flag = TRUE;
+		break;
+	}
+}
+
+
+/**
+ * Handle clicks on the Website action button in the program info window.
+ *
+ * \param *pointer	The Wimp Event message block for the click.
+ * \return		TRUE if we handle the click; else FALSE.
+ */
+
+static osbool buttons_proginfo_web_click(wimp_pointer *pointer)
+{
+	char		temp_buf[256];
+
+	msgs_lookup("SupportURL:http://www.stevefryatt.org.uk/software/utils/", temp_buf, sizeof(temp_buf));
+	url_launch(temp_buf);
+
+	if (pointer->buttons == wimp_CLICK_SELECT)
+		wimp_create_menu((wimp_menu *) -1, 0, 0);
+
+	return TRUE;
+}
+

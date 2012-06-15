@@ -37,12 +37,12 @@
 
 /* Application header files */
 
-#include "global.h"
-
 #include "main.h"
 
 #include "buttons.h"
-#include "init.h"
+#include "templates.h"
+
+#define RES_PATH_LEN 255
 
 /* ================================================================================================================== */
 
@@ -53,9 +53,6 @@ static osbool	main_message_mode_change(wimp_message *message);
 
 
 /* Declare the global variables that are used. */
-
-global_windows  windows;
-global_menus    menus;
 
 wimp_i          button_menu_icon;
 
@@ -101,7 +98,6 @@ static void main_poll_loop(void)
 		reason = wimp_poll(wimp_MASK_NULL, &blk, NULL);
 
 		if (!event_process_event(reason, &blk, 0)) {
-
 			switch (reason) {
 			case wimp_OPEN_WINDOW_REQUEST:
 				wimp_open_window (&(blk.open));
@@ -109,14 +105,6 @@ static void main_poll_loop(void)
 
 			case wimp_CLOSE_WINDOW_REQUEST:
 				wimp_close_window (blk.close.w);
-				break;
-
-			case wimp_MOUSE_CLICK:
-				mouse_click_handler (&(blk.pointer));
-				break;
-
-			case wimp_MENU_SELECTION:
-				menu_selection_handler (&(blk.selection));
 				break;
 			}
 		}
@@ -137,9 +125,6 @@ static void main_initialise(void)
 	wimp_icon_create	icon_bar;
 	wimp_w			window_list[10];
 	wimp_menu		*menu_list[10];
-
-	extern global_windows	windows;
-	extern global_menus	menus;
 
 
 	hourglass_on();
@@ -188,27 +173,25 @@ static void main_initialise(void)
 
 	/* Load the menu structure. */
 
+	snprintf(res_temp, sizeof(res_temp), "%s.Menus", resources);
+	templates_load_menus(res_temp);
 
 	/* Load the window templates. */
 
 	snprintf(res_temp, sizeof(res_temp), "%s.Templates", resources);
-	load_templates(res_temp, &windows);
-
-	window_list[0] = windows.prog_info;
-
-	snprintf(res_temp, sizeof(res_temp), "%s.Menus", resources);
-	menus_load_templates(res_temp, window_list, menu_list, 10);
-
-	menus.main = menu_list[0];
+	templates_open(res_temp);
 
 	/* Initialise the individual modules. */
 
 	url_initialise();
+	buttons_initialise();
+
+	templates_close();
 
 	/* Load the button definitions. */
 
-	load_buttons_file("Buttons");
-	boot_buttons();
+//	load_buttons_file("Buttons");
+//	boot_buttons();
 
 	/* Open the launch window. */
 
@@ -243,7 +226,7 @@ static osbool main_message_mode_change(wimp_message *message)
 	return TRUE;
 }
 
-
+#if 0
 
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -289,31 +272,7 @@ void mouse_click_handler (wimp_pointer *pointer)
           }
         }
         break;
-
-
-      case wimp_CLICK_MENU:
-        if (pointer->i > 0)
-        {
-          menus.main->entries[1].icon_flags &= ~wimp_ICON_SHADED;
-        }
-        else
-        {
-          menus.main->entries[1].icon_flags |= wimp_ICON_SHADED;
-        }
-
-        if (pointer->i == wimp_ICON_WINDOW)
-        {
-          menus.main->entries[2].icon_flags &= ~wimp_ICON_SHADED;
-        }
-        else
-        {
-          menus.main->entries[2].icon_flags |= wimp_ICON_SHADED;
-        }
-
-        button_menu_icon = pointer->i;
-        menus.menu_up = menus_create_standard_menu (menus.main, pointer);
-        break;
-    }
+     }
   }
   else if (pointer->w == windows.edit)
   {
@@ -344,54 +303,6 @@ void mouse_click_handler (wimp_pointer *pointer)
     }
   }
 
-  else if (pointer->w == windows.prog_info)
-  {
-
-    /* Program info window */
-
-    if (pointer->i == 8 && pointer->buttons == wimp_CLICK_SELECT) /* Website button */
-    {
-      char temp_buf[256];
-
-      msgs_lookup ("SupportURL:http://www.stevefryatt.org.uk/software/utils/", temp_buf, sizeof (temp_buf));
-      url_launch(temp_buf);
-      wimp_create_menu ((wimp_menu *) -1, 0, 0);
-    }
-  }
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void menu_selection_handler (wimp_selection *selection)
-{
-  wimp_pointer pointer;
-
-
-  wimp_get_pointer_info (&pointer);
-
-  if (menus.menu_up == menus.main)
-  {
-    if (selection->items[0] == 1) /* Button submenu */
-    {
-      if (selection->items[1] == 0) /* Edit button... */
-      {
-        fill_edit_button_window (button_menu_icon);
-        open_edit_button_window (&pointer);
-      }
-    }
-    else if (selection->items[0] == 3) /* Save buttons */
-    {
-      save_buttons_file ("Buttons");
-    }
-    else if (selection->items[0] == 5) /* Quit */
-    {
-      main_quit_flag = TRUE;
-    }
-  }
-
-  if (pointer.buttons == wimp_CLICK_ADJUST)
-  {
-    wimp_create_menu (menus.menu_up, 0, 0);
-  }
-}
-
+#endif

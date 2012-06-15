@@ -7,13 +7,19 @@
 #ifndef LAUNCHER_MAIN
 #define LAUNCHER_MAIN
 
-/* ================================================================================================================== */
 
-/* Function prototypes. */
+/**
+ * Application-wide global variables.
+ */
+
+extern wimp_t			main_task_handle;
+extern osbool			main_quit_flag;
+
+/**
+ * Main code entry point.
+ */
 
 int main (void);
 
-void mouse_click_handler (wimp_pointer *);
-void menu_selection_handler (wimp_selection *);
-
 #endif
+
