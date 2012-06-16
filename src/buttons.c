@@ -132,7 +132,6 @@ void buttons_initialise(void)
 	event_add_window_menu_prepare(buttons_window, buttons_menu_prepare);
 	event_add_window_menu_selection(buttons_window, buttons_menu_selection);
 
-
 	icon_definition.icon = def->icons[1];
 	icon_definition.w = buttons_window;
 
@@ -160,9 +159,6 @@ void buttons_initialise(void)
 	icons_printf(buttons_info_window, ICON_PROGINFO_AUTHOR, "\xa9 Stephen Fryatt, 2003-%s", date + 7);
 	event_add_window_icon_click(buttons_info_window, ICON_PROGINFO_WEBSITE, buttons_proginfo_web_click);
 	templates_link_menu_dialogue("ProgInfo", buttons_info_window);
-
-
-
 }
 
 
