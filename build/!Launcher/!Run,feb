@@ -1,4 +1,4 @@
-| >!Run	
+| >!Run
 |
 | Run file for !Launcher
 |
@@ -9,6 +9,6 @@ Set Launcher$Dir  <Obey$Dir>
 
 |IconSprites <Launcher$Dir>.!Sprites
 
-WimpSlot -min 64k -max 64k
+WimpSlot -min 128k -max 128k
 
 Run <Launcher$Dir>.!RunImage %*0

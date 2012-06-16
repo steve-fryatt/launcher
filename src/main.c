@@ -190,8 +190,8 @@ static void main_initialise(void)
 
 	/* Load the button definitions. */
 
-//	load_buttons_file("Buttons");
-//	boot_buttons();
+	load_buttons_file("Buttons");
+	boot_buttons();
 
 	/* Open the launch window. */
 
