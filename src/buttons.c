@@ -41,6 +41,18 @@
 #define ICON_PROGINFO_VERSION 6
 #define ICON_PROGINFO_WEBSITE 8
 
+/* Edit Dialogue */
+
+#define ICON_EDIT_OK 0
+#define ICON_EDIT_CANCEL 1
+#define ICON_EDIT_NAME 2
+#define ICON_EDIT_XPOS 5
+#define ICON_EDIT_YPOS 7
+#define ICON_EDIT_SPRITE 8
+#define ICON_EDIT_KEEP_LOCAL 10
+#define ICON_EDIT_LOCATION 11
+#define ICON_EDIT_BOOT 13
+
 /* Main Menu */
 
 #define MAIN_MENU_INFO 0
@@ -61,6 +73,7 @@
 static void	buttons_click_handler(wimp_pointer *pointer);
 static void	buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void	buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static void	buttons_edit_click_handler(wimp_pointer *pointer);
 static osbool	buttons_proginfo_web_click(wimp_pointer *pointer);
 
 
@@ -137,6 +150,7 @@ void buttons_initialise(void)
 
 	buttons_edit_window = templates_create_window("Edit");
 	ihelp_add_window(buttons_edit_window, "Edit", NULL);
+	event_add_window_mouse_event(buttons_edit_window, buttons_edit_click_handler);
 
 	/* Initialise the Program Info window. */
 
@@ -630,6 +644,36 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 	case MAIN_MENU_QUIT:
 		main_quit_flag = TRUE;
+		break;
+	}
+}
+
+
+/**
+ * Process mouse clicks in the Edit dialogue.
+ *
+ * \param *pointer		The mouse event block to handle.
+ */
+
+static void buttons_edit_click_handler(wimp_pointer *pointer)
+{
+	if (pointer == NULL)
+		return;
+
+	switch (pointer->i) {
+	case ICON_EDIT_OK:
+		read_edit_button_window(NULL);
+		if (pointer->buttons == wimp_CLICK_SELECT)
+			close_edit_button_window();
+		break;
+
+	case ICON_EDIT_CANCEL:
+		if (pointer->buttons == wimp_CLICK_SELECT) {
+			close_edit_button_window();
+		} else if (pointer->buttons == wimp_CLICK_ADJUST) {
+			fill_edit_button_window ((wimp_i) -1);
+			redraw_edit_button_window ();
+		}
 		break;
 	}
 }
