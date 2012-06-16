@@ -58,6 +58,7 @@
 
 /* ================================================================================================================== */
 
+static void	buttons_click_handler(wimp_pointer *pointer);
 static void	buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void	buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static osbool	buttons_proginfo_web_click(wimp_pointer *pointer);
@@ -113,6 +114,7 @@ void buttons_initialise(void)
 	def->icon_count = 1;
 	buttons_window = wimp_create_window(def);
 	ihelp_add_window(buttons_window, "Launch", NULL);
+	event_add_window_mouse_event(buttons_window, buttons_click_handler);
 	event_add_window_menu(buttons_window, buttons_menu);
 	event_add_window_menu_prepare(buttons_window, buttons_menu_prepare);
 	event_add_window_menu_selection(buttons_window, buttons_menu_selection);
@@ -545,6 +547,33 @@ int press_button (wimp_i icon)
 }
 
 
+
+
+/**
+ * Process mouse clicks in the Buttons window.
+ *
+ * \param *pointer		The mouse event block to handle.
+ */
+
+static void buttons_click_handler(wimp_pointer *pointer)
+{
+	if (pointer == NULL)
+		return;
+
+	switch ((int) pointer->buttons) {
+	case wimp_CLICK_SELECT:
+	case wimp_CLICK_ADJUST:
+		if (pointer->i == 0) {
+			toggle_launch_window();
+		} else {
+			press_button(pointer->i);
+
+			if (pointer->buttons == wimp_CLICK_SELECT)
+				toggle_launch_window();
+		}
+		break;
+	}
+}
 
 
 /**

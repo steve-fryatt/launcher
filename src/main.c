@@ -249,32 +249,7 @@ void mouse_click_handler (wimp_pointer *pointer)
 
 
 
-  if (pointer-> w == windows.launch)
-  {
-
-    /* Launch Window */
-
-    switch ((int) pointer->buttons)
-    {
-      case wimp_CLICK_SELECT:
-      case wimp_CLICK_ADJUST:
-        if (pointer->i == 0)
-        {
-          toggle_launch_window ();
-        }
-        else
-        {
-          press_button (pointer->i);
-
-          if (pointer->buttons == wimp_CLICK_SELECT)
-          {
-            toggle_launch_window ();
-          }
-        }
-        break;
-     }
-  }
-  else if (pointer->w == windows.edit)
+  if (pointer->w == windows.edit)
   {
 
     /* Edit Window */
