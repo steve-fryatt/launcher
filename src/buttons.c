@@ -18,6 +18,7 @@
 #include "sflib/config.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
+#include "sflib/general.h"
 #include "sflib/heap.h"
 #include "sflib/icons.h"
 #include "sflib/menus.h"
@@ -34,6 +35,11 @@
 #include "main.h"
 #include "templates.h"
 
+
+/* Button Window */
+
+#define ICON_BUTTONS_SIDEBAR 0
+#define ICON_BUTTONS_TEMPLATE 1
 
 /* Program Info Window */
 
@@ -70,6 +76,8 @@
 
 /* ================================================================================================================== */
 
+static osbool	buttons_message_mode_change(wimp_message *message);
+static void	buttons_update_window_position(void);
 static void	buttons_click_handler(wimp_pointer *pointer);
 static void	buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void	buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
@@ -92,13 +100,16 @@ static int              button_x_base,
 static bool             window_open;
 
 
-static wimp_w		buttons_window = NULL;			/**< The handle of the buttons window.		*/
-static wimp_w		buttons_edit_window = NULL;		/**< The handle of the button edit window.	*/
-static wimp_w		buttons_info_window = NULL;		/**< The handle of the program info window.	*/
+static wimp_w		buttons_window = NULL;					/**< The handle of the buttons window.		*/
+static wimp_w		buttons_edit_window = NULL;				/**< The handle of the button edit window.	*/
+static wimp_w		buttons_info_window = NULL;				/**< The handle of the program info window.	*/
 
-static wimp_menu	*buttons_menu = NULL;			/**< The main menu.				*/
+static wimp_menu	*buttons_menu = NULL;					/**< The main menu.				*/
 
-static wimp_i		buttons_menu_icon = 0;			/**< The icon over which the main menu opened.	*/
+static wimp_i		buttons_menu_icon = 0;					/**< The icon over which the main menu opened.	*/
+
+static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.		*/
+static int		buttons_window_y1 = 0;					/**< The top of the buttons window.		*/
 
 
 /* ================================================================================================================== */
@@ -135,13 +146,13 @@ void buttons_initialise(void)
 	icon_definition.icon = def->icons[1];
 	icon_definition.w = buttons_window;
 
-	button_x_base = def->icons[1].extent.x0;
-	button_y_base = def->icons[1].extent.y0;
-	button_width = def->icons[1].extent.x1 - def->icons[1].extent.x0;
-	button_height = def->icons[1].extent.y1 - def->icons[1].extent.y0;
+	button_x_base = def->icons[ICON_BUTTONS_TEMPLATE].extent.x0;
+	button_y_base = def->icons[ICON_BUTTONS_TEMPLATE].extent.y0;
+	button_width = def->icons[ICON_BUTTONS_TEMPLATE].extent.x1 - def->icons[ICON_BUTTONS_TEMPLATE].extent.x0;
+	button_height = def->icons[ICON_BUTTONS_TEMPLATE].extent.y1 - def->icons[ICON_BUTTONS_TEMPLATE].extent.y0;
 
-	window_offset = def->icons[0].extent.x0;
-	window_x_extent = def->icons[0].extent.x1;
+	window_offset = def->icons[ICON_BUTTONS_SIDEBAR].extent.x0;
+	window_x_extent = def->icons[ICON_BUTTONS_SIDEBAR].extent.x1;
 
 	free(def);
 
@@ -159,6 +170,14 @@ void buttons_initialise(void)
 	icons_printf(buttons_info_window, ICON_PROGINFO_AUTHOR, "\xa9 Stephen Fryatt, 2003-%s", date + 7);
 	event_add_window_icon_click(buttons_info_window, ICON_PROGINFO_WEBSITE, buttons_proginfo_web_click);
 	templates_link_menu_dialogue("ProgInfo", buttons_info_window);
+
+	/* Watch out for Message_ModeChange. */
+
+	event_add_message_handler(message_MODE_CHANGE, EVENT_MESSAGE_INCOMING, buttons_message_mode_change);
+
+	/* Correctly size the window for the current mode. */
+
+	buttons_update_window_position();
 }
 
 
@@ -398,8 +417,8 @@ void open_launch_window (int columns, wimp_w window_level)
 
   window.visible.x0 = 0;
   window.visible.x1 = columns ? window_x_extent - open_offset : window_x_extent - window_offset;
-  window.visible.y0 = WINDOW_YPOS;
-  window.visible.y1 = WINDOW_YPOS + WINDOW_HEIGHT;
+  window.visible.y0 = buttons_window_y0;
+  window.visible.y1 = buttons_window_y1;
 
   window.xscroll = columns ? open_offset : window_offset;
   window.yscroll = 0;
@@ -558,6 +577,29 @@ int press_button (wimp_i icon)
 
 
 
+/**
+ * Handle incoming Message_ModeChange.
+ */
+
+static osbool buttons_message_mode_change(wimp_message *message)
+{
+	buttons_update_window_position();
+
+	return TRUE;
+}
+
+
+/**
+ * Update the vertical position of the buttons window to take into account
+ * a change of screen mode.
+ */
+
+static void buttons_update_window_position(void)
+{
+	buttons_window_y0 = sf_ICONBAR_HEIGHT;
+	buttons_window_y1 = general_mode_height();
+}
+
 
 /**
  * Process mouse clicks in the Buttons window.
@@ -573,7 +615,7 @@ static void buttons_click_handler(wimp_pointer *pointer)
 	switch ((int) pointer->buttons) {
 	case wimp_CLICK_SELECT:
 	case wimp_CLICK_ADJUST:
-		if (pointer->i == 0) {
+		if (pointer->i == ICON_BUTTONS_SIDEBAR) {
 			toggle_launch_window();
 		} else {
 			press_button(pointer->i);
@@ -599,7 +641,7 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 	if (pointer == NULL)
 		return;
 
-	menus_shade_entry(buttons_menu, MAIN_MENU_BUTTON, (pointer->i > 0) ? FALSE : TRUE);
+	menus_shade_entry(buttons_menu, MAIN_MENU_BUTTON, (pointer->i > ICON_BUTTONS_SIDEBAR) ? FALSE : TRUE);
 	menus_shade_entry(buttons_menu, MAIN_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
 
         buttons_menu_icon = pointer->i;

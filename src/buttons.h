@@ -14,9 +14,6 @@
 #define LAUNCHER_LEFT   3
 #define LAUNCHER_RIGHT  4
 
-#define WINDOW_YPOS   140
-#define WINDOW_HEIGHT 1856
-
 #define BUTTON_GUTTER 4
 
 /* ================================================================================================================== */

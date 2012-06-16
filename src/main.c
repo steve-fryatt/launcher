@@ -49,7 +49,6 @@
 static void	main_poll_loop(void);
 static void	main_initialise(void);
 static osbool	main_message_quit(wimp_message *message);
-static osbool	main_message_mode_change(wimp_message *message);
 
 
 /* Declare the global variables that are used. */
@@ -151,7 +150,6 @@ static void main_initialise(void)
 	main_task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, (wimp_message_list *) &message_list, NULL);
 
 	event_add_message_handler(message_QUIT, EVENT_MESSAGE_INCOMING, main_message_quit);
-	event_add_message_handler(message_MODE_CHANGE, EVENT_MESSAGE_INCOMING, main_message_mode_change);
 
 	/* Initialise the flex heap. */
 
@@ -210,18 +208,6 @@ static void main_initialise(void)
 static osbool main_message_quit(wimp_message *message)
 {
 	main_quit_flag = TRUE;
-
-	return TRUE;
-}
-
-
-/**
- * Handle incoming Message_ModeChange.
- */
-
-static osbool main_message_mode_change(wimp_message *message)
-{
-	// read_mode_size();
 
 	return TRUE;
 }
