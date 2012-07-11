@@ -98,7 +98,7 @@ MANSPR := ManSprite
 READMEHDR := Header
 MENUSRC := menudef
 
-OBJS := buttons.o ihelp.o main.o templates.o
+OBJS := appdb.o buttons.o ihelp.o main.o templates.o
 
 
 # Build everything, but don't package it for release.

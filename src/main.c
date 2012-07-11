@@ -39,6 +39,7 @@
 
 #include "main.h"
 
+#include "appdb.h"
 #include "buttons.h"
 #include "templates.h"
 
@@ -77,6 +78,8 @@ int main(void)
 	main_poll_loop();
 
 	msgs_terminate();
+	appdb_terminate();
+
 	wimp_close_down(main_task_handle);
 
 	return 0;
@@ -182,14 +185,15 @@ static void main_initialise(void)
 	/* Initialise the individual modules. */
 
 	url_initialise();
+	appdb_initialise();
 	buttons_initialise();
 
 	templates_close();
 
 	/* Load the button definitions. */
 
-	load_buttons_file("Buttons");
-	boot_buttons();
+	appdb_load_file("Buttons");
+	appdb_boot_all();
 
 	/* Open the launch window. */
 

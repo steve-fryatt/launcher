@@ -4,8 +4,8 @@
  * Desktop application launcher.
  */
 
-#ifndef LAUNCHER_LAUNCHER
-#define LAUNCHER_LAUNCHER
+#ifndef LAUNCHER_BUTTONS
+#define LAUNCHER_BUTTONS
 
 /* ================================================================================================================== */
 
@@ -20,21 +20,6 @@
 
 /* Structure to hold details of a button. */
 
-typedef struct button
-{
-  char            name[64];               /* Button name */
-  int             x, y;                   /* X and Y positions of the button in the window */
-  char            sprite[20];             /* The sprite name */
-  int             local_copy;             /* Do we keep a local copy of the sprite? */
-  char            command[1024];          /* The command to be executed */
-  int             filer_boot;             /* Should the item be Filer_Booted on startup? */
-
-  wimp_i          icon;                   /* The icon number allocated to the button */
-  char            validation[40];         /* The validation string for the icon */
-
-  struct button   *next;
-}
-button;
 
 /* ================================================================================================================== */
 
@@ -50,9 +35,6 @@ void buttons_initialise(void);
 
 
 
-int load_buttons_file (char *leaf_name);
-int save_buttons_file (char *leaf_name);
-void boot_buttons (void);
 int create_button_icon (button *button_def);
 
 void toggle_launch_window (void);
@@ -67,3 +49,4 @@ int close_edit_button_window (void);
 int press_button (wimp_i icon);
 
 #endif
+
