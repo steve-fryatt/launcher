@@ -85,7 +85,7 @@ UKRES := Resources/UK
 RUNIMAGE := !RunImage,ff8
 MENUS := Menus,ffd
 TEXTHELP := HelpText,fff
-SHHELP := Launcher,3d6
+#SHHELP := Launcher,3d6
 HTMLHELP := manual.html
 README := ReadMe,fff
 LICENSE := License,fff
@@ -138,18 +138,24 @@ $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS): $(MENUDIR)/$(MENUSRC)
 	$(MENUGEN) $(MENUDIR)/$(MENUSRC) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS) $(MENUGENFLAGS)
 
 
-# Build the documentation
+# Build the documentation.  StromgHelp output is optional.
 
+ifneq ($(SHHELP),)
 documentation: $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(HTMLHELP)
+else
+documentation: $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(HTMLHELP)
+endif
 
 $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
 	$(TEXTMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
+ifneq ($(SHHELP),)
 $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP): $(MANUAL)/$(MANSRC) $(MANUAL)/$(MANSPR)
 	$(STRONGMAN) -I$(MANUAL)/$(MANSRC) -OSHTemp -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 	$(CP) $(MANUAL)/$(MANSPR) SHTemp/Sprites,ff9
 	$(BINDHELP) SHTemp $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(BINDHELPFLAGS)
 	$(RM) SHTemp
+endif
 
 $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR)
 	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
