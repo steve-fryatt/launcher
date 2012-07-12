@@ -174,7 +174,7 @@ osbool appdb_load_file(char *leaf_name)
  * \return			TRUE on success; else FALSE.
  */
 
-osbool save_buttons_file(char *leaf_name)
+osbool appdb_save_file(char *leaf_name)
 {
 	char	filename[1024];
 	int	current;

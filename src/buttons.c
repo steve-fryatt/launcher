@@ -31,6 +31,7 @@
 
 #include "buttons.h"
 
+#include "appdb.h"
 #include "ihelp.h"
 #include "main.h"
 #include "templates.h"
@@ -85,7 +86,7 @@ static void	buttons_edit_click_handler(wimp_pointer *pointer);
 static osbool	buttons_proginfo_web_click(wimp_pointer *pointer);
 
 
-static button           *button_list = NULL, *edit_button = NULL;
+//static button           *button_list = NULL, *edit_button = NULL;
 
 static wimp_icon_create icon_definition;
 
@@ -184,6 +185,7 @@ void buttons_initialise(void)
 
 /* ================================================================================================================== */
 
+#if 0
 int create_button_icon (button *button_def)
 {
   os_error                *error;
@@ -227,7 +229,7 @@ int create_button_icon (button *button_def)
 
   return (0);
 }
-
+#endif
 /* ==================================================================================================================
  * Launch Window handling code.
  */
@@ -273,7 +275,7 @@ void open_launch_window (int columns, wimp_w window_level)
 /* ==================================================================================================================
  * Edit Button Window handling code.
  */
-
+#if 0
 int fill_edit_button_window (wimp_i icon)
 {
   /* Set the icons in the edit button window.
@@ -313,7 +315,7 @@ int fill_edit_button_window (wimp_i icon)
 
   return (0);
 }
-
+#endif
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int open_edit_button_window (wimp_pointer *pointer)
@@ -340,7 +342,7 @@ int redraw_edit_button_window (void)
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
-
+#if 0
 int read_edit_button_window (button *button_def)
 {
   /* Read the contents of the Edit button window into a button block.
@@ -373,7 +375,7 @@ int read_edit_button_window (button *button_def)
 
   return 1;
 }
-
+#endif
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int close_edit_button_window (void)
@@ -382,7 +384,7 @@ int close_edit_button_window (void)
 
   wimp_close_window (buttons_edit_window);
 
-  edit_button = NULL;
+  //edit_button = NULL;
 
   return 1;
 }
@@ -391,6 +393,7 @@ int close_edit_button_window (void)
 
 int press_button (wimp_i icon)
 {
+#if 0
   char     *command;
   button   *list = button_list;
   os_error *error;
@@ -412,7 +415,7 @@ int press_button (wimp_i icon)
 
     free (command);
   }
-
+#endif
   return (0);
 }
 
@@ -511,14 +514,14 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 	case MAIN_MENU_BUTTON:
 		switch (selection->items[1]) {
 		case BUTTON_MENU_EDIT:
-			fill_edit_button_window(buttons_menu_icon);
+			//fill_edit_button_window(buttons_menu_icon);
 			open_edit_button_window(&pointer);
 			break;
 		}
 		break;
 
 	case MAIN_MENU_SAVE_BUTTONS:
-		save_buttons_file("Buttons");
+		appdb_save_file("Buttons");
 		break;
 
 	case MAIN_MENU_QUIT:
@@ -541,7 +544,7 @@ static void buttons_edit_click_handler(wimp_pointer *pointer)
 
 	switch (pointer->i) {
 	case ICON_EDIT_OK:
-		read_edit_button_window(NULL);
+		//read_edit_button_window(NULL);
 		if (pointer->buttons == wimp_CLICK_SELECT)
 			close_edit_button_window();
 		break;
@@ -550,7 +553,7 @@ static void buttons_edit_click_handler(wimp_pointer *pointer)
 		if (pointer->buttons == wimp_CLICK_SELECT) {
 			close_edit_button_window();
 		} else if (pointer->buttons == wimp_CLICK_ADJUST) {
-			fill_edit_button_window ((wimp_i) -1);
+			//fill_edit_button_window ((wimp_i) -1);
 			redraw_edit_button_window ();
 		}
 		break;

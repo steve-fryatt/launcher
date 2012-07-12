@@ -35,7 +35,7 @@ void buttons_initialise(void);
 
 
 
-int create_button_icon (button *button_def);
+//int create_button_icon (button *button_def);
 
 void toggle_launch_window (void);
 void open_launch_window (int columns, wimp_w window_level);
@@ -43,7 +43,7 @@ void open_launch_window (int columns, wimp_w window_level);
 int fill_edit_button_window (wimp_i icon);
 int open_edit_button_window (wimp_pointer *pointer);
 int redraw_edit_button_window (void);
-int read_edit_button_window (button *button_def);
+//int read_edit_button_window (button *button_def);
 int close_edit_button_window (void);
 
 int press_button (wimp_i icon);
