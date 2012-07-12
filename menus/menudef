@@ -8,6 +8,8 @@
 menu(main_menu, "Launcher") {
 	item("Info") {
 		d_box(ProgInfo);
+	}
+	item("Help...") {
 		dotted;
 	}
 	item("Button") {

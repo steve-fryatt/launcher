@@ -64,11 +64,12 @@
 /* Main Menu */
 
 #define MAIN_MENU_INFO 0
-#define MAIN_MENU_BUTTON 1
-#define MAIN_MENU_NEW_BUTTON 2
-#define MAIN_MENU_SAVE_BUTTONS 3
-#define MAIN_MENU_CHOICES 4
-#define MAIN_MENU_QUIT 5
+#define MAIN_MENU_HELP 1
+#define MAIN_MENU_BUTTON 2
+#define MAIN_MENU_NEW_BUTTON 3
+#define MAIN_MENU_SAVE_BUTTONS 4
+#define MAIN_MENU_CHOICES 5
+#define MAIN_MENU_QUIT 6
 
 /* Button Submenu */
 
@@ -583,14 +584,17 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 
 static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
 {
-	wimp_pointer		pointer;
+	wimp_pointer	pointer;
+	os_error	*error;
 
 	wimp_get_pointer_info(&pointer);
 
 	switch (selection->items[0]) {
-	/*case MAIN_MENU_HELP:
-		os_cli("%Filer_Run <Locate$Dir>.!Help");
-		break; */
+	case MAIN_MENU_HELP:
+		error = xos_cli("%Filer_Run <Launcher$Dir>.!Help");
+		if (error != NULL)
+			error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
+		break;
 
 	case MAIN_MENU_BUTTON:
 		switch (selection->items[1]) {
