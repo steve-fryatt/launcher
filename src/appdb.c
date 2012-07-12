@@ -244,7 +244,7 @@ unsigned appdb_get_next_key(unsigned key)
 /**
  * Given a key, return details of the button associated with the application.
  *
- * \param key			The key of the netry to be returned.
+ * \param key			The key of the entry to be returned.
  * \param *x_pos		Place to return the X coordinate of the button.
  * \param *y_pos		Place to return the Y coordinate of the button.
  * \param *sprite		Place to return the a pointer to the sprite name
@@ -272,6 +272,24 @@ osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **sprite
 		*sprite = appdb_list[index].sprite;
 
 	return TRUE;
+}
+
+
+/**
+ * Given a key, return the command associated with an application.
+ *
+ * \param key			The key of the entry to be returned.
+ * \return			Pointer to the command, or NULL.  Will only
+ *				remain valid until memory is disturbed.
+ */
+
+char *appdb_get_command(unsigned key)
+{
+	int index;
+
+	index = appdb_find(key);
+
+	return (index == -1) ? NULL : appdb_list[index].command;
 }
 
 

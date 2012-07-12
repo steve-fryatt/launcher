@@ -122,6 +122,7 @@ static int		buttons_window_y1 = 0;					/**< The top of the buttons window.		*/
 
 static void	buttons_create_icon(struct button *button);
 
+static void	buttons_press(wimp_i icon);
 static osbool	buttons_message_mode_change(wimp_message *message);
 static void	buttons_update_window_position(void);
 static void	buttons_click_handler(wimp_pointer *pointer);
@@ -446,34 +447,59 @@ int close_edit_button_window (void)
 
 /* ================================================================================================================== */
 
-int press_button (wimp_i icon)
+
+
+
+
+/**
+ * Press a button in the window.
+ *
+ * \param icon			The handle of the icon being pressed.
+ */
+
+static void buttons_press(wimp_i icon)
 {
-#if 0
-  char     *command;
-  button   *list = button_list;
-  os_error *error;
+	char		*command, *buffer;
+	int		length;
+	os_error	*error;
+	struct button	*button = buttons_list;
 
-  while (list != NULL && list->icon != icon)
-  {
-    list = list->next;
-  }
 
-  if (list != NULL)
-  {
-    command = (char *) malloc (strlen (list->command) + 19);
-    sprintf (command, "%%StartDesktopTask %s", list->command);
-    error = xos_cli (command);
-    if (error != NULL)
-    {
-      error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
-    }
+	while (button!= NULL && button->icon != icon)
+		button = button->next;
 
-    free (command);
-  }
-#endif
-  return (0);
+	if (button == NULL)
+		return;
+
+	command = appdb_get_command(button->key);
+
+	if (command == NULL)
+		return;
+
+	length = strlen(command) + 19;
+
+	buffer = heap_alloc(length);
+
+	if (buffer == NULL)
+		return;
+
+	/* Refetch the command data, as the heap_alloc() could have moved the
+	 * flex heap and hence invalidated the command pointer.
+	 */
+
+	command = appdb_get_command(button->key);
+
+	if (command != NULL) {
+		snprintf(buffer, length, "%%StartDesktopTask %s", command);
+		error = xos_cli(buffer);
+		if (error != NULL)
+			error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
+	}
+
+	heap_free(buffer);
+
+	return;
 }
-
 
 
 /**
@@ -517,7 +543,7 @@ static void buttons_click_handler(wimp_pointer *pointer)
 		if (pointer->i == ICON_BUTTONS_SIDEBAR) {
 			toggle_launch_window();
 		} else {
-			press_button(pointer->i);
+			buttons_press(pointer->i);
 
 			if (pointer->buttons == wimp_CLICK_SELECT)
 				toggle_launch_window();

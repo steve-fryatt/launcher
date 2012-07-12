@@ -76,5 +76,16 @@ unsigned appdb_get_next_key(unsigned key);
 
 osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **sprite);
 
+
+/**
+ * Given a key, return the command associated with an application.
+ *
+ * \param key			The key of the entry to be returned.
+ * \return			Pointer to the command, or NULL.  Will only
+ *				remain valid until memory is disturbed.
+ */
+
+char *appdb_get_command(unsigned key);
+
 #endif
 
