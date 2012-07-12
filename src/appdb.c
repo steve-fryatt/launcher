@@ -60,6 +60,7 @@ static int				appdb_allocation = 0;			/**< The number of applications for which 
 
 static unsigned				appdb_key = 0;				/**< Track new unique primary keys.				*/
 
+
 static int	appdb_find(unsigned key);
 static int	appdb_new();
 static void	appdb_delete(int index);
@@ -130,9 +131,6 @@ osbool appdb_load_file(char *leaf_name)
 				appdb_list[current].y = 0;
 				appdb_list[current].local_copy = 0;
 				appdb_list[current].filer_boot = 1;
-
-//				appdb_list[current].icon = -1;
-//				*(appdb_list[current].validation) = '\0';
 			}
 		}
 
@@ -153,15 +151,6 @@ osbool appdb_load_file(char *leaf_name)
 	}
 
 	fclose(file);
-
-	/* Work through the list, creating the icons in the window. */
-
-//	current = button_list;
-
-//	while (current != NULL) {
-//		create_button_icon (current);
-//		current = current->next;
-//	}
 
 	return TRUE;
 }
@@ -229,6 +218,60 @@ void appdb_boot_all(void)
 			error = xos_cli(command);
 		}
 	}
+}
+
+
+/**
+ * Given a database key, return the next key from the database.
+ *
+ * \param key			The current key, or APPDB_NULL_KEY to start sequence.
+ * \return			The next key, or APPDB_NULL_KEY.
+ */
+
+unsigned appdb_get_next_key(unsigned key)
+{
+	int index;
+
+	if (key == APPDB_NULL_KEY && appdb_apps > 0)
+		return appdb_list[0].key;
+
+	index = appdb_find(key);
+
+	return (index != -1 && index < (appdb_apps - 1)) ? appdb_list[index + 1].key : APPDB_NULL_KEY;
+}
+
+
+/**
+ * Given a key, return details of the button associated with the application.
+ *
+ * \param key			The key of the netry to be returned.
+ * \param *x_pos		Place to return the X coordinate of the button.
+ * \param *y_pos		Place to return the Y coordinate of the button.
+ * \param *sprite		Place to return the a pointer to the sprite name
+ *				used in the button.  Will only remain valid until
+ *				memory is disturbed.
+ * \return			TRUE if an entry was found; else FALSE.
+ */
+
+osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **sprite)
+{
+	int index;
+
+	index = appdb_find(key);
+
+	if (index == -1)
+		return FALSE;
+
+	if (x_pos != NULL)
+		*x_pos = appdb_list[index].x;
+
+	if (y_pos != NULL)
+		*y_pos = appdb_list[index].y;
+
+	if (sprite != NULL)
+		*sprite = appdb_list[index].sprite;
+
+	return TRUE;
 }
 
 

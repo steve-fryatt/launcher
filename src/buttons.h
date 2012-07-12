@@ -32,6 +32,20 @@
 void buttons_initialise(void);
 
 
+/**
+ * Terminate the buttons window.
+ */
+
+void buttons_terminate(void);
+
+
+/**
+ * Create a full set of buttons from the contents of the application database.
+ */
+
+void buttons_create_from_db(void);
+
+
 
 
 

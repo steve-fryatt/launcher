@@ -16,6 +16,7 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
+#include "sflib/debug.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/general.h"
@@ -77,18 +78,24 @@
 
 /* ================================================================================================================== */
 
-static osbool	buttons_message_mode_change(wimp_message *message);
-static void	buttons_update_window_position(void);
-static void	buttons_click_handler(wimp_pointer *pointer);
-static void	buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
-static void	buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
-static void	buttons_edit_click_handler(wimp_pointer *pointer);
-static osbool	buttons_proginfo_web_click(wimp_pointer *pointer);
+#define BUTTON_VALIDATION_LENGTH 40
 
+struct button
+{
+	unsigned	key;							/**< The database key relating to the icon.	*/
+
+	wimp_i		icon;
+	char		validation[BUTTON_VALIDATION_LENGTH];			/**< Storage for the icon's validation string.	*/
+
+	struct button	*next;							/**< Pointer to the next button definition.	*/
+};
+
+
+static struct button	*buttons_list = NULL;
 
 //static button           *button_list = NULL, *edit_button = NULL;
 
-static wimp_icon_create icon_definition;
+static wimp_icon_create	buttons_icon_def;					/**< The definition for a button icon.		*/
 
 static int              button_x_base,
                         button_y_base,
@@ -112,6 +119,16 @@ static wimp_i		buttons_menu_icon = 0;					/**< The icon over which the main menu
 static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.		*/
 static int		buttons_window_y1 = 0;					/**< The top of the buttons window.		*/
 
+
+static void	buttons_create_icon(struct button *button);
+
+static osbool	buttons_message_mode_change(wimp_message *message);
+static void	buttons_update_window_position(void);
+static void	buttons_click_handler(wimp_pointer *pointer);
+static void	buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
+static void	buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static void	buttons_edit_click_handler(wimp_pointer *pointer);
+static osbool	buttons_proginfo_web_click(wimp_pointer *pointer);
 
 /* ================================================================================================================== */
 
@@ -144,8 +161,8 @@ void buttons_initialise(void)
 	event_add_window_menu_prepare(buttons_window, buttons_menu_prepare);
 	event_add_window_menu_selection(buttons_window, buttons_menu_selection);
 
-	icon_definition.icon = def->icons[1];
-	icon_definition.w = buttons_window;
+	buttons_icon_def.icon = def->icons[1];
+	buttons_icon_def.w = buttons_window;
 
 	button_x_base = def->icons[ICON_BUTTONS_TEMPLATE].extent.x0;
 	button_y_base = def->icons[ICON_BUTTONS_TEMPLATE].extent.y0;
@@ -182,54 +199,92 @@ void buttons_initialise(void)
 }
 
 
+/**
+ * Terminate the buttons window.
+ */
 
-/* ================================================================================================================== */
-
-#if 0
-int create_button_icon (button *button_def)
+void buttons_terminate(void)
 {
-  os_error                *error;
-  int                     exists = 0;
+	struct button	*current;
 
-
-  if (button_def != NULL)
-  {
-    if (button_def->icon != -1)
-    {
-      /* Delete the icon if it already exists. */
-
-      error = xwimp_delete_icon (icon_definition.w, button_def->icon);
-      if (error != NULL)
-      {
-        error_report_program(error);
-      }
-
-      button_def->icon = -1;
-
-      exists = 1;
-    }
-
-    /* Create a new icon in the correct place. */
-
-    icon_definition.icon.extent.x0 = button_x_base - (button_def->x * (button_width / 2 + BUTTON_GUTTER));
-    icon_definition.icon.extent.x1 = icon_definition.icon.extent.x0 + button_width;
-    icon_definition.icon.extent.y0 = button_y_base - (button_def->y * (button_height / 2 + BUTTON_GUTTER));
-    icon_definition.icon.extent.y1 = icon_definition.icon.extent.y0 + button_height;
-
-    sprintf (button_def->validation, "R5,1;S%s", button_def->sprite);
-    icon_definition.icon.data.indirected_text_and_sprite.validation = button_def->validation;
-
-    button_def->icon = wimp_create_icon (&icon_definition);
-
-    if (exists)
-    {
-      wimp_set_icon_state (icon_definition.w, button_def->icon, 0, 0);
-    }
-  }
-
-  return (0);
+	while (buttons_list != NULL) {
+		current = buttons_list;
+		buttons_list = current->next;
+		heap_free(current);
+	}
 }
-#endif
+
+
+/**
+ * Create a full set of buttons from the contents of the application database.
+ */
+
+void buttons_create_from_db(void)
+{
+	unsigned	key = APPDB_NULL_KEY;
+	struct button	*new;
+
+	do {
+		key = appdb_get_next_key(key);
+
+		if (key != APPDB_NULL_KEY) {
+			new = heap_alloc(sizeof(struct button));
+
+			if (new != NULL) {
+				new->next = buttons_list;
+				buttons_list = new;
+
+				new->key = key;
+				new->icon = -1;
+				new->validation[0] = '\0';
+
+				buttons_create_icon(new);
+			}
+		}
+	} while (key != APPDB_NULL_KEY);
+}
+
+
+/**
+ * Create (or recreate) an icon for a button, based on that icon's definition
+ * block.
+ *
+ * \param *button		The definition to create an icon for.
+ */
+
+static void buttons_create_icon(struct button *button)
+{
+	os_error	*error;
+	int		x_pos, y_pos;
+	char		*sprite;
+
+	if (button == NULL)
+		return;
+
+	if (button->icon != -1) {
+		error = xwimp_delete_icon(buttons_icon_def.w, button->icon);
+		if (error != NULL)
+			error_report_program(error);
+		button->icon = -1;
+	}
+
+	if (!appdb_get_button_info(button->key, &x_pos, &y_pos, &sprite))
+		return;
+
+	buttons_icon_def.icon.extent.x0 = button_x_base - (x_pos * (button_width / 2 + BUTTON_GUTTER));
+	buttons_icon_def.icon.extent.x1 = buttons_icon_def.icon.extent.x0 + button_width;
+	buttons_icon_def.icon.extent.y0 = button_y_base - (y_pos * (button_height / 2 + BUTTON_GUTTER));
+	buttons_icon_def.icon.extent.y1 = buttons_icon_def.icon.extent.y0 + button_height;
+
+	snprintf(button->validation, BUTTON_VALIDATION_LENGTH, "R5,1;S%s", sprite);
+	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
+
+	button->icon = wimp_create_icon(&buttons_icon_def);
+}
+
+
+
+
 /* ==================================================================================================================
  * Launch Window handling code.
  */

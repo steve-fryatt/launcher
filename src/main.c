@@ -78,6 +78,7 @@ int main(void)
 	main_poll_loop();
 
 	msgs_terminate();
+	buttons_terminate();
 	appdb_terminate();
 
 	wimp_close_down(main_task_handle);
@@ -194,6 +195,7 @@ static void main_initialise(void)
 
 	appdb_load_file("Buttons");
 	appdb_boot_all();
+	buttons_create_from_db();
 
 	/* Open the launch window. */
 
