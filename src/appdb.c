@@ -43,15 +43,12 @@
 
 struct application
 {
-	char		name[64];               /* Button name */
-	int		x, y;                   /* X and Y positions of the button in the window */
-	char		sprite[20];             /* The sprite name */
-	osbool		local_copy;             /* Do we keep a local copy of the sprite? */
-	char		command[1024];          /* The command to be executed */
-	osbool		filer_boot;             /* Should the item be Filer_Booted on startup? */
-
-//	wimp_i		icon;                   /* The icon number allocated to the button */
-//	char		validation[40];         /* The validation string for the icon */
+	char		name[64];						/**< Button name.						*/
+	int		x, y;							/**< X and Y positions of the button in the window.		*/
+	char		sprite[20];						/**< The sprite name.						*/
+	osbool		local_copy;						/**< Do we keep a local copy of the sprite?			*/
+	char		command[1024];						/**< The command to be executed.				*/
+	osbool		filer_boot;						/**< Should the item be Filer_Booted on startup?		*/
 };
 
 
@@ -73,8 +70,6 @@ void appdb_initialise(void)
 	if (flex_alloc((flex_ptr) &appdb_list,
 			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct application)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
-
-	debug_printf("AppDB Block: %d units, %d bytes", appdb_allocation, flex_size((flex_ptr) &appdb_list));
 }
 
 
@@ -246,8 +241,6 @@ static int appdb_new()
 	if (appdb_apps >= appdb_allocation && flex_extend((flex_ptr) &appdb_list,
 			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct application)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
-
-	debug_printf("AppDB Block: %d units, %d bytes", appdb_allocation, flex_size((flex_ptr) &appdb_list));
 
 	if (appdb_apps >= appdb_allocation)
 		return -1;
