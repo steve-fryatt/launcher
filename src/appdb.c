@@ -43,6 +43,7 @@
 
 struct application
 {
+	unsigned	key;							/**< Primary key to index database entries.			*/
 	char		name[64];						/**< Button name.						*/
 	int		x, y;							/**< X and Y positions of the button in the window.		*/
 	char		sprite[20];						/**< The sprite name.						*/
@@ -57,9 +58,11 @@ static struct application		*appdb_list = NULL;			/**< Array of application data.
 static int				appdb_apps = 0;				/**< The number of applications stored in the database.		*/
 static int				appdb_allocation = 0;			/**< The number of applications for which space is allocated.	*/
 
+static unsigned				appdb_key = 0;				/**< Track new unique primary keys.				*/
 
-
+static int	appdb_find(unsigned key);
 static int	appdb_new();
+static void	appdb_delete(int index);
 
 /**
  * Initialise the application database.
@@ -151,7 +154,6 @@ osbool appdb_load_file(char *leaf_name)
 
 	fclose(file);
 
-
 	/* Work through the list, creating the icons in the window. */
 
 //	current = button_list;
@@ -231,7 +233,36 @@ void appdb_boot_all(void)
 
 
 /**
- * Claim a block for a new application.
+ * Find the index of an application based on its key.
+ *
+ * \param key			The key to locate.
+ * \return			The current index, or -1 if not found.
+ */
+
+static int appdb_find(unsigned key)
+{
+	int index;
+
+	/* We know that keys are allocated in ascending order, possibly
+	 * with gaps in the sequence.  Therefore we can hit the list
+	 * at the corresponding index (or the end) and count back until
+	 * we pass the key we're looking for.
+	 */
+
+	index = (key >= appdb_apps) ? appdb_apps - 1 : key;
+
+	while (index >= 0 && appdb_list[index].key > key)
+		index--;
+
+	if (index != -1 && appdb_list[index].key != key)
+		index = -1;
+
+	return index;
+}
+
+
+/**
+ * Claim a block for a new application, and fill in the unique key value.
  *
  * \return			The new block number, or -1 on failure.
  */
@@ -245,6 +276,24 @@ static int appdb_new()
 	if (appdb_apps >= appdb_allocation)
 		return -1;
 
+	appdb_list[appdb_apps].key = appdb_key++;
+
 	return appdb_apps++;
+}
+
+
+/**
+ * Delete an application block, given its index.
+ *
+ * \param index			The index of the block to be deleted.
+ */
+
+static void appdb_delete(int index)
+{
+	if (index < 0 || index >= appdb_apps)
+		return;
+
+	flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct application),
+			-sizeof(struct application));
 }
 
