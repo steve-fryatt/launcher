@@ -18,6 +18,7 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
+#include "sflib/debug.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/general.h"
@@ -72,6 +73,8 @@ void appdb_initialise(void)
 	if (flex_alloc((flex_ptr) &appdb_list,
 			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct application)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
+
+	debug_printf("AppDB Block: %d units, %d bytes", appdb_allocation, flex_size((flex_ptr) &appdb_list));
 }
 
 
@@ -243,6 +246,8 @@ static int appdb_new()
 	if (appdb_apps >= appdb_allocation && flex_extend((flex_ptr) &appdb_list,
 			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct application)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
+
+	debug_printf("AppDB Block: %d units, %d bytes", appdb_allocation, flex_size((flex_ptr) &appdb_list));
 
 	if (appdb_apps >= appdb_allocation)
 		return -1;
