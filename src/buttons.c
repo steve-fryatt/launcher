@@ -115,7 +115,8 @@ static wimp_w		buttons_info_window = NULL;				/**< The handle of the program inf
 
 static wimp_menu	*buttons_menu = NULL;					/**< The main menu.						*/
 
-static wimp_i		buttons_menu_icon = 0;					/**< The icon over which the main menu opened.			*/
+
+static struct button	*buttons_menu_icon = NULL;				/**< The block for the icon over which the main menu opened.	*/
 
 static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.				*/
 static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
@@ -125,6 +126,8 @@ static void	buttons_create_icon(struct button *button);
 
 static void	buttons_toggle_window(void);
 static void	buttons_window_open(int columns, wimp_w window_level);
+
+static void	buttons_fill_edit_window(struct button *button);
 
 static void	buttons_press(wimp_i icon);
 static osbool	buttons_message_mode_change(wimp_message *message);
@@ -277,7 +280,7 @@ static void buttons_create_icon(struct button *button)
 		button->icon = -1;
 	}
 
-	if (!appdb_get_button_info(button->key, &x_pos, &y_pos, &sprite))
+	if (!appdb_get_button_info(button->key, &x_pos, &y_pos, NULL, &sprite, NULL, NULL, NULL))
 		return;
 
 	buttons_icon_def.icon.extent.x0 = button_x_base - (x_pos * (button_width / 2 + BUTTON_GUTTER));
@@ -337,50 +340,48 @@ static void buttons_window_open(int columns, wimp_w window_level)
 	buttons_window_is_open = (columns != 0) ? TRUE : FALSE;
 }
 
-/* ==================================================================================================================
- * Edit Button Window handling code.
+
+/**
+ * Set the contents of the button edit window.
+ *
+ * \param *button		The button to set data for, or NULL to use defaults.
  */
-#if 0
-int fill_edit_button_window (wimp_i icon)
+
+static void buttons_fill_edit_window(struct button *button)
 {
-  /* Set the icons in the edit button window.
-   *
-   * If icon >= 0, the data for that button is used, otherwise the data for the current window
-   * is used (to allow for resets, etc.).
-   */
+	int		x_pos, y_pos;
+	char		*name, *sprite, *command;
+	osbool		local_copy, filer_boot;
 
-  button                *list = button_list;
 
-  if (icon != -1)
-  {
-    while (list != NULL && list->icon != icon)
-    {
-      list = list->next;
-    }
-  }
-  else
-  {
-    list = edit_button;
-  }
+	/* Initialise deafults if button data can't be found. */
 
-  if (list != NULL)
-  {
-    icons_strncpy(buttons_edit_window, 2, list->name);
-    icons_strncpy(buttons_edit_window, 8, list->sprite);
-    icons_strncpy(buttons_edit_window, 11, list->command);
+	if (button == NULL ||
+			!appdb_get_button_info(button->key, &x_pos, &y_pos, &name,
+			&sprite, &command, &local_copy, &filer_boot)) {
+		x_pos = 0;
+		y_pos = 0;
+		*name = '\0';
+		*sprite = '\0';
+		*command = '\0';
+		local_copy = FALSE;
+		filer_boot = TRUE;
+	}
 
-    icons_printf(buttons_edit_window, 5, "%d", list->x);
-    icons_printf(buttons_edit_window, 7, "%d", list->y);
+	/* Fill the window's icons. */
 
-    icons_set_selected(buttons_edit_window, 10, list->local_copy);
-    icons_set_selected(buttons_edit_window, 13, list->filer_boot);
-  }
+	icons_strncpy(buttons_edit_window, ICON_EDIT_NAME, name);
+	icons_strncpy(buttons_edit_window, ICON_EDIT_SPRITE, sprite);
+	icons_strncpy(buttons_edit_window, ICON_EDIT_LOCATION, command);
 
-  edit_button = list;
+	icons_printf(buttons_edit_window, ICON_EDIT_XPOS, "%d", x_pos);
+	icons_printf(buttons_edit_window, ICON_EDIT_YPOS, "%d", y_pos);
 
-  return (0);
+	icons_set_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL, local_copy);
+	icons_set_selected(buttons_edit_window, ICON_EDIT_BOOT, filer_boot);
 }
-#endif
+
+
 /* ------------------------------------------------------------------------------------------------------------------ */
 
 int open_edit_button_window (wimp_pointer *pointer)
@@ -480,7 +481,8 @@ static void buttons_press(wimp_i icon)
 	if (button == NULL)
 		return;
 
-	command = appdb_get_command(button->key);
+	if (!appdb_get_button_info(button->key, NULL, NULL, NULL, NULL, &command, NULL, NULL))
+		return;
 
 	if (command == NULL)
 		return;
@@ -496,9 +498,8 @@ static void buttons_press(wimp_i icon)
 	 * flex heap and hence invalidated the command pointer.
 	 */
 
-	command = appdb_get_command(button->key);
-
-	if (command != NULL) {
+	if (appdb_get_button_info(button->key, NULL, NULL, NULL, NULL, &command, NULL, NULL) &&
+			command != NULL) {
 		snprintf(buffer, length, "%%StartDesktopTask %s", command);
 		error = xos_cli(buffer);
 		if (error != NULL)
@@ -575,10 +576,17 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 	if (pointer == NULL)
 		return;
 
-	menus_shade_entry(buttons_menu, MAIN_MENU_BUTTON, (pointer->i > ICON_BUTTONS_SIDEBAR) ? FALSE : TRUE);
-	menus_shade_entry(buttons_menu, MAIN_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
+	if (pointer->i == wimp_ICON_WINDOW || pointer->i == ICON_BUTTONS_SIDEBAR) {
+		buttons_menu_icon = NULL;
+	} else {
+		buttons_menu_icon = buttons_list;
 
-        buttons_menu_icon = pointer->i;
+		while (buttons_menu_icon!= NULL && buttons_menu_icon->icon != pointer->i)
+			buttons_menu_icon = buttons_menu_icon->next;
+	}
+
+	menus_shade_entry(buttons_menu, MAIN_MENU_BUTTON, (buttons_menu_icon == NULL) ? TRUE : FALSE);
+	menus_shade_entry(buttons_menu, MAIN_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
 }
 
 
@@ -607,7 +615,7 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 	case MAIN_MENU_BUTTON:
 		switch (selection->items[1]) {
 		case BUTTON_MENU_EDIT:
-			//fill_edit_button_window(buttons_menu_icon);
+			buttons_fill_edit_window(buttons_menu_icon);
 			open_edit_button_window(&pointer);
 			break;
 		}

@@ -45,21 +45,5 @@ void buttons_terminate(void);
 
 void buttons_create_from_db(void);
 
-
-
-
-
-
-
-
-
-int fill_edit_button_window (wimp_i icon);
-int open_edit_button_window (wimp_pointer *pointer);
-int redraw_edit_button_window (void);
-//int read_edit_button_window (button *button_def);
-int close_edit_button_window (void);
-
-int press_button (wimp_i icon);
-
 #endif
 

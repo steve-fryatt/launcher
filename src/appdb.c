@@ -243,17 +243,24 @@ unsigned appdb_get_next_key(unsigned key)
 
 /**
  * Given a key, return details of the button associated with the application.
+ * Any parameters passed as NULL will not be returned. String pointers will only
+ * remain valid until the memory heap is disturbed.
  *
- * \param key			The key of the entry to be returned.
+ * \param key			The key of the netry to be returned.
  * \param *x_pos		Place to return the X coordinate of the button.
  * \param *y_pos		Place to return the Y coordinate of the button.
- * \param *sprite		Place to return the a pointer to the sprite name
- *				used in the button.  Will only remain valid until
- *				memory is disturbed.
+ * \param **name		Place to return a pointer to the button name.
+ * \param **sprite		Place to return a pointer to the sprite name
+ *				used in the button.
+ * \param **command		Place to return a pointer to the command associated
+ *				with a button.
+ * \param *local_copy		Place to return the local copy flag.
+ * \param *filer_boot		Place to return the filer boot flag.
  * \return			TRUE if an entry was found; else FALSE.
  */
 
-osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **sprite)
+osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **name, char **sprite,
+		char **command, osbool *local_copy, osbool *filer_boot)
 {
 	int index;
 
@@ -268,30 +275,23 @@ osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **sprite
 	if (y_pos != NULL)
 		*y_pos = appdb_list[index].y;
 
+	if (name != NULL)
+		*name = appdb_list[index].name;
+
 	if (sprite != NULL)
 		*sprite = appdb_list[index].sprite;
 
+	if (command != NULL)
+		*command = appdb_list[index].command;
+
+	if (local_copy != NULL)
+		*local_copy = appdb_list[index].local_copy;
+
+	if (filer_boot != NULL)
+		*filer_boot = appdb_list[index].filer_boot;
+
 	return TRUE;
 }
-
-
-/**
- * Given a key, return the command associated with an application.
- *
- * \param key			The key of the entry to be returned.
- * \return			Pointer to the command, or NULL.  Will only
- *				remain valid until memory is disturbed.
- */
-
-char *appdb_get_command(unsigned key)
-{
-	int index;
-
-	index = appdb_find(key);
-
-	return (index == -1) ? NULL : appdb_list[index].command;
-}
-
 
 /**
  * Find the index of an application based on its key.
