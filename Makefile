@@ -184,7 +184,9 @@ clean:
 	$(RM) $(OBJDIR)/*
 	$(RM) $(OUTDIR)/$(APP)/$(RUNIMAGE)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
+ifneq ($(SHHELP),)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
+endif
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 	$(RM) $(OUTDIR)/$(README)
 
