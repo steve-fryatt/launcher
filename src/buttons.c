@@ -94,8 +94,6 @@ struct button
 
 static struct button	*buttons_list = NULL;
 
-//static button           *button_list = NULL, *edit_button = NULL;
-
 static wimp_icon_create	buttons_icon_def;					/**< The definition for a button icon.				*/
 
 static int              button_x_base,
@@ -115,8 +113,8 @@ static wimp_w		buttons_info_window = NULL;				/**< The handle of the program inf
 
 static wimp_menu	*buttons_menu = NULL;					/**< The main menu.						*/
 
-
 static struct button	*buttons_menu_icon = NULL;				/**< The block for the icon over which the main menu opened.	*/
+static struct button	*buttons_edit_icon = NULL;				/**< The block for the icon being edited.			*/
 
 static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.				*/
 static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
@@ -382,15 +380,6 @@ static void buttons_fill_edit_window(struct button *button)
 }
 
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-int open_edit_button_window (wimp_pointer *pointer)
-{
-  windows_open_centred_at_pointer(buttons_edit_window, pointer);
-  icons_put_caret_at_end(buttons_edit_window, 2);
-
-  return (0);
-}
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -442,20 +431,6 @@ int read_edit_button_window (button *button_def)
   return 1;
 }
 #endif
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-int close_edit_button_window (void)
-{
-
-
-  wimp_close_window (buttons_edit_window);
-
-  //edit_button = NULL;
-
-  return 1;
-}
-
-/* ================================================================================================================== */
 
 
 
@@ -615,8 +590,12 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 	case MAIN_MENU_BUTTON:
 		switch (selection->items[1]) {
 		case BUTTON_MENU_EDIT:
-			buttons_fill_edit_window(buttons_menu_icon);
-			open_edit_button_window(&pointer);
+			if (buttons_menu_icon != NULL) {
+				buttons_edit_icon = buttons_menu_icon;
+				buttons_fill_edit_window(buttons_edit_icon);
+				windows_open_centred_at_pointer(buttons_edit_window, &pointer);
+				icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
+			}
 			break;
 		}
 		break;
@@ -647,12 +626,14 @@ static void buttons_edit_click_handler(wimp_pointer *pointer)
 	case ICON_EDIT_OK:
 		//read_edit_button_window(NULL);
 		if (pointer->buttons == wimp_CLICK_SELECT)
-			close_edit_button_window();
+			wimp_close_window(buttons_edit_window);
+			buttons_edit_icon = NULL;
 		break;
 
 	case ICON_EDIT_CANCEL:
 		if (pointer->buttons == wimp_CLICK_SELECT) {
-			close_edit_button_window();
+			wimp_close_window(buttons_edit_window);
+			buttons_edit_icon = NULL;
 		} else if (pointer->buttons == wimp_CLICK_ADJUST) {
 			//fill_edit_button_window ((wimp_i) -1);
 			redraw_edit_button_window ();
