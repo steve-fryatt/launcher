@@ -126,6 +126,8 @@ static void	buttons_toggle_window(void);
 static void	buttons_window_open(int columns, wimp_w window_level);
 
 static void	buttons_fill_edit_window(struct button *button);
+static void	buttons_redraw_edit_window(void);
+
 
 static void	buttons_press(wimp_i icon);
 static osbool	buttons_message_mode_change(wimp_message *message);
@@ -380,21 +382,24 @@ static void buttons_fill_edit_window(struct button *button)
 }
 
 
+/**
+ * Redraw the contents of the button edit window.
+ */
 
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-int redraw_edit_button_window (void)
+static void buttons_redraw_edit_window(void)
 {
-  wimp_set_icon_state(buttons_edit_window, 2, 0, 0);
-  wimp_set_icon_state(buttons_edit_window, 8, 0, 0);
-  wimp_set_icon_state(buttons_edit_window, 11, 0, 0);
-  wimp_set_icon_state(buttons_edit_window, 5, 0, 0);
-  wimp_set_icon_state(buttons_edit_window, 7, 0, 0);
+	wimp_set_icon_state(buttons_edit_window, ICON_EDIT_NAME, 0, 0);
+	wimp_set_icon_state(buttons_edit_window, ICON_EDIT_SPRITE, 0, 0);
+	wimp_set_icon_state(buttons_edit_window, ICON_EDIT_LOCATION, 0, 0);
+	wimp_set_icon_state(buttons_edit_window, ICON_EDIT_XPOS, 0, 0);
+	wimp_set_icon_state(buttons_edit_window, ICON_EDIT_YPOS, 0, 0);
 
-  icons_replace_caret_in_window(buttons_edit_window);
-
-  return 1;
+	icons_replace_caret_in_window(buttons_edit_window);
 }
+
+
+
+
 
 /* ------------------------------------------------------------------------------------------------------------------ */
 #if 0
@@ -415,15 +420,15 @@ int read_edit_button_window (button *button_def)
 
   if (button_def != NULL)
   {
-    icons_copy_text(buttons_edit_window, 2, button_def->name);
-    icons_copy_text(buttons_edit_window, 8, button_def->sprite);
-    icons_copy_text(buttons_edit_window, 11, button_def->command);
+    icons_copy_text(buttons_edit_window, ICON_EDIT_NAME, button_def->name);
+    icons_copy_text(buttons_edit_window, ICON_EDIT_SPRITE, button_def->sprite);
+    icons_copy_text(buttons_edit_window, ICON_EDIT_LOCATION, button_def->command);
 
-    button_def->x = atoi(icons_get_indirected_text_addr(buttons_edit_window, 5));
-    button_def->y = atoi(icons_get_indirected_text_addr(buttons_edit_window, 7));
+    button_def->x = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_XPOS));
+    button_def->y = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_YPOS));
 
-    button_def->local_copy = icons_get_selected(buttons_edit_window, 10);
-    button_def->filer_boot = icons_get_selected(buttons_edit_window, 13);
+    button_def->local_copy = icons_get_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL);
+    button_def->filer_boot = icons_get_selected(buttons_edit_window, ICON_EDIT_BOOT);
   }
 
   create_button_icon (button_def);
@@ -635,8 +640,8 @@ static void buttons_edit_click_handler(wimp_pointer *pointer)
 			wimp_close_window(buttons_edit_window);
 			buttons_edit_icon = NULL;
 		} else if (pointer->buttons == wimp_CLICK_ADJUST) {
-			//fill_edit_button_window ((wimp_i) -1);
-			redraw_edit_button_window ();
+			buttons_fill_edit_window(buttons_edit_icon);
+			buttons_redraw_edit_window();
 		}
 		break;
 	}
