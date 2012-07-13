@@ -49,10 +49,9 @@ void buttons_create_from_db(void);
 
 
 
-//int create_button_icon (button *button_def);
 
-void toggle_launch_window (void);
-void open_launch_window (int columns, wimp_w window_level);
+
+
 
 int fill_edit_button_window (wimp_i icon);
 int open_edit_button_window (wimp_pointer *pointer);

@@ -83,12 +83,12 @@
 
 struct button
 {
-	unsigned	key;							/**< The database key relating to the icon.	*/
+	unsigned	key;							/**< The database key relating to the icon.			*/
 
 	wimp_i		icon;
-	char		validation[BUTTON_VALIDATION_LENGTH];			/**< Storage for the icon's validation string.	*/
+	char		validation[BUTTON_VALIDATION_LENGTH];			/**< Storage for the icon's validation string.			*/
 
-	struct button	*next;							/**< Pointer to the next button definition.	*/
+	struct button	*next;							/**< Pointer to the next button definition.			*/
 };
 
 
@@ -96,7 +96,7 @@ static struct button	*buttons_list = NULL;
 
 //static button           *button_list = NULL, *edit_button = NULL;
 
-static wimp_icon_create	buttons_icon_def;					/**< The definition for a button icon.		*/
+static wimp_icon_create	buttons_icon_def;					/**< The definition for a button icon.				*/
 
 static int              button_x_base,
                         button_y_base,
@@ -106,22 +106,25 @@ static int              button_x_base,
                         window_offset,
                         window_x_extent;
 
-static bool             window_open;
+static osbool		buttons_window_is_open = FALSE;				/**< TRUE if the window is currently 'open'; else FALSE.	*/
 
 
-static wimp_w		buttons_window = NULL;					/**< The handle of the buttons window.		*/
-static wimp_w		buttons_edit_window = NULL;				/**< The handle of the button edit window.	*/
-static wimp_w		buttons_info_window = NULL;				/**< The handle of the program info window.	*/
+static wimp_w		buttons_window = NULL;					/**< The handle of the buttons window.				*/
+static wimp_w		buttons_edit_window = NULL;				/**< The handle of the button edit window.			*/
+static wimp_w		buttons_info_window = NULL;				/**< The handle of the program info window.			*/
 
-static wimp_menu	*buttons_menu = NULL;					/**< The main menu.				*/
+static wimp_menu	*buttons_menu = NULL;					/**< The main menu.						*/
 
-static wimp_i		buttons_menu_icon = 0;					/**< The icon over which the main menu opened.	*/
+static wimp_i		buttons_menu_icon = 0;					/**< The icon over which the main menu opened.			*/
 
-static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.		*/
-static int		buttons_window_y1 = 0;					/**< The top of the buttons window.		*/
+static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.				*/
+static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
 
 
 static void	buttons_create_icon(struct button *button);
+
+static void	buttons_toggle_window(void);
+static void	buttons_window_open(int columns, wimp_w window_level);
 
 static void	buttons_press(wimp_i icon);
 static osbool	buttons_message_mode_change(wimp_message *message);
@@ -198,6 +201,10 @@ void buttons_initialise(void)
 	/* Correctly size the window for the current mode. */
 
 	buttons_update_window_position();
+
+	/* Open the window. */
+
+	buttons_window_open(0, wimp_BOTTOM);
 }
 
 
@@ -285,48 +292,49 @@ static void buttons_create_icon(struct button *button)
 }
 
 
-
-
-/* ==================================================================================================================
- * Launch Window handling code.
+/**
+ * Toggle the state of the button window, open and closed.
  */
 
-void toggle_launch_window (void)
+static void buttons_toggle_window(void)
 {
-  if (window_open)
-  {
-    open_launch_window(0, wimp_BOTTOM);
-  }
-  else
-  {
-    open_launch_window(config_int_read("WindowColumns"), wimp_TOP);
-  }
+	if (buttons_window_is_open)
+		buttons_window_open(0, wimp_BOTTOM);
+	else
+		buttons_window_open(config_int_read("WindowColumns"), wimp_TOP);
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void open_launch_window (int columns, wimp_w window_level)
+/**
+ * Open or 'close' the buttons window to a given number of columns and
+ * place it at a defined point in the window stack.
+ *
+ * \param columns		The number of columns to display, or 0 to hide.
+ * \param window_level		The window to open behind.
+ */
+
+static void buttons_window_open(int columns, wimp_w window_level)
 {
-  int open_offset;
-  wimp_open window;
+	int		open_offset;
+ 	wimp_open	window;
 
 
-  open_offset = (button_x_base - 2*BUTTON_GUTTER - ((columns - 1) * (button_width/2 + BUTTON_GUTTER)));
+	open_offset = (button_x_base - 2*BUTTON_GUTTER - ((columns - 1) * (button_width/2 + BUTTON_GUTTER)));
 
-  window.w = buttons_window;
+	window.w = buttons_window;
 
-  window.visible.x0 = 0;
-  window.visible.x1 = columns ? window_x_extent - open_offset : window_x_extent - window_offset;
-  window.visible.y0 = buttons_window_y0;
-  window.visible.y1 = buttons_window_y1;
+	window.visible.x0 = 0;
+	window.visible.x1 = columns ? window_x_extent - open_offset : window_x_extent - window_offset;
+	window.visible.y0 = buttons_window_y0;
+	window.visible.y1 = buttons_window_y1;
 
-  window.xscroll = columns ? open_offset : window_offset;
-  window.yscroll = 0;
-  window.next = window_level;
+	window.xscroll = columns ? open_offset : window_offset;
+	window.yscroll = 0;
+	window.next = window_level;
 
-  wimp_open_window (&window);
+	wimp_open_window(&window);
 
-  window_open = (columns != 0);
+	buttons_window_is_open = (columns != 0) ? TRUE : FALSE;
 }
 
 /* ==================================================================================================================
@@ -542,12 +550,12 @@ static void buttons_click_handler(wimp_pointer *pointer)
 	case wimp_CLICK_SELECT:
 	case wimp_CLICK_ADJUST:
 		if (pointer->i == ICON_BUTTONS_SIDEBAR) {
-			toggle_launch_window();
+			buttons_toggle_window();
 		} else {
 			buttons_press(pointer->i);
 
 			if (pointer->buttons == wimp_CLICK_SELECT)
-				toggle_launch_window();
+				buttons_toggle_window();
 		}
 		break;
 	}

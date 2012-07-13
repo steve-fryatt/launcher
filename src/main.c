@@ -197,10 +197,6 @@ static void main_initialise(void)
 	appdb_boot_all();
 	buttons_create_from_db();
 
-	/* Open the launch window. */
-
-	open_launch_window(0, wimp_BOTTOM);
-
 	/* Tidy up and finish initialisation. */
 
 	hourglass_off();
