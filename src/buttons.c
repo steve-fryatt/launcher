@@ -356,14 +356,13 @@ static void buttons_fill_edit_window(struct button *button)
 
 	/* Initialise deafults if button data can't be found. */
 
-	if (button == NULL ||
-			!appdb_get_button_info(button->key, &x_pos, &y_pos, &name,
-			&sprite, &command, &local_copy, &filer_boot)) {
+	if (button == NULL || !appdb_get_button_info(button->key, &x_pos, &y_pos,
+			&name, &sprite, &command, &local_copy, &filer_boot)) {
 		x_pos = 0;
 		y_pos = 0;
-		*name = '\0';
-		*sprite = '\0';
-		*command = '\0';
+		name = "";
+		sprite = "";
+		command = "";
 		local_copy = FALSE;
 		filer_boot = TRUE;
 	}
@@ -617,6 +616,13 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 		}
 		break;
 
+	case MAIN_MENU_NEW_BUTTON:
+		buttons_edit_icon = NULL;
+		buttons_fill_edit_window(buttons_edit_icon);
+		windows_open_centred_at_pointer(buttons_edit_window, &pointer);
+		icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
+		break;
+
 	case MAIN_MENU_SAVE_BUTTONS:
 		appdb_save_file("Buttons");
 		break;
@@ -636,15 +642,21 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 static void buttons_edit_click_handler(wimp_pointer *pointer)
 {
+	struct button		*button;
+
 	if (pointer == NULL)
 		return;
 
 	switch (pointer->i) {
 	case ICON_EDIT_OK:
-		//read_edit_button_window(NULL);
-		if (pointer->buttons == wimp_CLICK_SELECT)
-			wimp_close_window(buttons_edit_window);
-			buttons_edit_icon = NULL;
+		button = buttons_read_edit_window(buttons_edit_icon);
+		if (button != NULL) {
+			buttons_create_icon(button);
+			if (pointer->buttons == wimp_CLICK_SELECT) {
+				wimp_close_window(buttons_edit_window);
+				buttons_edit_icon = NULL;
+			}
+		}
 		break;
 
 	case ICON_EDIT_CANCEL:
