@@ -7,8 +7,12 @@
 #ifndef LAUNCHER_APPDB
 #define LAUNCHER_APPDB
 
-
 #define APPDB_NULL_KEY 0xffffffffu
+
+#define APPDB_NAME_LENGTH 64
+#define APPDB_SPRITE_LENGTH 20
+#define APPDB_COMMAND_LENGTH 1024
+
 
 /**
  * Initialise the buttons window.
@@ -53,6 +57,24 @@ void appdb_boot_all(void);
 
 
 /**
+ * Create a new, empty entry in the database and return its key.
+ *
+ * \return			The new key, or APPDB_NULL_KEY.
+ */
+
+unsigned appdb_create_key(void);
+
+
+/**
+ * Delete an enrty from the database.
+ *
+ * \param key			The key of the enrty to delete.
+ */
+
+void appdb_delete_key(unsigned key);
+
+
+/**
  * Given a database key, return the next key from the database.
  *
  * \param key			The current key, or APPDB_NULL_KEY to start sequence.
@@ -82,6 +104,24 @@ unsigned appdb_get_next_key(unsigned key);
 
 osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **name, char **sprite,
 		char **command, osbool *local_copy, osbool *filer_boot);
+
+
+/**
+ * Given a key, set details of the button associated with the application.
+ *
+ * \param key			The key of the entry to be updated.
+ * \param *x_pos		The new X coordinate of the button.
+ * \param *y_pos		The new Y coordinate of the button.
+ * \param **name		Pointer to the new button name.
+ * \param **sprite		Pointer to the new sprite name to be used in the button.
+ * \param **command		Pointer to the command associated with the button.
+ * \param *local_copy		The new local copy flag.
+ * \param *filer_boot		The new filer boot flag.
+ * \return			TRUE if an entry was updated; else FALSE.
+ */
+
+osbool appdb_set_button_info(unsigned key, int x_pos, int y_pos, char *name, char *sprite,
+		char *command, osbool local_copy, osbool filer_boot);
 
 #endif
 

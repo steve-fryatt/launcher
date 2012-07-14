@@ -1,5 +1,5 @@
 /* Launcher - buttons.c
- * (c) Stephen Fryatt, 2002
+ * (c) Stephen Fryatt, 2002-2012
  */
 
 /* ANSI C header files. */
@@ -120,23 +120,23 @@ static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.			
 static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
 
 
-static void	buttons_create_icon(struct button *button);
+static void		buttons_create_icon(struct button *button);
 
-static void	buttons_toggle_window(void);
-static void	buttons_window_open(int columns, wimp_w window_level);
+static void		buttons_toggle_window(void);
+static void		buttons_window_open(int columns, wimp_w window_level);
 
-static void	buttons_fill_edit_window(struct button *button);
-static void	buttons_redraw_edit_window(void);
+static void		buttons_fill_edit_window(struct button *button);
+static void		buttons_redraw_edit_window(void);
+static struct button	*buttons_read_edit_window(struct button *button);
 
-
-static void	buttons_press(wimp_i icon);
-static osbool	buttons_message_mode_change(wimp_message *message);
-static void	buttons_update_window_position(void);
-static void	buttons_click_handler(wimp_pointer *pointer);
-static void	buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
-static void	buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
-static void	buttons_edit_click_handler(wimp_pointer *pointer);
-static osbool	buttons_proginfo_web_click(wimp_pointer *pointer);
+static void		buttons_press(wimp_i icon);
+static osbool		buttons_message_mode_change(wimp_message *message);
+static void		buttons_update_window_position(void);
+static void		buttons_click_handler(wimp_pointer *pointer);
+static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
+static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static void		buttons_edit_click_handler(wimp_pointer *pointer);
+static osbool		buttons_proginfo_web_click(wimp_pointer *pointer);
 
 /* ================================================================================================================== */
 
@@ -398,46 +398,58 @@ static void buttons_redraw_edit_window(void)
 }
 
 
+/**
+ * Read the contents of the button edit window, validate it and store the
+ * details into a button definition.
+ *
+ * \param *button		The button to update; NULL to create a new entry.
+ * \return			Pointer to the button containing the data.
+ */
 
-
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-#if 0
-int read_edit_button_window (button *button_def)
+static struct button *buttons_read_edit_window(struct button *button)
 {
-  /* Read the contents of the Edit button window into a button block.
-   *
-   * If button_def != NULL, that definition is used (to allow for creating new buttons); otherwise
-   * the button for whom the window was opened is updated.
-   */
+	char		name[APPDB_NAME_LENGTH], sprite[APPDB_SPRITE_LENGTH], command[APPDB_COMMAND_LENGTH];
+	int		x_pos, y_pos;
+	osbool		local_copy, filer_boot;
 
 
+	x_pos = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_XPOS));
+	y_pos = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_YPOS));
 
-  if (button_def == NULL)
-  {
-    button_def = edit_button;
-  }
+	local_copy = icons_get_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL);
+	filer_boot = icons_get_selected(buttons_edit_window, ICON_EDIT_BOOT);
 
-  if (button_def != NULL)
-  {
-    icons_copy_text(buttons_edit_window, ICON_EDIT_NAME, button_def->name);
-    icons_copy_text(buttons_edit_window, ICON_EDIT_SPRITE, button_def->sprite);
-    icons_copy_text(buttons_edit_window, ICON_EDIT_LOCATION, button_def->command);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_NAME, name);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_SPRITE, sprite);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_LOCATION, command);
 
-    button_def->x = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_XPOS));
-    button_def->y = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_YPOS));
+	/* If this is a new button, create its entry and get a database
+	 * key for the application details.
+	 */
 
-    button_def->local_copy = icons_get_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL);
-    button_def->filer_boot = icons_get_selected(buttons_edit_window, ICON_EDIT_BOOT);
-  }
+	if (button == NULL) {
+		button = heap_alloc(sizeof(struct button));
 
-  create_button_icon (button_def);
+		if (button != NULL) {
+			button->key = appdb_create_key();
+			button->icon = -1;
+			button->validation[0] = '\0';
 
-  return 1;
+			if (button->key != APPDB_NULL_KEY) {
+				button->next = buttons_list;
+				buttons_list = button;
+			} else {
+				heap_free(button);
+				button = NULL;
+			}
+		}
+	}
+
+	if (button != NULL)
+		appdb_set_button_info(button->key, x_pos, y_pos, name, sprite, command, local_copy, filer_boot);
+
+	return button;
 }
-#endif
-
-
 
 
 

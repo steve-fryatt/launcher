@@ -44,11 +44,11 @@
 struct application
 {
 	unsigned	key;							/**< Primary key to index database entries.			*/
-	char		name[64];						/**< Button name.						*/
+	char		name[APPDB_NAME_LENGTH];				/**< Button name.						*/
 	int		x, y;							/**< X and Y positions of the button in the window.		*/
-	char		sprite[20];						/**< The sprite name.						*/
+	char		sprite[APPDB_SPRITE_LENGTH];				/**< The sprite name.						*/
 	osbool		local_copy;						/**< Do we keep a local copy of the sprite?			*/
-	char		command[1024];						/**< The command to be executed.				*/
+	char		command[APPDB_COMMAND_LENGTH];				/**< The command to be executed.				*/
 	osbool		filer_boot;						/**< Should the item be Filer_Booted on startup?		*/
 };
 
@@ -122,16 +122,8 @@ osbool appdb_load_file(char *leaf_name)
 		if (result == sf_READ_CONFIG_NEW_SECTION) {
 			current = appdb_new();
 
-			if (current != -1) {
-				strcpy(appdb_list[current].name, section);
-				*(appdb_list[current].sprite) = '\0';
-				*(appdb_list[current].command) = '\0';
-
-				appdb_list[current].x = 0;
-				appdb_list[current].y = 0;
-				appdb_list[current].local_copy = 0;
-				appdb_list[current].filer_boot = 1;
-			}
+			if (current != -1)
+				strncpy(appdb_list[current].name, section, APPDB_NAME_LENGTH);
 		}
 
 		/* If there is a current button object, add the current piece of data to it. */
@@ -142,9 +134,9 @@ osbool appdb_load_file(char *leaf_name)
 			else if (strcmp(token, "YPos") == 0)
 				appdb_list[current].y = atoi(contents);
 			else if (strcmp(token, "Sprite") == 0)
-				strcpy (appdb_list[current].sprite, contents);
+				strncpy(appdb_list[current].sprite, contents, APPDB_SPRITE_LENGTH);
 			else if (strcmp(token, "RunPath") == 0)
-				strcpy (appdb_list[current].command, contents);
+				strncpy(appdb_list[current].command, contents, APPDB_COMMAND_LENGTH);
 			else if (strcmp(token, "Boot") == 0)
 				appdb_list[current].filer_boot = config_read_opt_string(contents);
 		}
@@ -222,6 +214,44 @@ void appdb_boot_all(void)
 
 
 /**
+ * Create a new, empty entry in the database and return its key.
+ *
+ * \return			The new key, or APPDB_NULL_KEY.
+ */
+
+unsigned appdb_create_key(void)
+{
+	unsigned	key = APPDB_NULL_KEY;
+	int		index = appdb_new();
+
+	if (index != -1)
+		key = appdb_list[index].key;
+
+	return key;
+}
+
+
+/**
+ * Delete an enrty from the database.
+ *
+ * \param key			The key of the enrty to delete.
+ */
+
+void appdb_delete_key(unsigned key)
+{
+	int		index;
+
+	if (key == APPDB_NULL_KEY)
+		return;
+
+	index = appdb_find(key);
+
+	if (index != -1)
+		appdb_delete(index);
+}
+
+
+/**
  * Given a database key, return the next key from the database.
  *
  * \param key			The current key, or APPDB_NULL_KEY to start sequence.
@@ -293,6 +323,46 @@ osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **name, 
 	return TRUE;
 }
 
+
+/**
+ * Given a key, set details of the button associated with the application.
+ *
+ * \param key			The key of the entry to be updated.
+ * \param *x_pos		The new X coordinate of the button.
+ * \param *y_pos		The new Y coordinate of the button.
+ * \param **name		Pointer to the new button name.
+ * \param **sprite		Pointer to the new sprite name to be used in the button.
+ * \param **command		Pointer to the command associated with the button.
+ * \param *local_copy		The new local copy flag.
+ * \param *filer_boot		The new filer boot flag.
+ * \return			TRUE if an entry was updated; else FALSE.
+ */
+
+osbool appdb_set_button_info(unsigned key, int x_pos, int y_pos, char *name, char *sprite,
+		char *command, osbool local_copy, osbool filer_boot)
+{
+	int index;
+
+	index = appdb_find(key);
+
+	if (index == -1)
+		return FALSE;
+
+	appdb_list[index].x = x_pos;
+	appdb_list[index].y = y_pos;
+	appdb_list[index].local_copy = local_copy;
+	appdb_list[index].filer_boot = filer_boot;
+
+	if (name != NULL)
+		strncpy(appdb_list[index].name, name, APPDB_NAME_LENGTH);
+	if (sprite != NULL)
+		strncpy(appdb_list[index].sprite, sprite, APPDB_SPRITE_LENGTH);
+	if (command != NULL)
+		strncpy(appdb_list[index].command, command, APPDB_COMMAND_LENGTH);
+
+	return TRUE;
+}
+
 /**
  * Find the index of an application based on its key.
  *
@@ -323,7 +393,8 @@ static int appdb_find(unsigned key)
 
 
 /**
- * Claim a block for a new application, and fill in the unique key value.
+ * Claim a block for a new application, fill in the unique key and set
+ * default values for the data.
  *
  * \return			The new block number, or -1 on failure.
  */
@@ -338,6 +409,14 @@ static int appdb_new()
 		return -1;
 
 	appdb_list[appdb_apps].key = appdb_key++;
+	appdb_list[appdb_apps].x = 0;
+	appdb_list[appdb_apps].y = 0;
+	appdb_list[appdb_apps].local_copy = FALSE;
+	appdb_list[appdb_apps].filer_boot = TRUE;
+
+	*(appdb_list[appdb_apps].name) = '\0';
+	*(appdb_list[appdb_apps].sprite) = '\0';
+	*(appdb_list[appdb_apps].command) = '\0';
 
 	return appdb_apps++;
 }
