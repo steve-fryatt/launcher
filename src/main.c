@@ -124,7 +124,7 @@ static void main_initialise(void)
 	static char		task_name[255];
 	char			resources[RES_PATH_LEN], res_temp[RES_PATH_LEN];
 
-	wimp_MESSAGE_LIST(4)	message_list;
+	wimp_MESSAGE_LIST(5)	message_list;
 	wimp_icon_create	icon_bar;
 	wimp_w			window_list[10];
 	wimp_menu		*menu_list[10];
@@ -149,7 +149,8 @@ static void main_initialise(void)
 	message_list.messages[0]=message_MODE_CHANGE;
 	message_list.messages[1]=message_URI_RETURN_RESULT;
 	message_list.messages[2]=message_ANT_OPEN_URL;
-	message_list.messages[3]=message_QUIT;
+	message_list.messages[3]=message_DATA_LOAD;
+	message_list.messages[4]=message_QUIT;
 	msgs_lookup("TaskName:Launcher", task_name, sizeof(task_name));
 	main_task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, (wimp_message_list *) &message_list, NULL);
 

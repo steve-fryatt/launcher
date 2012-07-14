@@ -131,6 +131,7 @@ static void		buttons_redraw_edit_window(void);
 static struct button	*buttons_read_edit_window(struct button *button);
 
 static void		buttons_press(wimp_i icon);
+static osbool		buttons_message_data_load(wimp_message *message);
 static osbool		buttons_message_mode_change(wimp_message *message);
 static void		buttons_update_window_position(void);
 static void		buttons_click_handler(wimp_pointer *pointer);
@@ -201,6 +202,7 @@ void buttons_initialise(void)
 	/* Watch out for Message_ModeChange. */
 
 	event_add_message_handler(message_MODE_CHANGE, EVENT_MESSAGE_INCOMING, buttons_message_mode_change);
+	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, buttons_message_data_load);
 
 	/* Correctly size the window for the current mode. */
 
@@ -546,6 +548,50 @@ static void buttons_press(wimp_i icon)
 	heap_free(buffer);
 
 	return;
+}
+
+
+/**
+ * Handle incoming Message_DataSave to the button edit window, by using the
+ * information to populate the relevant fields.
+ *
+ * \param *message		The message data block from the Wimp.
+ */
+
+static osbool buttons_message_data_load(wimp_message *message)
+{
+	char *leafname, spritename[APPDB_SPRITE_LENGTH];
+
+	wimp_full_message_data_xfer *data_load = (wimp_full_message_data_xfer *) message;
+
+	if (data_load->w != buttons_edit_window)
+		return FALSE;
+
+	if (!windows_get_open(buttons_edit_window))
+		return TRUE;
+
+	leafname = string_find_leafname(data_load->file_name);
+
+	if (leafname[0] == '!') {
+		strncpy(spritename, leafname, APPDB_SPRITE_LENGTH);
+		string_tolower(spritename);
+
+		/* \TODO -- If the sprite doesn't exist, use application? */
+
+		leafname++;
+	} else {
+		strncpy(spritename, "file_xxx", APPDB_SPRITE_LENGTH);
+
+		/* \TODO -- This should sort out filetype sprites! */
+	}
+
+	icons_strncpy(buttons_edit_window, ICON_EDIT_NAME, leafname);
+	icons_strncpy(buttons_edit_window, ICON_EDIT_SPRITE, spritename);
+	icons_strncpy(buttons_edit_window, ICON_EDIT_LOCATION, data_load->file_name);
+
+	buttons_redraw_edit_window();
+
+	return TRUE;
 }
 
 
