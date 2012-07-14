@@ -597,6 +597,8 @@ static osbool buttons_message_data_load(wimp_message *message)
 
 /**
  * Handle incoming Message_ModeChange.
+ *
+ * \param *message		The message data block from the Wimp.
  */
 
 static osbool buttons_message_mode_change(wimp_message *message)
