@@ -121,6 +121,7 @@ static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
 
 
 static void		buttons_create_icon(struct button *button);
+static void		buttons_delete_icon(struct button *button);
 
 static void		buttons_toggle_window(void);
 static void		buttons_window_open(int columns, wimp_w window_level);
@@ -292,6 +293,51 @@ static void buttons_create_icon(struct button *button)
 	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
 	button->icon = wimp_create_icon(&buttons_icon_def);
+}
+
+
+/**
+ * Delete a button and all its associated information.
+ *
+ * \param *button		The button to be deleted.
+ */
+
+static void buttons_delete_icon(struct button *button)
+{
+	struct button	*parent;
+	os_error	*error;
+
+	if (button == NULL)
+		return;
+
+	/* Delete the button's icon. */
+
+	if (button->icon != -1) {
+		error = xwimp_delete_icon(buttons_icon_def.w, button->icon);
+		if (error != NULL)
+			error_report_program(error);
+		button->icon = -1;
+	}
+
+	/* Delete the application details from the database. */
+
+	appdb_delete_key(button->key);
+
+	/* Delink and delete the button data. */
+
+	if (buttons_list == button) {
+		buttons_list = button->next;
+	} else {
+		parent = buttons_list;
+
+		while (parent != NULL && parent->next != button)
+			parent = parent->next;
+
+		if (parent != NULL)
+			parent->next = button->next;
+	}
+
+	heap_free(button);
 }
 
 
@@ -604,15 +650,20 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 		break;
 
 	case MAIN_MENU_BUTTON:
-		switch (selection->items[1]) {
-		case BUTTON_MENU_EDIT:
-			if (buttons_menu_icon != NULL) {
+		if (buttons_menu_icon != NULL) {
+			switch (selection->items[1]) {
+			case BUTTON_MENU_EDIT:
 				buttons_edit_icon = buttons_menu_icon;
 				buttons_fill_edit_window(buttons_edit_icon);
 				windows_open_centred_at_pointer(buttons_edit_window, &pointer);
 				icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
+				break;
+
+			case BUTTON_MENU_DELETE:
+				buttons_delete_icon(buttons_menu_icon);
+				buttons_menu_icon = NULL;
+				break;
 			}
-			break;
 		}
 		break;
 
