@@ -166,7 +166,7 @@ static void main_initialise(void)
 	config_initialise(task_name, "Launcher", "<Launcher$Dir>");
 
 	config_int_init("WindowColumns", 7);
-	config_opt_init("Confirmdelete", 0);
+	config_opt_init("ConfirmDelete", TRUE);
 
 	config_load();
 
