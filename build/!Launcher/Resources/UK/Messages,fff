@@ -9,8 +9,10 @@ Version:%0 (%1)
 TaskSpr:application
 SupportURL:http://www.stevefryatt.org.uk/software/utils/
 
-Help.Launch:\TLauncher \w. \Slaunch applications and files.
+QDelete:Are you sure that you wish to delete this button?
+QDeleteB:Delete,Cancel
 
+Help.Launch:\TLauncher \w. \Slaunch applications and files.
 
 Help.Edit:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
 Help.Edit.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
