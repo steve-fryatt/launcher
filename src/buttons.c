@@ -291,7 +291,7 @@ static void buttons_create_icon(struct button *button)
 	buttons_icon_def.icon.extent.y0 = button_y_base - (y_pos * (button_height / 2 + BUTTON_GUTTER));
 	buttons_icon_def.icon.extent.y1 = buttons_icon_def.icon.extent.y0 + button_height;
 
-	snprintf(button->validation, BUTTON_VALIDATION_LENGTH, "R5,1;S%s", sprite);
+	snprintf(button->validation, BUTTON_VALIDATION_LENGTH, "R5,1;S%s;NButton", sprite);
 	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
 	button->icon = wimp_create_icon(&buttons_icon_def);
