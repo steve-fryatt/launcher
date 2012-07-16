@@ -1,5 +1,5 @@
 # Launcher - Messages
-# (c) Stephen Fryatt, 2003
+# (c) Stephen Fryatt, 2003-2012
 #
 # UK Version
 
@@ -8,3 +8,32 @@ Version:%0 (%1)
 
 TaskSpr:application
 SupportURL:http://www.stevefryatt.org.uk/software/utils/
+
+Help.Launch:\TLauncher \w. \Slaunch applications and files.
+
+
+Help.Edit:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
+Help.Edit.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
+Help.Edit.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
+Help.Edit.Name:\Tname of the button.
+Help.Edit.XPos:\Thorizontal position of the button on the grid.
+Help.Edit.YPos:\Tvertical position of the button on the grid.
+Help.Edit.Sprite:\Tname of the sprite used on the button.
+Help.Edit.Location:\Tlocation of the file or application which will be run when the button is clicked.
+Help.Edit.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
+Help.Edit.Boot:\Stoggle whether the application will be filer-booted when Launcher starts.
+
+Help.ProgInfo:This \w displays information about Launcher.
+Help.ProgInfo.Website:\Sopen the Launcher home page in your web browser, if one has been seen.
+
+Help.MainMenu.00:\Rsee information about Launcher.
+Help.MainMenu.01:\Sread the online help.
+Help.MainMenu.02:\Rto see options relating to the button under the pointer.
+Help.MainMenu.0200:\Sopen the button edit \w and edit the button under the pointer.
+Help.MainMenu.0201:\Smove the button under the pointer.
+Help.MainMenu.0202:\Sdelete the button under the pointer.
+Help.MainMenu.03:\Sopen the button edit \w and create a new button.
+Help.MainMenu.04:\Ssave the current button arrangement to file for future sessions.
+Help.MainMenu.05:\Schange the Launcher options.
+Help.MainMenu.06:\Squit Launcher.
+
