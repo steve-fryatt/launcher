@@ -14,8 +14,6 @@
 #define LAUNCHER_LEFT   3
 #define LAUNCHER_RIGHT  4
 
-#define BUTTON_GUTTER 4
-
 /* ================================================================================================================== */
 
 /* Structure to hold details of a button. */

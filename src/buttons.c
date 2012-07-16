@@ -96,13 +96,16 @@ static struct button	*buttons_list = NULL;
 
 static wimp_icon_create	buttons_icon_def;					/**< The definition for a button icon.				*/
 
-static int              button_x_base,
-                        button_y_base,
-                        button_width,
-                        button_height,
+static int		buttons_grid_square;					/**< The size of a grid square (in OS units).			*/
+static int		buttons_grid_spacing;					/**< The spacing between grid squares (in OS units).		*/
 
-                        window_offset,
-                        window_x_extent;
+static int		buttons_grid_columns;					/**< The number of columns in the visible grid.			*/
+
+static int		buttons_origin_x;					/**< The horizontal origin of the button grid (in OS units).	*/
+static int		buttons_origin_y;					/**< The vertical origin of the button grid (in OS units).	*/
+
+static int		buttons_slab_width;					/**< The width of one button slab (in OS units).		*/
+static int		buttons_slab_height;					/**< The height of one button slab (in OS units).		*/
 
 static osbool		buttons_window_is_open = FALSE;				/**< TRUE if the window is currently 'open'; else FALSE.	*/
 
@@ -134,6 +137,7 @@ static void		buttons_press(wimp_i icon);
 static osbool		buttons_message_data_load(wimp_message *message);
 static osbool		buttons_message_mode_change(wimp_message *message);
 static void		buttons_update_window_position(void);
+static void		buttons_update_grid_info(void);
 static void		buttons_click_handler(wimp_pointer *pointer);
 static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
@@ -174,14 +178,6 @@ void buttons_initialise(void)
 	buttons_icon_def.icon = def->icons[1];
 	buttons_icon_def.w = buttons_window;
 
-	button_x_base = def->icons[ICON_BUTTONS_TEMPLATE].extent.x0;
-	button_y_base = def->icons[ICON_BUTTONS_TEMPLATE].extent.y0;
-	button_width = def->icons[ICON_BUTTONS_TEMPLATE].extent.x1 - def->icons[ICON_BUTTONS_TEMPLATE].extent.x0;
-	button_height = def->icons[ICON_BUTTONS_TEMPLATE].extent.y1 - def->icons[ICON_BUTTONS_TEMPLATE].extent.y0;
-
-	window_offset = def->icons[ICON_BUTTONS_SIDEBAR].extent.x0;
-	window_x_extent = def->icons[ICON_BUTTONS_SIDEBAR].extent.x1;
-
 	free(def);
 
 	/* Initialise the Edit window. */
@@ -207,6 +203,7 @@ void buttons_initialise(void)
 	/* Correctly size the window for the current mode. */
 
 	buttons_update_window_position();
+	buttons_update_grid_info();
 
 	/* Open the window. */
 
@@ -286,10 +283,10 @@ static void buttons_create_icon(struct button *button)
 	if (!appdb_get_button_info(button->key, &x_pos, &y_pos, NULL, &sprite, NULL, NULL, NULL))
 		return;
 
-	buttons_icon_def.icon.extent.x0 = button_x_base - (x_pos * (button_width / 2 + BUTTON_GUTTER));
-	buttons_icon_def.icon.extent.x1 = buttons_icon_def.icon.extent.x0 + button_width;
-	buttons_icon_def.icon.extent.y0 = button_y_base - (y_pos * (button_height / 2 + BUTTON_GUTTER));
-	buttons_icon_def.icon.extent.y1 = buttons_icon_def.icon.extent.y0 + button_height;
+	buttons_icon_def.icon.extent.x1 = buttons_origin_x - x_pos * (buttons_grid_square + buttons_grid_spacing);
+	buttons_icon_def.icon.extent.x0 = buttons_icon_def.icon.extent.x1 - buttons_slab_width;
+	buttons_icon_def.icon.extent.y1 = buttons_origin_y - y_pos * (buttons_grid_square + buttons_grid_spacing);
+	buttons_icon_def.icon.extent.y0 = buttons_icon_def.icon.extent.y1 - buttons_slab_height;
 
 	snprintf(button->validation, BUTTON_VALIDATION_LENGTH, "R5,1;S%s;NButton", sprite);
 	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
@@ -352,7 +349,7 @@ static void buttons_toggle_window(void)
 	if (buttons_window_is_open)
 		buttons_window_open(0, wimp_BOTTOM);
 	else
-		buttons_window_open(config_int_read("WindowColumns"), wimp_TOP);
+		buttons_window_open(buttons_grid_columns, wimp_TOP);
 }
 
 
@@ -366,20 +363,27 @@ static void buttons_toggle_window(void)
 
 static void buttons_window_open(int columns, wimp_w window_level)
 {
-	int		open_offset;
- 	wimp_open	window;
+	int			sidebar_width;
+	wimp_open		window;
+	wimp_icon_state		state;
+	os_error		*error;
 
+	state.w = buttons_window;
+	state.i = ICON_BUTTONS_SIDEBAR;
+	error = xwimp_get_icon_state(&state);
+	if (error != NULL)
+		return;
 
-	open_offset = (button_x_base - 2*BUTTON_GUTTER - ((columns - 1) * (button_width/2 + BUTTON_GUTTER)));
+	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
 
 	window.w = buttons_window;
 
 	window.visible.x0 = 0;
-	window.visible.x1 = columns ? window_x_extent - open_offset : window_x_extent - window_offset;
+	window.visible.x1 = ((columns > 0) ? (buttons_grid_spacing + columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_width;
 	window.visible.y0 = buttons_window_y0;
 	window.visible.y1 = buttons_window_y1;
 
-	window.xscroll = columns ? open_offset : window_offset;
+	window.xscroll = (columns == buttons_grid_columns) ? 0 : (buttons_grid_spacing + (buttons_grid_columns - columns) * (buttons_grid_spacing + buttons_grid_square));
 	window.yscroll = 0;
 	window.next = window_level;
 
@@ -637,6 +641,7 @@ static void buttons_update_window_position(void)
 	window_height = mode_height - sf_ICONBAR_HEIGHT;
 
 	if ((info.extent.y1 - info.extent.y0) != window_height) {
+		info.extent.y1 = 0;
 		info.extent.y0 = info.extent.y1 - window_height;
 
 		error = xwimp_set_extent(buttons_window, &(info.extent));
@@ -649,6 +654,59 @@ static void buttons_update_window_position(void)
 
 	buttons_window_y0 = sf_ICONBAR_HEIGHT;
 	buttons_window_y1 = general_mode_height();
+}
+
+
+/**
+ * Update the button window grid details to take into account new values from
+ * the configuration.
+ */
+
+static void buttons_update_grid_info(void)
+{
+	wimp_window_info	info;
+	wimp_icon_state		state;
+	os_error		*error;
+	int			sidebar_width;
+
+
+	info.w = buttons_window;
+	error = xwimp_get_window_info_header_only(&info);
+	if (error != NULL)
+		return;
+
+	state.w = buttons_window;
+	state.i = ICON_BUTTONS_SIDEBAR;
+	error = xwimp_get_icon_state(&state);
+	if (error != NULL)
+		return;
+
+	buttons_grid_square = config_int_read("GridSize");
+	buttons_grid_spacing = config_int_read("GridSpacing");
+	buttons_grid_columns = config_int_read("WindowColumns");
+
+	/* Origin is top-right of the grid. */
+
+	buttons_origin_x = info.extent.x0 + buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing);
+	buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
+
+	/* Buttons span two grid squares, and cover the spacing in between those. */
+
+	buttons_slab_width = 2 * buttons_grid_square + buttons_grid_spacing;
+	buttons_slab_height = 2 * buttons_grid_square + buttons_grid_spacing;
+
+	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
+
+	info.extent.x0 = 0;
+	info.extent.x1 = info.extent.x0 + sidebar_width + buttons_grid_spacing +
+			buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square);
+
+	error = xwimp_set_extent(buttons_window, &(info.extent));
+	if (error != NULL)
+		return;
+
+	error = xwimp_resize_icon(buttons_window, ICON_BUTTONS_SIDEBAR,
+		info.extent.x1 - sidebar_width, state.icon.extent.y0, info.extent.x1, state.icon.extent.y1);
 }
 
 

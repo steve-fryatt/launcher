@@ -165,8 +165,10 @@ static void main_initialise(void)
 
 	config_initialise(task_name, "Launcher", "<Launcher$Dir>");
 
-	config_int_init("WindowColumns", 7);
-	config_opt_init("ConfirmDelete", TRUE);
+	config_int_init("WindowColumns", 8);					/**< The number of columns to display on expanding the window.		*/
+	config_int_init("GridSize", 36);					/**< The number of OS units to a grid square.				*/
+	config_int_init("GridSpacing", 4);					/**< The number of OS units between grid squares.			*/
+	config_opt_init("ConfirmDelete", TRUE);					/**< TRUE to confirm button deletion; FALSE to delete immediately.	*/
 
 	config_load();
 
