@@ -616,6 +616,37 @@ static osbool buttons_message_mode_change(wimp_message *message)
 
 static void buttons_update_window_position(void)
 {
+	int			mode_height, window_height;
+	wimp_window_info	info;
+	wimp_icon_state		state;
+	os_error		*error;
+
+
+	info.w = buttons_window;
+	error = xwimp_get_window_info_header_only(&info);
+	if (error != NULL)
+		return;
+
+	state.w = buttons_window;
+	state.i = ICON_BUTTONS_SIDEBAR;
+	error = xwimp_get_icon_state(&state);
+	if (error != NULL)
+		return;
+
+	mode_height = general_mode_height();
+	window_height = mode_height - sf_ICONBAR_HEIGHT;
+
+	if ((info.extent.y1 - info.extent.y0) != window_height) {
+		info.extent.y0 = info.extent.y1 - window_height;
+
+		error = xwimp_set_extent(buttons_window, &(info.extent));
+		if (error != NULL)
+			return;
+
+		error = xwimp_resize_icon(buttons_window, ICON_BUTTONS_SIDEBAR,
+			state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y1);
+	}
+
 	buttons_window_y0 = sf_ICONBAR_HEIGHT;
 	buttons_window_y1 = general_mode_height();
 }
