@@ -13,7 +13,7 @@ QDelete:Are you sure that you wish to delete this button?
 QDeleteB:Delete,Cancel
 
 Help.Launch:\TLauncher \w.|M\Slaunch applications and files.
-Help.Launch.Toggle:\TLauncher \w.|M\Sexpand or contract the display.
+Help.Launch.Siebar:\TLauncher \w.|M\Sexpand or contract the display.
 Help.Launch.Button:\Sluanch this file or aplication.
 
 Help.Edit:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
