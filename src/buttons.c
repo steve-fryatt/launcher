@@ -139,6 +139,7 @@ static osbool		buttons_message_mode_change(wimp_message *message);
 static void		buttons_update_window_position(void);
 static void		buttons_update_grid_info(void);
 static void		buttons_click_handler(wimp_pointer *pointer);
+static osbool		buttons_edit_keypress_handler(wimp_key *key);
 static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static void		buttons_edit_click_handler(wimp_pointer *pointer);
@@ -185,6 +186,7 @@ void buttons_initialise(void)
 	buttons_edit_window = templates_create_window("Edit");
 	ihelp_add_window(buttons_edit_window, "Edit", NULL);
 	event_add_window_mouse_event(buttons_edit_window, buttons_edit_click_handler);
+	event_add_window_key_event(buttons_edit_window, buttons_edit_keypress_handler);
 
 	/* Initialise the Program Info window. */
 
@@ -859,6 +861,45 @@ static void buttons_edit_click_handler(wimp_pointer *pointer)
 		}
 		break;
 	}
+}
+
+
+/**
+ * Process keypresses in the Edit dialogue.
+ *
+ * \param *key			The keypress event block to handle.
+ * \return			TRUE if the event was handled; else FALSE.
+ */
+
+static osbool buttons_edit_keypress_handler(wimp_key *key)
+{
+	struct button		*button;
+
+
+	if (key == NULL)
+		return FALSE;
+
+	switch (key->c) {
+	case wimp_KEY_RETURN:
+		button = buttons_read_edit_window(buttons_edit_icon);
+		if (button != NULL) {
+			buttons_create_icon(button);
+			wimp_close_window(buttons_edit_window);
+			buttons_edit_icon = NULL;
+		}
+		break;
+
+	case wimp_KEY_ESCAPE:
+		wimp_close_window(buttons_edit_window);
+		buttons_edit_icon = NULL;
+		break;
+
+	default:
+		return FALSE;
+		break;
+	}
+
+	return TRUE;
 }
 
 
