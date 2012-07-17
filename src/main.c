@@ -126,10 +126,6 @@ static void main_initialise(void)
 	static char		task_name[255];
 	char			resources[RES_PATH_LEN], res_temp[RES_PATH_LEN];
 
-	wimp_icon_create	icon_bar;
-	wimp_w			window_list[10];
-	wimp_menu		*menu_list[10];
-
 
 	hourglass_on();
 
