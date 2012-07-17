@@ -118,6 +118,7 @@ static wimp_menu	*buttons_menu = NULL;					/**< The main menu.						*/
 
 static struct button	*buttons_menu_icon = NULL;				/**< The block for the icon over which the main menu opened.	*/
 static struct button	*buttons_edit_icon = NULL;				/**< The block for the icon being edited.			*/
+static os_coord		buttons_menu_coordinate;				/**< The grid coordinates where the main menu opened.		*/
 
 static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.				*/
 static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
@@ -753,6 +754,9 @@ static void buttons_click_handler(wimp_pointer *pointer)
 
 static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
+	wimp_window_state	window;
+
+
 	if (pointer == NULL)
 		return;
 
@@ -767,6 +771,15 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 
 	menus_shade_entry(buttons_menu, MAIN_MENU_BUTTON, (buttons_menu_icon == NULL) ? TRUE : FALSE);
 	menus_shade_entry(buttons_menu, MAIN_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
+
+	window.w = buttons_window;
+	wimp_get_window_state(&window);
+
+	buttons_menu_coordinate.x = (pointer->pos.x - window.visible.x0) + window.xscroll;
+	buttons_menu_coordinate.y = (window.visible.y1 - pointer->pos.y) - window.yscroll;
+
+	buttons_menu_coordinate.x = (buttons_origin_x - (buttons_menu_coordinate.x - (buttons_grid_spacing / 2))) / (buttons_grid_square + buttons_grid_spacing);
+	buttons_menu_coordinate.y = (buttons_origin_y + (buttons_menu_coordinate.y + (buttons_grid_spacing / 2))) / (buttons_grid_square + buttons_grid_spacing);
 }
 
 
