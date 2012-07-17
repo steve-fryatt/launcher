@@ -294,6 +294,8 @@ static void buttons_create_icon(struct button *button)
 	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
 	button->icon = wimp_create_icon(&buttons_icon_def);
+
+	windows_redraw(buttons_window);
 }
 
 
@@ -318,6 +320,8 @@ static void buttons_delete_icon(struct button *button)
 		if (error != NULL)
 			error_report_program(error);
 		button->icon = -1;
+
+		windows_redraw(buttons_window);
 	}
 
 	/* Delete the application details from the database. */
