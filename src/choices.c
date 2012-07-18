@@ -93,8 +93,6 @@ void choices_open_window(wimp_pointer *pointer)
 	choices_set_window();
 
 	windows_open_centred_at_pointer(choices_window, pointer);
-
-//	icons_put_caret_at_end(choices_window, wimp_BACKGROUND);
 }
 
 
@@ -145,8 +143,6 @@ static void choices_redraw_window(void)
 	wimp_set_icon_state(choices_window, CHOICE_ICON_COLUMNS, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_SIZE, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_SPACING, 0, 0);
-
-//	icons_replace_caret_in_window(choices_window);
 }
 
 
