@@ -33,6 +33,7 @@
 #include "buttons.h"
 
 #include "appdb.h"
+#include "choices.h"
 #include "ihelp.h"
 #include "main.h"
 #include "templates.h"
@@ -834,6 +835,10 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 	case MAIN_MENU_SAVE_BUTTONS:
 		appdb_save_file("Buttons");
+		break;
+
+	case MAIN_MENU_CHOICES:
+		choices_open_window(&pointer);
 		break;
 
 	case MAIN_MENU_QUIT:

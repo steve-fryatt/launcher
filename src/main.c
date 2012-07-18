@@ -42,6 +42,7 @@
 
 #include "appdb.h"
 #include "buttons.h"
+#include "choices.h"
 #include "ihelp.h"
 #include "templates.h"
 
@@ -184,6 +185,7 @@ static void main_initialise(void)
 	url_initialise();
 	appdb_initialise();
 	buttons_initialise();
+	choices_initialise();
 
 	templates_close();
 
