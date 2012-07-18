@@ -76,6 +76,10 @@ void choices_initialise(void)
 
 	event_add_window_mouse_event(choices_window, choices_click_handler);
 	event_add_window_key_event(choices_window, choices_keypress_handler);
+
+	event_add_window_icon_bump(choices_window, CHOICE_ICON_COLUMNS, CHOICE_ICON_COLUMNS_UP, CHOICE_ICON_COLUMNS_DOWN, 1, 10, 1);
+	event_add_window_icon_bump(choices_window, CHOICE_ICON_SIZE, CHOICE_ICON_SIZE_UP, CHOICE_ICON_SIZE_DOWN, 20, 100, 2);
+	event_add_window_icon_bump(choices_window, CHOICE_ICON_SPACING, CHOICE_ICON_SPACING_UP, CHOICE_ICON_SPACING_DOWN, 0, 10, 2);
 }
 
 
