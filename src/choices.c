@@ -52,6 +52,20 @@
 #define CHOICE_ICON_SPACING_UP 17
 #define CHOICE_ICON_CONFIRM_DELETE 19
 
+/* Bump field limits and step values. */
+
+#define CHOICE_COLUMNS_MIN 1
+#define CHOICE_COLUMNS_MAX 10
+#define CHOICE_COLUMNS_STEP 1
+
+#define CHOICE_SIZE_MIN 20
+#define CHOICE_SIZE_MAX 100
+#define CHOICE_SIZE_STEP 2
+
+#define CHOICE_SPACING_MIN 0
+#define CHOICE_SPACING_MAX 10
+#define CHOICE_SPACING_STEP 2
+
 
 /* Global variables */
 
@@ -78,9 +92,15 @@ void choices_initialise(void)
 	event_add_window_mouse_event(choices_window, choices_click_handler);
 	event_add_window_key_event(choices_window, choices_keypress_handler);
 
-	event_add_window_icon_bump(choices_window, CHOICE_ICON_COLUMNS, CHOICE_ICON_COLUMNS_UP, CHOICE_ICON_COLUMNS_DOWN, 1, 10, 1);
-	event_add_window_icon_bump(choices_window, CHOICE_ICON_SIZE, CHOICE_ICON_SIZE_UP, CHOICE_ICON_SIZE_DOWN, 20, 100, 2);
-	event_add_window_icon_bump(choices_window, CHOICE_ICON_SPACING, CHOICE_ICON_SPACING_UP, CHOICE_ICON_SPACING_DOWN, 0, 10, 2);
+	event_add_window_icon_bump(choices_window, CHOICE_ICON_COLUMNS,
+			CHOICE_ICON_COLUMNS_UP, CHOICE_ICON_COLUMNS_DOWN,
+			CHOICE_COLUMNS_MIN, CHOICE_COLUMNS_MAX, CHOICE_COLUMNS_STEP);
+	event_add_window_icon_bump(choices_window, CHOICE_ICON_SIZE,
+			CHOICE_ICON_SIZE_UP, CHOICE_ICON_SIZE_DOWN,
+			CHOICE_SIZE_MIN, CHOICE_SIZE_MAX, CHOICE_SIZE_STEP);
+	event_add_window_icon_bump(choices_window, CHOICE_ICON_SPACING,
+			CHOICE_ICON_SPACING_UP, CHOICE_ICON_SPACING_DOWN,
+			CHOICE_SPACING_MIN, CHOICE_SPACING_MAX, CHOICE_SPACING_STEP);
 }
 
 
