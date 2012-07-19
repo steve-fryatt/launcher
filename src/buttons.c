@@ -101,6 +101,7 @@ static int		buttons_grid_square;					/**< The size of a grid square (in OS units
 static int		buttons_grid_spacing;					/**< The spacing between grid squares (in OS units).		*/
 
 static int		buttons_grid_columns;					/**< The number of columns in the visible grid.			*/
+static int		buttons_grid_rows;					/**< The number of rows in the visible grid.			*/
 
 static int		buttons_origin_x;					/**< The horizontal origin of the button grid (in OS units).	*/
 static int		buttons_origin_y;					/**< The vertical origin of the button grid (in OS units).	*/
@@ -500,12 +501,22 @@ static struct button *buttons_read_edit_window(struct button *button)
 	x_pos = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_XPOS));
 	y_pos = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_YPOS));
 
+	if (x_pos < 0 || y_pos < 0 || x_pos >= buttons_grid_columns || y_pos >= buttons_grid_rows) {
+		error_msgs_report_info("CoordRange");
+		return NULL;
+	}
+
 	local_copy = icons_get_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL);
 	filer_boot = icons_get_selected(buttons_edit_window, ICON_EDIT_BOOT);
 
 	icons_copy_text(buttons_edit_window, ICON_EDIT_NAME, name);
 	icons_copy_text(buttons_edit_window, ICON_EDIT_SPRITE, sprite);
 	icons_copy_text(buttons_edit_window, ICON_EDIT_LOCATION, command);
+
+	if (*name == '\0' || *sprite == '\0' || *command == '\0') {
+		error_msgs_report_info("MissingText");
+		return NULL;
+	}
 
 	/* If this is a new button, create its entry and get a database
 	 * key for the application details.
@@ -687,6 +698,12 @@ static void buttons_update_window_position(void)
 
 	buttons_window_y0 = sf_ICONBAR_HEIGHT;
 	buttons_window_y1 = general_mode_height();
+
+	if (buttons_grid_square + buttons_grid_spacing != 0)
+		buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
+				(buttons_grid_square + buttons_grid_spacing);
+	else
+		buttons_grid_rows = 0;
 }
 
 
@@ -717,6 +734,12 @@ static void buttons_update_grid_info(void)
 	buttons_grid_square = config_int_read("GridSize");
 	buttons_grid_spacing = config_int_read("GridSpacing");
 	buttons_grid_columns = config_int_read("WindowColumns");
+
+	if (buttons_grid_square + buttons_grid_spacing != 0)
+		buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
+				(buttons_grid_square + buttons_grid_spacing);
+	else
+		buttons_grid_rows = 0;
 
 	/* Origin is top-right of the grid. */
 

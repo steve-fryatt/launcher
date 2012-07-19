@@ -12,6 +12,9 @@ SupportURL:http://www.stevefryatt.org.uk/software/utils/
 QDelete:Are you sure that you wish to delete this button?
 QDeleteB:Delete,Cancel
 
+CoordRange:Button coordinates are out of range.
+MissingText:The Name, Sprite and Command fields must be completed.
+
 Help.Launch:\TLauncher \w.|M\Slaunch applications and files.
 Help.Launch.Siebar:\TLauncher \w.|M\Sexpand or contract the display.
 Help.Launch.Button:\Sluanch this file or aplication.
