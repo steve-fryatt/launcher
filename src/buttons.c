@@ -131,7 +131,7 @@ static void		buttons_delete_icon(struct button *button);
 static void		buttons_toggle_window(void);
 static void		buttons_window_open(int columns, wimp_w window_level, osbool use_level);
 
-static void		buttons_fill_edit_window(struct button *button);
+static void		buttons_fill_edit_window(struct button *button, os_coord *grid);
 static void		buttons_redraw_edit_window(void);
 static struct button	*buttons_read_edit_window(struct button *button);
 
@@ -427,11 +427,12 @@ static void buttons_window_open(int columns, wimp_w window_level, osbool use_lev
  * Set the contents of the button edit window.
  *
  * \param *button		The button to set data for, or NULL to use defaults.
+ * \param *grid			The grid coordinates to use, or NULL to use previous.
  */
 
-static void buttons_fill_edit_window(struct button *button)
+static void buttons_fill_edit_window(struct button *button, os_coord *grid)
 {
-	int		x_pos, y_pos;
+	static int	x_pos = 0, y_pos = 0;
 	char		*name, *sprite, *command;
 	osbool		local_copy, filer_boot;
 
@@ -440,8 +441,10 @@ static void buttons_fill_edit_window(struct button *button)
 
 	if (button == NULL || !appdb_get_button_info(button->key, &x_pos, &y_pos,
 			&name, &sprite, &command, &local_copy, &filer_boot)) {
-		x_pos = 0;
-		y_pos = 0;
+		if (grid != NULL) {
+			x_pos = grid->x;
+			y_pos = grid->y;
+		}
 		name = "";
 		sprite = "";
 		command = "";
@@ -833,7 +836,7 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 			switch (selection->items[1]) {
 			case BUTTON_MENU_EDIT:
 				buttons_edit_icon = buttons_menu_icon;
-				buttons_fill_edit_window(buttons_edit_icon);
+				buttons_fill_edit_window(buttons_edit_icon, NULL);
 				windows_open_centred_at_pointer(buttons_edit_window, &pointer);
 				icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
 				break;
@@ -850,7 +853,7 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 	case MAIN_MENU_NEW_BUTTON:
 		buttons_edit_icon = NULL;
-		buttons_fill_edit_window(buttons_edit_icon);
+		buttons_fill_edit_window(buttons_edit_icon, &buttons_menu_coordinate);
 		windows_open_centred_at_pointer(buttons_edit_window, &pointer);
 		icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
 		break;
@@ -900,7 +903,7 @@ static void buttons_edit_click_handler(wimp_pointer *pointer)
 			wimp_close_window(buttons_edit_window);
 			buttons_edit_icon = NULL;
 		} else if (pointer->buttons == wimp_CLICK_ADJUST) {
-			buttons_fill_edit_window(buttons_edit_icon);
+			buttons_fill_edit_window(buttons_edit_icon, NULL);
 			buttons_redraw_edit_window();
 		}
 		break;
