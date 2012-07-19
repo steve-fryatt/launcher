@@ -43,5 +43,13 @@ void buttons_terminate(void);
 
 void buttons_create_from_db(void);
 
+
+/**
+ * Inform tha buttons module that the glocal system choices have changed,
+ * and force an update of any relevant parameters.
+ */
+
+void buttons_refresh_choices(void);
+
 #endif
 

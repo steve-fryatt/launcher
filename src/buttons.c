@@ -129,7 +129,7 @@ static void		buttons_create_icon(struct button *button);
 static void		buttons_delete_icon(struct button *button);
 
 static void		buttons_toggle_window(void);
-static void		buttons_window_open(int columns, wimp_w window_level);
+static void		buttons_window_open(int columns, wimp_w window_level, osbool use_level);
 
 static void		buttons_fill_edit_window(struct button *button);
 static void		buttons_redraw_edit_window(void);
@@ -211,7 +211,7 @@ void buttons_initialise(void)
 
 	/* Open the window. */
 
-	buttons_window_open(0, wimp_BOTTOM);
+	buttons_window_open(0, wimp_BOTTOM, TRUE);
 }
 
 
@@ -258,6 +258,27 @@ void buttons_create_from_db(void)
 			}
 		}
 	} while (key != APPDB_NULL_KEY);
+}
+
+
+/**
+ * Inform tha buttons module that the glocal system choices have changed,
+ * and force an update of any relevant parameters.
+ */
+
+void buttons_refresh_choices(void)
+{
+	struct button	*button = buttons_list;
+
+	buttons_update_grid_info();
+
+	while (button != NULL) {
+		buttons_create_icon(button);
+
+		button = button->next;
+	}
+
+	buttons_window_open((buttons_window_is_open) ? buttons_grid_columns : 0, wimp_TOP, FALSE);
 }
 
 
@@ -355,9 +376,9 @@ static void buttons_delete_icon(struct button *button)
 static void buttons_toggle_window(void)
 {
 	if (buttons_window_is_open)
-		buttons_window_open(0, wimp_BOTTOM);
+		buttons_window_open(0, wimp_BOTTOM, TRUE);
 	else
-		buttons_window_open(buttons_grid_columns, wimp_TOP);
+		buttons_window_open(buttons_grid_columns, wimp_TOP, TRUE);
 }
 
 
@@ -367,9 +388,10 @@ static void buttons_toggle_window(void)
  *
  * \param columns		The number of columns to display, or 0 to hide.
  * \param window_level		The window to open behind.
+ * \param use_level		TRUE to use the window_level; false to leave in situ.
  */
 
-static void buttons_window_open(int columns, wimp_w window_level)
+static void buttons_window_open(int columns, wimp_w window_level, osbool use_level)
 {
 	int			sidebar_width;
 	wimp_open		window;
