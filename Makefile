@@ -52,6 +52,7 @@ DDFMAN := $(SFBIN)/ddfman
 BINDHELP := $(SFBIN)/bindhelp
 TEXTMERGE := $(SFBIN)/textmerge
 MENUGEN := $(SFBIN)/menugen
+TOKENIZE := $(SFBIN)/tokenize
 
 
 # Build Flags
@@ -61,6 +62,7 @@ ZIPFLAGS := -x "*/.svn/*" -r -, -9
 BUZIPFLAGS := -x "*/.svn/*" -r -9
 BINDHELPFLAGS := -f -r -v
 MENUGENFLAGS := -d
+TOKENIZEFLAGS :=
 
 
 # Includes and libraries.
@@ -84,6 +86,7 @@ APP := !Launcher
 UKRES := Resources/UK
 RUNIMAGE := !RunImage,ff8
 MENUS := Menus,ffd
+FINDHELP := !Help,ffb
 TEXTHELP := HelpText,fff
 #SHHELP := Launcher,3d6
 HTMLHELP := manual.html
@@ -97,6 +100,7 @@ MANSRC := Source
 MANSPR := ManSprite
 READMEHDR := Header
 MENUSRC := menudef
+FINDHELPSRC := Help.bbt
 
 OBJS := appdb.o buttons.o choices.o ihelp.o main.o templates.o
 
@@ -141,10 +145,13 @@ $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS): $(MENUDIR)/$(MENUSRC)
 # Build the documentation.  StromgHelp output is optional.
 
 ifneq ($(SHHELP),)
-documentation: $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(HTMLHELP)
+documentation: $(OUTDIR)/$(APP)/$(FINDHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(HTMLHELP)
 else
-documentation: $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(HTMLHELP)
+documentation: $(OUTDIR)/$(APP)/$(FINDHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(HTMLHELP)
 endif
+
+$(OUTDIR)/$(APP)/$(FINDHELP): $(MANUAL)/$(FINDHELPSRC)
+	$(TOKENIZE) $(TOKENIZEFLAGS) $(MANUAL)/$(FINDHELPSRC) -out $(OUTDIR)/$(APP)/$(FINDHELP)
 
 $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
 	$(TEXTMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
