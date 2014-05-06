@@ -41,18 +41,13 @@ CC := $(wildcard $(GCCSDK_INSTALL_CROSSBIN)/*gcc)
 RM := rm -rf
 CP := cp
 
-ZIP := /home/steve/GCCSDK/env/bin/zip
+ZIP := $(GCCSDK_INSTALL_ENV)/bin/zip
 
-SFBIN := /home/steve/GCCSDK/sfbin
-
-TEXTMAN := $(SFBIN)/textman
-STRONGMAN := $(SFBIN)/strongman
-HTMLMAN := $(SFBIN)/htmlman
-DDFMAN := $(SFBIN)/ddfman
-BINDHELP := $(SFBIN)/bindhelp
-TEXTMERGE := $(SFBIN)/textmerge
-MENUGEN := $(SFBIN)/menugen
-TOKENIZE := $(SFBIN)/tokenize
+MANTOOLS := $(SFTOOLS_BIN)/mantools
+BINDHELP := $(SFTOOLS_BIN)/bindhelp
+TEXTMERGE := $(SFTOOLS_BIN)/textmerge
+MENUGEN := $(SFTOOLS_BIN)/menugen
+TOKENIZE := $(SFTOOLS_BIN)/tokenize
 
 
 # Build Flags
@@ -154,11 +149,11 @@ $(OUTDIR)/$(APP)/$(FINDHELP): $(MANUAL)/$(FINDHELPSRC)
 	$(TOKENIZE) $(TOKENIZEFLAGS) $(MANUAL)/$(FINDHELPSRC) -out $(OUTDIR)/$(APP)/$(FINDHELP)
 
 $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
-	$(TEXTMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+	$(MANTOOLS) -MTEXT -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
 ifneq ($(SHHELP),)
 $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP): $(MANUAL)/$(MANSRC) $(MANUAL)/$(MANSPR)
-	$(STRONGMAN) -I$(MANUAL)/$(MANSRC) -OSHTemp -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+	$(MANTOOLS) -MSTRONG -I$(MANUAL)/$(MANSRC) -OSHTemp -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 	$(CP) $(MANUAL)/$(MANSPR) SHTemp/Sprites,ff9
 	$(BINDHELP) SHTemp $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(BINDHELPFLAGS)
 	$(RM) SHTemp
@@ -168,7 +163,7 @@ $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR
 	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
 
 $(OUTDIR)/$(HTMLHELP): $(MANUAL)/$(MANSRC)
-	$(HTMLMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(HTMLHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+	$(MANTOOLS) -MHTML -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(HTMLHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
 
 # Build the release Zip file.
