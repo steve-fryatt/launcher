@@ -31,9 +31,11 @@
 #include "sflib/event.h"
 #include "sflib/errors.h"
 #include "sflib/heap.h"
+#include "sflib/ihelp.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/resources.h"
+#include "sflib/templates.h"
 #include "sflib/url.h"
 
 /* Application header files */
@@ -43,8 +45,6 @@
 #include "appdb.h"
 #include "buttons.h"
 #include "choices.h"
-#include "ihelp.h"
-#include "templates.h"
 
 #define RES_PATH_LEN 255
 

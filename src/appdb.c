@@ -97,9 +97,10 @@ void appdb_terminate(void)
 
 osbool appdb_load_file(char *leaf_name)
 {
-	int	result, current = -1;
-	char	token[1024], contents[1024], section[1024], filename[1024];
-	FILE	*file;
+	enum config_read_status	result;
+	int			current = -1;
+	char			token[1024], contents[1024], section[1024], filename[1024];
+	FILE			*file;
 
 	/* Find a buttons file somewhere in the usual config locations. */
 
@@ -115,11 +116,11 @@ osbool appdb_load_file(char *leaf_name)
 	if (file == NULL)
 		return FALSE;
 
-	while ((result = config_read_token_pair(file, token, contents, section)) != sf_READ_CONFIG_EOF) {
+	while ((result = config_read_token_pair(file, token, contents, section)) != sf_CONFIG_READ_EOF) {
 
 		/* A new section of the file, so create, initialise and link in a new button object. */
 
-		if (result == sf_READ_CONFIG_NEW_SECTION) {
+		if (result == sf_CONFIG_READ_NEW_SECTION) {
 			current = appdb_new();
 
 			if (current != -1)

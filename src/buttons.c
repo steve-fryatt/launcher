@@ -22,9 +22,11 @@
 #include "sflib/general.h"
 #include "sflib/heap.h"
 #include "sflib/icons.h"
+#include "sflib/ihelp.h"
 #include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/string.h"
+#include "sflib/templates.h"
 #include "sflib/url.h"
 #include "sflib/windows.h"
 
@@ -34,9 +36,7 @@
 
 #include "appdb.h"
 #include "choices.h"
-#include "ihelp.h"
 #include "main.h"
-#include "templates.h"
 
 
 /* Button Window */
@@ -163,7 +163,8 @@ void buttons_initialise(void)
 
 	/* Initialise the menus used in the window. */
 
-	buttons_menu = templates_get_menu(TEMPLATES_MENU_MAIN);
+	buttons_menu = templates_get_menu("MainMenu");
+	ihelp_add_menu(buttons_menu, "MainMenu");
 
 	/* Initialise the main Buttons window. */
 
@@ -509,9 +510,9 @@ static struct button *buttons_read_edit_window(struct button *button)
 	local_copy = icons_get_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL);
 	filer_boot = icons_get_selected(buttons_edit_window, ICON_EDIT_BOOT);
 
-	icons_copy_text(buttons_edit_window, ICON_EDIT_NAME, name);
-	icons_copy_text(buttons_edit_window, ICON_EDIT_SPRITE, sprite);
-	icons_copy_text(buttons_edit_window, ICON_EDIT_LOCATION, command);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_NAME, name, APPDB_NAME_LENGTH);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_SPRITE, sprite, APPDB_SPRITE_LENGTH);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_LOCATION, command, APPDB_COMMAND_LENGTH);
 
 	if (*name == '\0' || *sprite == '\0' || *command == '\0') {
 		error_msgs_report_info("MissingText");

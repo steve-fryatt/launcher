@@ -56,7 +56,7 @@ CCFLAGS := -mlibscl -mhard-float -static -mthrowback -Wall -O2 -D'BUILD_VERSION=
 ZIPFLAGS := -x "*/.svn/*" -r -, -9
 BUZIPFLAGS := -x "*/.svn/*" -r -9
 BINDHELPFLAGS := -f -r -v
-MENUGENFLAGS := -d
+MENUGENFLAGS := -d -m
 TOKENIZEFLAGS := -warn p
 
 
@@ -97,7 +97,7 @@ READMEHDR := Header
 MENUSRC := menudef
 FINDHELPSRC := Help.bbt
 
-OBJS := appdb.o buttons.o choices.o ihelp.o main.o templates.o
+OBJS := appdb.o buttons.o choices.o main.o
 
 
 # Build everything, but don't package it for release.

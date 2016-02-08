@@ -5,7 +5,7 @@
  * 14 Sep 2003
  */
 
-menu(main_menu, "Launcher") {
+menu(MainMenu, "Launcher") {
 	item("Info") {
 		d_box(ProgInfo);
 	}

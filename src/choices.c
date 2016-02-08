@@ -23,17 +23,17 @@
 #include "sflib/event.h"
 #include "sflib/heap.h"
 #include "sflib/icons.h"
+#include "sflib/ihelp.h"
 #include "sflib/windows.h"
 #include "sflib/debug.h"
 #include "sflib/string.h"
+#include "sflib/templates.h"
 
 /* Application header files. */
 
 #include "choices.h"
 
 #include "buttons.h"
-#include "ihelp.h"
-#include "templates.h"
 
 
 /* Choices window icons. */
