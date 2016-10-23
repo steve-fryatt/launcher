@@ -14,7 +14,7 @@ QDeleteB:Delete,Cancel
 
 CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
-BadTemplate:Failed to load template.
+BadTemplate:Window template '%0' not found.
 
 Help.Launch:\TLauncher \w.|M\Slaunch applications and files.
 Help.Launch.Siebar:\TLauncher \w.|M\Sexpand or contract the display.
