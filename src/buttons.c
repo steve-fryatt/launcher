@@ -866,7 +866,7 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 				break;
 
 			case BUTTON_MENU_DELETE:
-				if (!config_opt_read("ConfirmDelete") || (error_msgs_report_question("QDelete", "QDeleteB") == 1)) {
+				if (!config_opt_read("ConfirmDelete") || (error_msgs_report_question("QDelete", "QDeleteB") == 3)) {
 					buttons_delete_icon(buttons_menu_icon);
 					buttons_menu_icon = NULL;
 				}
