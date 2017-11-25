@@ -2,13 +2,29 @@
 |
 | Run file for !Launcher
 |
-| (c) Stephen Fryatt, 2003
+| (c) Stephen Fryatt, 2003-2017
 | 0.30 (20 September 2003)
 
-Set Launcher$Dir  <Obey$Dir>
+| Set the application path.
+
+Set Launcher$Dir <Obey$Dir>
+
+| Set the application sprites.
 
 |IconSprites <Launcher$Dir>.!Sprites
+
+| Ensure the Nested Wimp is installed.
+
+RMEnsure WindowManager 3.98 Error Launcher requires the Nested Window Manager.
+
+| Ensure that the Castle Shared C Library is present, with C99 support.
+
+RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.CLib
+RMEnsure SharedCLibrary 5.43 Error Launcher requires version 5.43 or later of the Shared C Library.
+
+| Allocate memory and run Launcher
 
 WimpSlot -min 128k -max 128k
 
 Run <Launcher$Dir>.!RunImage %*0
+
