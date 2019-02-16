@@ -698,7 +698,7 @@ static void buttons_update_window_position(void)
 	}
 
 	buttons_window_y0 = sf_ICONBAR_HEIGHT;
-	buttons_window_y1 = general_mode_height();
+	buttons_window_y1 = mode_height;
 
 	if (buttons_grid_square + buttons_grid_spacing != 0)
 		buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
