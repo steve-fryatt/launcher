@@ -9,7 +9,7 @@
 =============================================================================
 Launcher - Yet Another RISC OS Application Launcher              Version $$version$$
 
-(C) Stephen Fryatt, 2003-2012                  $$date$$
+(C) Stephen Fryatt, 2003-2019                  $$date$$
 =============================================================================
 </literal>
 
@@ -36,13 +36,17 @@ Version $$version$$ ($$date$$)</p>
 
 <chapter title="License" file="License">
 
-<cite>Launcher</cite> is <strong>Freeware</strong>.  Copyright is held by the author, Stephen Fryatt, 2003.
+<cite>Launcher</cite> is licensed under the EUPL, Version&nbsp;1.1 only (the &ldquo;Licence&rdquo;); you may not use this work except in compliance with the Licence.
 
-<cite>Launcher</cite> may be copied freely, so long as it remains unaltered with all its files and documentation intact.  All copies should have their <file>Choices</file> file (if present) deleted from within the application to ensure that new users receive <cite>Launcher</cite> in its default state.
+You may obtain a copy of the Licence at <link ref="#url http://joinup.ec.europa.eu/software/page/eupl">http://joinup.ec.europa.eu/software/page/eupl</link>
 
-If you wish to distribute <cite>Launcher</cite>, please contact me to get my permission. This is so that I can ensure that you have the latest version available. <cite>Launcher</cite> may not be sold, although Public Domain libraries may charge for the cost of discs.
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an &ldquo;<strong>as is</strong>&rdquo; basis, <strong>without warranties or conditions of any kind</strong>, either express or implied.
 
-No guarantee is made as to the suitability or stability of <cite>Launcher</cite> for any particular purpose.  No liability can be accepted by the author for any problems or damage caused by the use of <cite>Launcher</cite>.
+See the Licence for the specific language governing permissions and limitations under the Licence.
+
+The source for <cite>Launcher</cite> can be found alongside this binary download, at <link ref="#url http://www.stevefryatt.org.uk/software">http://www.stevefryatt.org.uk/software</link>
+
+The necessary libraries and build tools can be found at <link ref="#url http://www.stevefryatt.org.uk/software/build">http://www.stevefryatt.org.uk/software/build</link>
 
 </chapter>
 
@@ -134,7 +138,7 @@ Updates and Contacting Me
   on my website at http://www.stevefryatt.org.uk/software/
 
   Stephen Fryatt
-  email: steve@stevefryatt.org.uk
+  email: info@stevefryatt.org.uk
 </literal>
 
 
@@ -149,7 +153,7 @@ Updates and Contacting Me
 
 <p>Updates to Locate and more programs for RISC OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/software/">http://www.stevefryatt.org.uk/software/</a></p>
 
-<p>Stephen Fryatt (email: <a href="mailto:steve@stevefryatt.org.uk">steve@stevefryatt.org.uk</a>)</p>
+<p>Stephen Fryatt (email: <a href="mailto:info@stevefryatt.org.uk">info@stevefryatt.org.uk</a>)</p>
 </body>
 </html>
 </literal>
