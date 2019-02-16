@@ -264,7 +264,7 @@ void buttons_create_from_db(void)
 
 
 /**
- * Inform tha buttons module that the glocal system choices have changed,
+ * Inform the buttons module that the global system choices have changed,
  * and force an update of any relevant parameters.
  */
 
