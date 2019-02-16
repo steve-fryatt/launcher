@@ -1,5 +1,5 @@
 /* Launcher - buttons.c
- * (c) Stephen Fryatt, 2002-2012
+ * (c) Stephen Fryatt, 2002-2018
  */
 
 /* ANSI C header files. */
@@ -41,8 +41,8 @@
 
 /* Button Window */
 
-#define ICON_BUTTONS_SIDEBAR 0
-#define ICON_BUTTONS_TEMPLATE 1
+#define BUTTONS_ICON_SIDEBAR 0
+#define BUTTONS_ICON_TEMPLATE 1
 
 /* Program Info Window */
 
@@ -64,30 +64,30 @@
 
 /* Main Menu */
 
-#define MAIN_MENU_INFO 0
-#define MAIN_MENU_HELP 1
-#define MAIN_MENU_BUTTON 2
-#define MAIN_MENU_NEW_BUTTON 3
-#define MAIN_MENU_SAVE_BUTTONS 4
-#define MAIN_MENU_CHOICES 5
-#define MAIN_MENU_QUIT 6
+#define BUTTONS_MENU_INFO 0
+#define BUTTONS_MENU_HELP 1
+#define BUTTONS_MENU_BUTTON 2
+#define BUTTONS_MENU_NEW_BUTTON 3
+#define BUTTONS_MENU_SAVE_BUTTONS 4
+#define BUTTONS_MENU_CHOICES 5
+#define BUTTONS_MENU_QUIT 6
 
 /* Button Submenu */
 
-#define BUTTON_MENU_EDIT 0
-#define BUTTON_MENU_MOVE 1
-#define BUTTON_MENU_DELETE 2
+#define BUTTONS_MENU_BUTTON_EDIT 0
+#define BUTTONS_MENU_BUTTON_MOVE 1
+#define BUTTONS_MENU_BUTTON_DELETE 2
 
 /* ================================================================================================================== */
 
-#define BUTTON_VALIDATION_LENGTH 40
+#define BUTTONS_VALIDATION_LENGTH 40
 
 struct button
 {
 	unsigned	key;							/**< The database key relating to the icon.			*/
 
 	wimp_i		icon;
-	char		validation[BUTTON_VALIDATION_LENGTH];			/**< Storage for the icon's validation string.			*/
+	char		validation[BUTTONS_VALIDATION_LENGTH];			/**< Storage for the icon's validation string.			*/
 
 	struct button	*next;							/**< Pointer to the next button definition.			*/
 };
@@ -315,7 +315,7 @@ static void buttons_create_icon(struct button *button)
 	buttons_icon_def.icon.extent.y1 = buttons_origin_y - y_pos * (buttons_grid_square + buttons_grid_spacing);
 	buttons_icon_def.icon.extent.y0 = buttons_icon_def.icon.extent.y1 - buttons_slab_height;
 
-	snprintf(button->validation, BUTTON_VALIDATION_LENGTH, "R5,1;S%s;NButton", sprite);
+	snprintf(button->validation, BUTTONS_VALIDATION_LENGTH, "R5,1;S%s;NButton", sprite);
 	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
 	button->icon = wimp_create_icon(&buttons_icon_def);
@@ -401,7 +401,7 @@ static void buttons_window_open(int columns, wimp_w window_level, osbool use_lev
 	os_error		*error;
 
 	state.w = buttons_window;
-	state.i = ICON_BUTTONS_SIDEBAR;
+	state.i = BUTTONS_ICON_SIDEBAR;
 	error = xwimp_get_icon_state(&state);
 	if (error != NULL)
 		return;
@@ -677,7 +677,7 @@ static void buttons_update_window_position(void)
 		return;
 
 	state.w = buttons_window;
-	state.i = ICON_BUTTONS_SIDEBAR;
+	state.i = BUTTONS_ICON_SIDEBAR;
 	error = xwimp_get_icon_state(&state);
 	if (error != NULL)
 		return;
@@ -693,7 +693,7 @@ static void buttons_update_window_position(void)
 		if (error != NULL)
 			return;
 
-		error = xwimp_resize_icon(buttons_window, ICON_BUTTONS_SIDEBAR,
+		error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
 			state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y1);
 	}
 
@@ -727,7 +727,7 @@ static void buttons_update_grid_info(void)
 		return;
 
 	state.w = buttons_window;
-	state.i = ICON_BUTTONS_SIDEBAR;
+	state.i = BUTTONS_ICON_SIDEBAR;
 	error = xwimp_get_icon_state(&state);
 	if (error != NULL)
 		return;
@@ -762,7 +762,7 @@ static void buttons_update_grid_info(void)
 	if (error != NULL)
 		return;
 
-	error = xwimp_resize_icon(buttons_window, ICON_BUTTONS_SIDEBAR,
+	error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
 		info.extent.x1 - sidebar_width, state.icon.extent.y0, info.extent.x1, state.icon.extent.y1);
 }
 
@@ -781,7 +781,7 @@ static void buttons_click_handler(wimp_pointer *pointer)
 	switch ((int) pointer->buttons) {
 	case wimp_CLICK_SELECT:
 	case wimp_CLICK_ADJUST:
-		if (pointer->i == ICON_BUTTONS_SIDEBAR) {
+		if (pointer->i == BUTTONS_ICON_SIDEBAR) {
 			buttons_toggle_window();
 		} else {
 			buttons_press(pointer->i);
@@ -810,7 +810,7 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 	if (pointer == NULL)
 		return;
 
-	if (pointer->i == wimp_ICON_WINDOW || pointer->i == ICON_BUTTONS_SIDEBAR) {
+	if (pointer->i == wimp_ICON_WINDOW || pointer->i == BUTTONS_ICON_SIDEBAR) {
 		buttons_menu_icon = NULL;
 	} else {
 		buttons_menu_icon = buttons_list;
@@ -819,8 +819,8 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 			buttons_menu_icon = buttons_menu_icon->next;
 	}
 
-	menus_shade_entry(buttons_menu, MAIN_MENU_BUTTON, (buttons_menu_icon == NULL) ? TRUE : FALSE);
-	menus_shade_entry(buttons_menu, MAIN_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
+	menus_shade_entry(buttons_menu, BUTTONS_MENU_BUTTON, (buttons_menu_icon == NULL) ? TRUE : FALSE);
+	menus_shade_entry(buttons_menu, BUTTONS_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
 
 	window.w = buttons_window;
 	wimp_get_window_state(&window);
@@ -849,23 +849,23 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 	wimp_get_pointer_info(&pointer);
 
 	switch (selection->items[0]) {
-	case MAIN_MENU_HELP:
+	case BUTTONS_MENU_HELP:
 		error = xos_cli("%Filer_Run <Launcher$Dir>.!Help");
 		if (error != NULL)
 			error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
 		break;
 
-	case MAIN_MENU_BUTTON:
+	case BUTTONS_MENU_BUTTON:
 		if (buttons_menu_icon != NULL) {
 			switch (selection->items[1]) {
-			case BUTTON_MENU_EDIT:
+			case BUTTONS_MENU_BUTTON_EDIT:
 				buttons_edit_icon = buttons_menu_icon;
 				buttons_fill_edit_window(buttons_edit_icon, NULL);
 				windows_open_centred_at_pointer(buttons_edit_window, &pointer);
 				icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
 				break;
 
-			case BUTTON_MENU_DELETE:
+			case BUTTONS_MENU_BUTTON_DELETE:
 				if (!config_opt_read("ConfirmDelete") || (error_msgs_report_question("QDelete", "QDeleteB") == 3)) {
 					buttons_delete_icon(buttons_menu_icon);
 					buttons_menu_icon = NULL;
@@ -875,22 +875,22 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 		}
 		break;
 
-	case MAIN_MENU_NEW_BUTTON:
+	case BUTTONS_MENU_NEW_BUTTON:
 		buttons_edit_icon = NULL;
 		buttons_fill_edit_window(buttons_edit_icon, &buttons_menu_coordinate);
 		windows_open_centred_at_pointer(buttons_edit_window, &pointer);
 		icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
 		break;
 
-	case MAIN_MENU_SAVE_BUTTONS:
+	case BUTTONS_MENU_SAVE_BUTTONS:
 		appdb_save_file("Buttons");
 		break;
 
-	case MAIN_MENU_CHOICES:
+	case BUTTONS_MENU_CHOICES:
 		choices_open_window(&pointer);
 		break;
 
-	case MAIN_MENU_QUIT:
+	case BUTTONS_MENU_QUIT:
 		main_quit_flag = TRUE;
 		break;
 	}
