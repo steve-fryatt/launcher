@@ -31,6 +31,8 @@ SupportURL:http://www.stevefryatt.org.uk/software/utils/
 QDelete:Are you sure that you wish to delete this button?
 QDeleteB:Delete,Cancel
 
+BootFail:Error booting %0: '%1'.
+
 CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
 BadTemplate:Window template '%0' not found.

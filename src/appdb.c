@@ -249,9 +249,8 @@ void appdb_boot_all(void)
 			command[APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH - 1] = '\0';
 			error = xos_cli(command);
 
-			// \TODO -- This should offer the option of abandoning the booting.
-
-			if (error != NULL)
+			if ((error != NULL) &&
+					(error_msgs_param_report_error("BootFail", appdb_list[current].name, error->errmess, NULL, NULL) == wimp_ERROR_BOX_SELECTED_CANCEL))
 				break;
 		}
 	}
