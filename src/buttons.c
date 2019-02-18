@@ -318,9 +318,8 @@ void buttons_refresh_choices(void)
 
 static void buttons_create_icon(struct button *button)
 {
-	os_error	*error;
-	int		x_pos, y_pos;
-	char		*sprite;
+	os_error		*error = NULL;
+	struct appdb_entry	*entry = NULL;
 
 	if (button == NULL)
 		return;
@@ -332,15 +331,16 @@ static void buttons_create_icon(struct button *button)
 		button->icon = -1;
 	}
 
-	if (!appdb_get_button_info(button->key, &x_pos, &y_pos, NULL, &sprite, NULL, NULL, NULL))
+	entry = appdb_get_button_info(button->key, NULL);
+	if (entry == NULL)
 		return;
 
-	buttons_icon_def.icon.extent.x1 = buttons_origin_x - x_pos * (buttons_grid_square + buttons_grid_spacing);
+	buttons_icon_def.icon.extent.x1 = buttons_origin_x - entry->x * (buttons_grid_square + buttons_grid_spacing);
 	buttons_icon_def.icon.extent.x0 = buttons_icon_def.icon.extent.x1 - buttons_slab_width;
-	buttons_icon_def.icon.extent.y1 = buttons_origin_y - y_pos * (buttons_grid_square + buttons_grid_spacing);
+	buttons_icon_def.icon.extent.y1 = buttons_origin_y - entry->y * (buttons_grid_square + buttons_grid_spacing);
 	buttons_icon_def.icon.extent.y0 = buttons_icon_def.icon.extent.y1 - buttons_slab_height;
 
-	snprintf(button->validation, BUTTONS_VALIDATION_LENGTH, "R5,1;S%s;NButton", sprite);
+	string_printf(button->validation, BUTTONS_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
 	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
 	button->icon = wimp_create_icon(&buttons_icon_def);
@@ -467,37 +467,37 @@ static void buttons_window_open(int columns, wimp_w window_level, osbool use_lev
 
 static void buttons_fill_edit_window(struct button *button, os_coord *grid)
 {
-	static int	x_pos = 0, y_pos = 0;
-	char		*name, *sprite, *command;
-	osbool		local_copy, filer_boot;
-
+	struct appdb_entry entry;
 
 	/* Initialise deafults if button data can't be found. */
 
-	if (button == NULL || !appdb_get_button_info(button->key, &x_pos, &y_pos,
-			&name, &sprite, &command, &local_copy, &filer_boot)) {
-		if (grid != NULL) {
-			x_pos = grid->x;
-			y_pos = grid->y;
-		}
-		name = "";
-		sprite = "";
-		command = "";
-		local_copy = FALSE;
-		filer_boot = TRUE;
+	entry.x = 0;
+	entry.y = 0;
+	entry.local_copy = FALSE;
+	entry.filer_boot = TRUE;
+	*entry.name = '\0';
+	*entry.sprite = '\0';
+	*entry.command = '\0';
+
+	if (button != NULL)
+		appdb_get_button_info(button->key, &entry);
+
+	if (grid != NULL) {
+		entry.x = grid->x;
+		entry.y = grid->y;
 	}
 
 	/* Fill the window's icons. */
 
-	icons_strncpy(buttons_edit_window, ICON_EDIT_NAME, name);
-	icons_strncpy(buttons_edit_window, ICON_EDIT_SPRITE, sprite);
-	icons_strncpy(buttons_edit_window, ICON_EDIT_LOCATION, command);
+	icons_strncpy(buttons_edit_window, ICON_EDIT_NAME, entry.name);
+	icons_strncpy(buttons_edit_window, ICON_EDIT_SPRITE, entry.sprite);
+	icons_strncpy(buttons_edit_window, ICON_EDIT_LOCATION, entry.command);
 
-	icons_printf(buttons_edit_window, ICON_EDIT_XPOS, "%d", x_pos);
-	icons_printf(buttons_edit_window, ICON_EDIT_YPOS, "%d", y_pos);
+	icons_printf(buttons_edit_window, ICON_EDIT_XPOS, "%d", entry.x);
+	icons_printf(buttons_edit_window, ICON_EDIT_YPOS, "%d", entry.y);
 
-	icons_set_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL, local_copy);
-	icons_set_selected(buttons_edit_window, ICON_EDIT_BOOT, filer_boot);
+	icons_set_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL, entry.local_copy);
+	icons_set_selected(buttons_edit_window, ICON_EDIT_BOOT, entry.filer_boot);
 }
 
 
@@ -590,10 +590,11 @@ static struct button *buttons_read_edit_window(struct button *button)
 
 static void buttons_press(wimp_i icon)
 {
-	char		*command, *buffer;
-	int		length;
-	os_error	*error;
-	struct button	*button = buttons_list;
+	struct appdb_entry	entry;
+	char			*buffer;
+	int			length;
+	os_error		*error;
+	struct button		*button = buttons_list;
 
 
 	while (button!= NULL && button->icon != icon)
@@ -602,30 +603,20 @@ static void buttons_press(wimp_i icon)
 	if (button == NULL)
 		return;
 
-	if (!appdb_get_button_info(button->key, NULL, NULL, NULL, NULL, &command, NULL, NULL))
+	if (appdb_get_button_info(button->key, &entry) == NULL)
 		return;
 
-	if (command == NULL)
-		return;
-
-	length = strlen(command) + 19;
+	length = strlen(entry.command) + 19;
 
 	buffer = heap_alloc(length);
 
 	if (buffer == NULL)
 		return;
 
-	/* Refetch the command data, as the heap_alloc() could have moved the
-	 * flex heap and hence invalidated the command pointer.
-	 */
-
-	if (appdb_get_button_info(button->key, NULL, NULL, NULL, NULL, &command, NULL, NULL) &&
-			command != NULL) {
-		snprintf(buffer, length, "%%StartDesktopTask %s", command);
-		error = xos_cli(buffer);
-		if (error != NULL)
-			error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
-	}
+	string_printf(buffer, length, "%%StartDesktopTask %s", entry.command);
+	error = xos_cli(buffer);
+	if (error != NULL)
+		error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
 
 	heap_free(buffer);
 

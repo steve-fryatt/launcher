@@ -36,6 +36,58 @@
 
 
 /**
+ * Application data structure -- Implementation.
+ */
+
+struct appdb_entry {
+
+	/**
+	 * Primary key to index database entries.
+	 */
+
+	unsigned	key;
+
+	/**
+	 * Button name.
+	 */
+
+	char		name[APPDB_NAME_LENGTH];
+
+	/**
+	 * X and Y positions of the button in the window.
+	 */
+
+	int		x, y;
+
+	/**
+	 * The sprite name.
+	 */
+
+	char		sprite[APPDB_SPRITE_LENGTH];
+
+	/**
+	 * Do we keep a local copy of the sprite?
+	 */
+
+	osbool		local_copy;
+
+	/**
+	 * The command to be executed.
+	 */
+
+	char		command[APPDB_COMMAND_LENGTH];
+
+	/**
+	 * Should the item be Filer_Booted on startup?
+	 */
+
+	osbool		filer_boot;
+};
+
+
+
+
+/**
  * Initialise the buttons window.
  */
 
@@ -107,24 +159,17 @@ unsigned appdb_get_next_key(unsigned key);
 
 /**
  * Given a key, return details of the button associated with the application.
- * Any parameters passed as NULL will not be returned. String pointers will only
- * remain valid until the memory heap is disturbed.
+ * If a structure is provided, the data is copied into it; otherwise, a pointer
+ * to a structure to the flex heap is returned which will remain valid only
+ * the heap contents are changed.
+ * 
  *
  * \param key			The key of the netry to be returned.
- * \param *x_pos		Place to return the X coordinate of the button.
- * \param *y_pos		Place to return the Y coordinate of the button.
- * \param **name		Place to return a pointer to the button name.
- * \param **sprite		Place to return a pointer to the sprite name
- *				used in the button.
- * \param **command		Place to return a pointer to the command associated
- *				with a button.
- * \param *local_copy		Place to return the local copy flag.
- * \param *filer_boot		Place to return the filer boot flag.
- * \return			TRUE if an entry was found; else FALSE.
+ * \param *data			Pointer to structure to return the data, or NULL.
+ * \return			Pointer to the returned data, or NULL on failure.
  */
 
-osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **name, char **sprite,
-		char **command, osbool *local_copy, osbool *filer_boot);
+struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data);
 
 
 /**
