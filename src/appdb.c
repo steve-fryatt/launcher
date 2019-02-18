@@ -57,8 +57,23 @@
 
 #include "appdb.h"
 
+/**
+ * The number of new blocks to allocate when more space is required.
+ */
 
 #define APPDB_ALLOC_CHUNK 10
+
+/**
+ * The maximum length of a settings filename.
+ */
+
+#define APPDB_MAX_FILENAME_LENGTH 1024
+
+/**
+ * The length of the *Filer_Boot command string.
+ */
+
+#define APPDB_FILER_BOOT_LENGTH 15
 
 /**
  * Application data structure -- Implementation.
@@ -122,12 +137,12 @@ osbool appdb_load_file(char *leaf_name)
 {
 	enum config_read_status	result;
 	int			current = -1;
-	char			token[1024], contents[1024], section[1024], filename[1024];
+	char			token[1024], contents[1024], section[1024], filename[APPDB_MAX_FILENAME_LENGTH];
 	FILE			*file;
 
 	/* Find a buttons file somewhere in the usual config locations. */
 
-	config_find_load_file(filename, sizeof(filename), leaf_name);
+	config_find_load_file(filename, APPDB_MAX_FILENAME_LENGTH, leaf_name);
 
 	if (*filename == '\0')
 		return FALSE;
@@ -181,14 +196,14 @@ osbool appdb_load_file(char *leaf_name)
 
 osbool appdb_save_file(char *leaf_name)
 {
-	char	filename[1024];
+	char	filename[APPDB_MAX_FILENAME_LENGTH];
 	int	current;
 	FILE	*file;
 
 
 	/* Find a buttons file to write somewhere in the usual config locations. */
 
-	config_find_save_file(filename, sizeof(filename), leaf_name);
+	config_find_save_file(filename, APPDB_MAX_FILENAME_LENGTH, leaf_name);
 
 	if (*filename == '\0')
 		return FALSE;
@@ -225,13 +240,19 @@ osbool appdb_save_file(char *leaf_name)
 void appdb_boot_all(void)
 {
 	int		current;
-	char		command[1024];
+	char		command[APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH];
 	os_error	*error;
 
 	for (current = 0; current < appdb_apps; current++) {
 		if (appdb_list[current].filer_boot) {
-			snprintf(command, sizeof(command), "Filer_Boot %s", appdb_list[current].command);
+			snprintf(command, APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH, "Filer_Boot %s", appdb_list[current].command);
+			command[APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH - 1] = '\0';
 			error = xos_cli(command);
+
+			// \TODO -- This should offer the option of abandoning the booting.
+
+			if (error != NULL)
+				break;
 		}
 	}
 }

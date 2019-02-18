@@ -87,7 +87,7 @@ unsigned appdb_create_key(void);
 
 
 /**
- * Delete an enrty from the database.
+ * Delete an entry from the database.
  *
  * \param key			The key of the enrty to delete.
  */
