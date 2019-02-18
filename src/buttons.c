@@ -153,6 +153,7 @@ static void		buttons_create_icon(struct button *button);
 static void		buttons_delete_icon(struct button *button);
 
 static void		buttons_toggle_window(void);
+static void		buttons_open_event_handler(wimp_open *open);
 static void		buttons_window_open(int columns, wimp_w window_level, osbool use_level);
 
 static void		buttons_fill_edit_window(struct button *button, os_coord *grid);
@@ -198,6 +199,7 @@ void buttons_initialise(void)
 	def->icon_count = 1;
 	buttons_window = wimp_create_window(def);
 	ihelp_add_window(buttons_window, "Launch", NULL);
+	event_add_window_open_event(buttons_window, buttons_open_event_handler);
 	event_add_window_mouse_event(buttons_window, buttons_click_handler);
 	event_add_window_menu(buttons_window, buttons_menu);
 	event_add_window_menu_prepare(buttons_window, buttons_menu_prepare);
@@ -407,6 +409,12 @@ static void buttons_toggle_window(void)
 }
 
 
+static void buttons_open_event_handler(wimp_open *open)
+{
+	debug_printf("Open Window Event: y0=%d, y1=%d", open->visible.y0, open->visible.y1);
+	wimp_open_window(open);
+}
+
 /**
  * Open or 'close' the buttons window to a given number of columns and
  * place it at a defined point in the window stack.
@@ -437,6 +445,8 @@ static void buttons_window_open(int columns, wimp_w window_level, osbool use_lev
 	window.visible.x1 = ((columns > 0) ? (buttons_grid_spacing + columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_width;
 	window.visible.y0 = buttons_window_y0;
 	window.visible.y1 = buttons_window_y1;
+
+	debug_printf("Open Window: y0=%d, y1=%d", window.visible.y0, window.visible.y1);
 
 	window.xscroll = (columns == buttons_grid_columns) ? 0 : (buttons_grid_spacing + (buttons_grid_columns - columns) * (buttons_grid_spacing + buttons_grid_square));
 	window.yscroll = 0;
@@ -676,6 +686,8 @@ static osbool buttons_message_data_load(wimp_message *message)
 static osbool buttons_message_mode_change(wimp_message *message)
 {
 	buttons_update_window_position();
+
+	buttons_window_open((buttons_window_is_open) ? buttons_grid_columns : 0, wimp_TOP, FALSE);
 
 	return TRUE;
 }
