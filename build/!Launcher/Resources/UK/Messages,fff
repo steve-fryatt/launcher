@@ -67,19 +67,6 @@ Help.Choices.SpacingUp:\Sincrease the column spacing.|M\Adecrease it.
 Help.Choices.SpacingDown:\Sdecrease the column spacing.|M\Aincrease it.
 Help.Choices.ConfirmDel:\Stoggle a confirmation message before buttons are deleted from the display.
 
-#Help.Choices.Path:Enter the directories to search in, separated by commas.|MDrag a directory or application here to add it to the list.|MDrag a file here to add its parent directory to the list.|MShift-drag objects to replace the list.
-#Help.Choices.Background:\Stoggle whether searches take place in the background by default.
-#Help.Choices.ImageFS:\Stoggle whether the contents of Image Filing System directories are searched by default.
-#Help.Choices.Suppress:\Stoggle whether errors from filing systems are reported in an error box or logged in the results window by default.
-#Help.Choices.FullInfo:\Stoggle if a full info display is used by default for new searches.
-#Help.Choices.HistSize:Enter the number of searches to store in the history list.|MEnter '0' to disable the history.
-#Help.Choices.HistConf:\Stoggle whether the option is given to accept and name new history entries.
-#Help.Choices.PlugQuit:\Stoggle how Locate behaves when started as a Filer Action plugin.|MIf on, Locate will not place an icon on the icon bar and will quit as soon as all its windows have been closed.
-#Help.Choices.PlugOpen:\Stoggle if a search window is opened when a Filer Action search is started.|MIf not, the search begins immediately with default parameters, which can be changed using the results window menu.
-#Help.Choices.Scroll:\Stoggle whether the results window is scrolled to the end when new matches are added.
-#Help.Choices.FileIcons:\Stoggle whether file icons are shown in the filetypes menu.
-
-
 Help.ProgInfo:This \w displays information about Launcher.
 Help.ProgInfo.Website:\Sopen the Launcher home page in your web browser, if one has been seen.
 
