@@ -1,4 +1,4 @@
-# Copyright 2012-2016, Stephen Fryatt
+# Copyright 2012-2018, Stephen Fryatt
 #
 # This file is part of Launcher:
 #
@@ -28,7 +28,11 @@ ARCHIVE := launcher
 
 APP := !Launcher
 
-OBJS = appdb.o buttons.o choices.o main.o
+OBJS =  appdb.o		\
+	buttons.o	\
+	choices.o	\
+	edit.o		\
+	main.o
 
 include $(SFTOOLS_MAKE)/CApp
 
