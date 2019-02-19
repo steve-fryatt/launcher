@@ -348,6 +348,7 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
 
 	/* Copy the data into the supplied buffer. */
 
+	data->key = appdb_list[index].key;
 	data->x = appdb_list[index].x;
 	data->y = appdb_list[index].y;
 	data->local_copy = appdb_list[index].local_copy;
