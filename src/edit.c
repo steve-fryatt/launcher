@@ -131,6 +131,8 @@ void edit_open_dialogue(wimp_i target, struct appdb_entry data)
 	if (data == NULL)
 		return;
 
+	
+
 }
 
 
