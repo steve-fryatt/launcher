@@ -28,49 +28,21 @@
 #ifndef LAUNCHER_EDIT
 #define LAUNCHER_EDIT
 
-/* ================================================================================================================== */
-
-#define LAUNCHER_TOP    1
-#define LAUNCHER_BOTTOM 2
-#define LAUNCHER_LEFT   3
-#define LAUNCHER_RIGHT  4
-
-/* ================================================================================================================== */
-
-/* Structure to hold details of a button. */
-
-
-/* ================================================================================================================== */
-
-/* Launch functions. */
+#include "appdb.h"
 
 /**
- * Initialise the buttons window.
+ * Initialise the Edit dialogue.
  */
 
-void buttons_initialise(void);
+void edit_initialise(void);
 
 
 /**
- * Terminate the buttons window.
+ * Terminate the Edit dialogue.
  */
 
-void buttons_terminate(void);
+void edit_terminate(void);
 
-
-/**
- * Create a full set of buttons from the contents of the application database.
- */
-
-void buttons_create_from_db(void);
-
-
-/**
- * Inform tha buttons module that the glocal system choices have changed,
- * and force an update of any relevant parameters.
- */
-
-void buttons_refresh_choices(void);
 
 #endif
 

@@ -128,7 +128,6 @@ static wimp_w		buttons_info_window = NULL;				/**< The handle of the program inf
 static wimp_menu	*buttons_menu = NULL;					/**< The main menu.						*/
 
 static struct button	*buttons_menu_icon = NULL;				/**< The block for the icon over which the main menu opened.	*/
-static struct button	*buttons_edit_icon = NULL;				/**< The block for the icon being edited.			*/
 static os_coord		buttons_menu_coordinate;				/**< The grid coordinates where the main menu opened.		*/
 
 static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.				*/
