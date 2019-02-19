@@ -570,6 +570,8 @@ static struct button *buttons_read_edit_window(struct button *button)
 		}
 	}
 
+	/* Store the application in the database. */
+
 	if (button != NULL) {
 		entry.key = button->key;
 		appdb_set_button_info(&entry);
