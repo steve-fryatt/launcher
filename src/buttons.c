@@ -105,8 +105,7 @@
 
 #define BUTTONS_VALIDATION_LENGTH 40
 
-struct button
-{
+struct button {
 	unsigned	key;							/**< The database key relating to the icon.			*/
 
 	wimp_i		icon;
