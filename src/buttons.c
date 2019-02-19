@@ -526,27 +526,24 @@ static void buttons_redraw_edit_window(void)
 
 static struct button *buttons_read_edit_window(struct button *button)
 {
-	char		name[APPDB_NAME_LENGTH], sprite[APPDB_SPRITE_LENGTH], command[APPDB_COMMAND_LENGTH];
-	int		x_pos, y_pos;
-	osbool		local_copy, filer_boot;
+	struct appdb_entry	entry;
 
+	entry.x = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_XPOS));
+	entry.y = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_YPOS));
 
-	x_pos = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_XPOS));
-	y_pos = atoi(icons_get_indirected_text_addr(buttons_edit_window, ICON_EDIT_YPOS));
-
-	if (x_pos < 0 || y_pos < 0 || x_pos >= buttons_grid_columns || y_pos >= buttons_grid_rows) {
+	if (entry.x < 0 || entry.y < 0 || entry.x >= buttons_grid_columns || entry.y >= buttons_grid_rows) {
 		error_msgs_report_info("CoordRange");
 		return NULL;
 	}
 
-	local_copy = icons_get_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL);
-	filer_boot = icons_get_selected(buttons_edit_window, ICON_EDIT_BOOT);
+	entry.local_copy = icons_get_selected(buttons_edit_window, ICON_EDIT_KEEP_LOCAL);
+	entry.filer_boot = icons_get_selected(buttons_edit_window, ICON_EDIT_BOOT);
 
-	icons_copy_text(buttons_edit_window, ICON_EDIT_NAME, name, APPDB_NAME_LENGTH);
-	icons_copy_text(buttons_edit_window, ICON_EDIT_SPRITE, sprite, APPDB_SPRITE_LENGTH);
-	icons_copy_text(buttons_edit_window, ICON_EDIT_LOCATION, command, APPDB_COMMAND_LENGTH);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_NAME, entry.name, APPDB_NAME_LENGTH);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_SPRITE, entry.sprite, APPDB_SPRITE_LENGTH);
+	icons_copy_text(buttons_edit_window, ICON_EDIT_LOCATION, entry.command, APPDB_COMMAND_LENGTH);
 
-	if (*name == '\0' || *sprite == '\0' || *command == '\0') {
+	if (*entry.name == '\0' || *entry.sprite == '\0' || *entry.command == '\0') {
 		error_msgs_report_info("MissingText");
 		return NULL;
 	}
@@ -573,8 +570,10 @@ static struct button *buttons_read_edit_window(struct button *button)
 		}
 	}
 
-	if (button != NULL)
-		appdb_set_button_info(button->key, x_pos, y_pos, name, sprite, command, local_copy, filer_boot);
+	if (button != NULL) {
+		entry.key = button->key;
+		appdb_set_button_info(&entry);
+	}
 
 	return button;
 }

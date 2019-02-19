@@ -173,21 +173,14 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
 
 
 /**
- * Given a key, set details of the button associated with the application.
+ * Given a data structure, set the details of a database entry by copying the
+ * contents of the structure into the database.
  *
- * \param key			The key of the entry to be updated.
- * \param *x_pos		The new X coordinate of the button.
- * \param *y_pos		The new Y coordinate of the button.
- * \param **name		Pointer to the new button name.
- * \param **sprite		Pointer to the new sprite name to be used in the button.
- * \param **command		Pointer to the command associated with the button.
- * \param *local_copy		The new local copy flag.
- * \param *filer_boot		The new filer boot flag.
+ * \param *data			Pointer to the structure containing the data.
  * \return			TRUE if an entry was updated; else FALSE.
  */
 
-osbool appdb_set_button_info(unsigned key, int x_pos, int y_pos, char *name, char *sprite,
-		char *command, osbool local_copy, osbool filer_boot);
+osbool appdb_set_button_info(struct appdb_entry *data);
 
 #endif
 

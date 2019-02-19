@@ -363,40 +363,33 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
 
 
 /**
- * Given a key, set details of the button associated with the application.
+ * Given a data structure, set the details of a database entry by copying the
+ * contents of the structure into the database.
  *
- * \param key			The key of the entry to be updated.
- * \param *x_pos		The new X coordinate of the button.
- * \param *y_pos		The new Y coordinate of the button.
- * \param **name		Pointer to the new button name.
- * \param **sprite		Pointer to the new sprite name to be used in the button.
- * \param **command		Pointer to the command associated with the button.
- * \param *local_copy		The new local copy flag.
- * \param *filer_boot		The new filer boot flag.
+ * \param *data			Pointer to the structure containing the data.
  * \return			TRUE if an entry was updated; else FALSE.
  */
 
-osbool appdb_set_button_info(unsigned key, int x_pos, int y_pos, char *name, char *sprite,
-		char *command, osbool local_copy, osbool filer_boot)
+osbool appdb_set_button_info(struct appdb_entry *data)
 {
 	int index;
 
-	index = appdb_find(key);
+	if (data == NULL)
+		return FALSE;
+
+	index = appdb_find(data->key);
 
 	if (index == -1)
 		return FALSE;
 
-	appdb_list[index].x = x_pos;
-	appdb_list[index].y = y_pos;
-	appdb_list[index].local_copy = local_copy;
-	appdb_list[index].filer_boot = filer_boot;
+	appdb_list[index].x = data->x;
+	appdb_list[index].y = data->y;
+	appdb_list[index].local_copy = data->local_copy;
+	appdb_list[index].filer_boot = data->filer_boot;
 
-	if (name != NULL)
-		strncpy(appdb_list[index].name, name, APPDB_NAME_LENGTH);
-	if (sprite != NULL)
-		strncpy(appdb_list[index].sprite, sprite, APPDB_SPRITE_LENGTH);
-	if (command != NULL)
-		strncpy(appdb_list[index].command, command, APPDB_COMMAND_LENGTH);
+	string_copy(appdb_list[index].name, data->name, APPDB_NAME_LENGTH);
+	string_copy(appdb_list[index].sprite, data->sprite, APPDB_SPRITE_LENGTH);
+	string_copy(appdb_list[index].command, data->command, APPDB_COMMAND_LENGTH);
 
 	return TRUE;
 }
