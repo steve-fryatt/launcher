@@ -182,5 +182,15 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
 
 osbool appdb_set_button_info(struct appdb_entry *data);
 
+
+/**
+ * Copy the contents of an application block into a second block.
+ *
+ * \param *to		The block to copy the data to.
+ * \param *from		The block to copy the data from.
+ */
+
+void appdb_copy(struct appdb_entry *to, struct appdb_entry *from);
+
 #endif
 

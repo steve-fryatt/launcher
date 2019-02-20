@@ -73,7 +73,8 @@
 
 /* Static Function Prototypes. */
 
-static void		edit_fill_edit_window(struct button *button, os_coord *grid);
+static void		edit_close_window(void);
+static void		edit_fill_edit_window(struct appdb_entry *data);
 static void		edit_redraw_edit_window(void);
 static struct button	*edit_read_edit_window(struct button *button);
 static osbool		edit_message_data_load(wimp_message *message);
@@ -86,14 +87,19 @@ static void		edit_edit_click_handler(wimp_pointer *pointer);
  * The handle of the button edit dialogue.
  */
 
-static wimp_w		edit_window = NULL;
+static wimp_w			edit_window = NULL;
 
 /**
  * The handle of the target button icon.
  */
 
-static wimp_i		edit_target_icon = 0;
+static void			*edit_target_icon = NULL;
 
+/**
+ * The default starting data for the current dialogue.
+ */
+
+static struct appdb_entry	*edit_default_data = NULL;
 
 
 /**
@@ -125,58 +131,134 @@ void edit_terminate(void)
 }
 
 
+/**
+ * Open a Button Edit dialogue for a given target.
+ *
+ * \param *pointer	The pointer location at which to open the dialogue.
+ * \param *target	A client-specified target for the dialogue.
+ * \param *data		The AppDB data to display in the dialogue.
+ */
 
-void edit_open_dialogue(wimp_i target, struct appdb_entry data)
+void edit_open_dialogue(wimp_pointer *pointer, void *target, struct appdb_entry *data)
 {
 	if (data == NULL)
 		return;
 
-	
+	edit_default_data = malloc(sizeof(struct appdb_entry));
+	if (edit_default_data == NULL)
+		return;
 
+	appdb_copy(edit_default_data, data);
+
+	edit_target_icon = target;
+
+	edit_fill_edit_window(edit_default_data);
+	windows_open_centred_at_pointer(edit_window, pointer);
+	icons_put_caret_at_end(edit_window, ICON_EDIT_NAME);
+}
+
+
+/**
+ * Process mouse clicks in the Edit dialogue.
+ *
+ * \param *pointer		The mouse event block to handle.
+ */
+
+static void edit_edit_click_handler(wimp_pointer *pointer)
+{
+	struct button		*button;
+
+	if (pointer == NULL)
+		return;
+
+	switch (pointer->i) {
+	case ICON_EDIT_OK:
+		button = edit_read_edit_window(edit_edit_icon);
+		if (button != NULL) {
+			edit_create_icon(button);
+			if (pointer->buttons == wimp_CLICK_SELECT)
+				edit_close_window();
+		}
+		break;
+
+	case ICON_EDIT_CANCEL:
+		if (pointer->buttons == wimp_CLICK_SELECT) {
+			edit_close_window();
+		} else if (pointer->buttons == wimp_CLICK_ADJUST) {
+			edit_fill_edit_window(edit_default_data);
+			edit_redraw_edit_window();
+		}
+		break;
+	}
+}
+
+
+/**
+ * Process keypresses in the Edit dialogue.
+ *
+ * \param *key			The keypress event block to handle.
+ * \return			TRUE if the event was handled; else FALSE.
+ */
+
+static osbool edit_edit_keypress_handler(wimp_key *key)
+{
+	struct button		*button;
+
+
+	if (key == NULL)
+		return FALSE;
+
+	switch (key->c) {
+	case wimp_KEY_RETURN:
+		button = edit_read_edit_window(edit_edit_icon);
+		if (button != NULL) {
+			edit_create_icon(button);
+			edit_close_window();
+		}
+		break;
+
+	case wimp_KEY_ESCAPE:
+		edit_close_window();
+		break;
+
+	default:
+		return FALSE;
+		break;
+	}
+
+	return TRUE;
 }
 
 
 
-/**
- * Set the contents of the button edit window.
- *
- * \param *button		The button to set data for, or NULL to use defaults.
- * \param *grid			The grid coordinates to use, or NULL to use previous.
- */
-
-static void edit_fill_edit_window(struct button *button, os_coord *grid)
+static void edit_close_window(void)
 {
-	struct appdb_entry entry;
+	wimp_close_window(edit_window);
 
-	/* Initialise deafults if button data can't be found. */
+	edit_edit_icon = NULL;
 
-	entry.x = 0;
-	entry.y = 0;
-	entry.local_copy = FALSE;
-	entry.filer_boot = TRUE;
-	*entry.name = '\0';
-	*entry.sprite = '\0';
-	*entry.command = '\0';
-
-	if (button != NULL)
-		appdb_get_button_info(button->key, &entry);
-
-	if (grid != NULL) {
-		entry.x = grid->x;
-		entry.y = grid->y;
+	if (edit_default_data != NULL) {
+		free(edit_default_data);
+		edit_default_data = NULL;
+	
 	}
+}
 
-	/* Fill the window's icons. */
 
-	icons_strncpy(edit_window, ICON_EDIT_NAME, entry.name);
-	icons_strncpy(edit_window, ICON_EDIT_SPRITE, entry.sprite);
-	icons_strncpy(edit_window, ICON_EDIT_LOCATION, entry.command);
+static void edit_fill_edit_window(struct appdb_entry *data)
+{
+	if (data == NULL)
+		return;
 
-	icons_printf(edit_window, ICON_EDIT_XPOS, "%d", entry.x);
-	icons_printf(edit_window, ICON_EDIT_YPOS, "%d", entry.y);
+	icons_strncpy(edit_window, ICON_EDIT_NAME, data->name);
+	icons_strncpy(edit_window, ICON_EDIT_SPRITE, data->sprite);
+	icons_strncpy(edit_window, ICON_EDIT_LOCATION, data->command);
 
-	icons_set_selected(edit_window, ICON_EDIT_KEEP_LOCAL, entry.local_copy);
-	icons_set_selected(edit_window, ICON_EDIT_BOOT, entry.filer_boot);
+	icons_printf(edit_window, ICON_EDIT_XPOS, "%d", data->x);
+	icons_printf(edit_window, ICON_EDIT_YPOS, "%d", data->y);
+
+	icons_set_selected(edit_window, ICON_EDIT_KEEP_LOCAL, data->local_copy);
+	icons_set_selected(edit_window, ICON_EDIT_BOOT, data->filer_boot);
 }
 
 
@@ -300,85 +382,6 @@ static osbool edit_message_data_load(wimp_message *message)
 	icons_strncpy(edit_window, ICON_EDIT_LOCATION, data_load->file_name);
 
 	edit_redraw_edit_window();
-
-	return TRUE;
-}
-
-
-
-
-/**
- * Process mouse clicks in the Edit dialogue.
- *
- * \param *pointer		The mouse event block to handle.
- */
-
-static void edit_edit_click_handler(wimp_pointer *pointer)
-{
-	struct button		*button;
-
-	if (pointer == NULL)
-		return;
-
-	switch (pointer->i) {
-	case ICON_EDIT_OK:
-		button = edit_read_edit_window(edit_edit_icon);
-		if (button != NULL) {
-			edit_create_icon(button);
-			if (pointer->buttons == wimp_CLICK_SELECT) {
-				wimp_close_window(edit_window);
-				edit_edit_icon = NULL;
-			}
-		}
-		break;
-
-	case ICON_EDIT_CANCEL:
-		if (pointer->buttons == wimp_CLICK_SELECT) {
-			wimp_close_window(edit_window);
-			edit_edit_icon = NULL;
-		} else if (pointer->buttons == wimp_CLICK_ADJUST) {
-			edit_fill_edit_window(edit_edit_icon, NULL);
-			edit_redraw_edit_window();
-		}
-		break;
-	}
-}
-
-
-/**
- * Process keypresses in the Edit dialogue.
- *
- * \param *key			The keypress event block to handle.
- * \return			TRUE if the event was handled; else FALSE.
- */
-
-static osbool edit_edit_keypress_handler(wimp_key *key)
-{
-	struct button		*button;
-
-
-	if (key == NULL)
-		return FALSE;
-
-	switch (key->c) {
-	case wimp_KEY_RETURN:
-		button = edit_read_edit_window(edit_edit_icon);
-		if (button != NULL) {
-			edit_create_icon(button);
-			wimp_close_window(edit_window);
-			edit_edit_icon = NULL;
-		}
-		break;
-
-	case wimp_KEY_ESCAPE:
-		wimp_close_window(edit_window);
-		edit_edit_icon = NULL;
-		break;
-
-	default:
-		return FALSE;
-		break;
-	}
 
 	return TRUE;
 }

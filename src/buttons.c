@@ -59,6 +59,7 @@
 
 #include "appdb.h"
 #include "choices.h"
+#include "edit.h"
 #include "main.h"
 
 
@@ -148,6 +149,7 @@ static void		buttons_update_grid_info(void);
 static void		buttons_click_handler(wimp_pointer *pointer);
 static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static void		buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *button, os_coord *grid);
 static osbool		buttons_proginfo_web_click(wimp_pointer *pointer);
 
 /* ================================================================================================================== */
@@ -687,10 +689,7 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 		if (buttons_menu_icon != NULL) {
 			switch (selection->items[1]) {
 			case BUTTONS_MENU_BUTTON_EDIT:
-				buttons_edit_icon = buttons_menu_icon;
-				buttons_fill_edit_window(buttons_edit_icon, NULL);
-				windows_open_centred_at_pointer(buttons_edit_window, &pointer);
-				icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
+				buttons_open_edit_dialogue(&pointer, buttons_menu_icon, NULL);
 				break;
 
 			case BUTTONS_MENU_BUTTON_DELETE:
@@ -704,10 +703,7 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 		break;
 
 	case BUTTONS_MENU_NEW_BUTTON:
-		buttons_edit_icon = NULL;
-		buttons_fill_edit_window(buttons_edit_icon, &buttons_menu_coordinate);
-		windows_open_centred_at_pointer(buttons_edit_window, &pointer);
-		icons_put_caret_at_end(buttons_edit_window, ICON_EDIT_NAME);
+		buttons_open_edit_dialogue(&pointer, buttons_menu_icon, &buttons_menu_coordinate);
 		break;
 
 	case BUTTONS_MENU_SAVE_BUTTONS:
@@ -722,6 +718,41 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 		main_quit_flag = TRUE;
 		break;
 	}
+}
+
+
+/**
+ * Open an edit dialogue box for a button.
+ *
+ * \param *pointer	The pointer coordinates at which to open the dialogue.
+ * \param *button	The button to open the dialogue for, or NULL to
+ *			open a blank dialogue.
+ * \param *grid		The coordinates for a blank dialogue.
+ */
+
+static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *button, os_coord *grid)
+{
+	struct appdb_entry entry;
+
+	/* Initialise deafults if button data can't be found. */
+
+	entry.x = 0;
+	entry.y = 0;
+	entry.local_copy = FALSE;
+	entry.filer_boot = TRUE;
+	*entry.name = '\0';
+	*entry.sprite = '\0';
+	*entry.command = '\0';
+
+	if (button != NULL)
+		appdb_get_button_info(button->key, &entry);
+
+	if (grid != NULL) {
+		entry.x = grid->x;
+		entry.y = grid->y;
+	}
+
+	edit_open_dialogue(pointer, button, &entry);
 }
 
 

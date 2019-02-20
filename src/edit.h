@@ -44,5 +44,15 @@ void edit_initialise(void);
 void edit_terminate(void);
 
 
+/**
+ * Open a Button Edit dialogue for a given target.
+ *
+ * \param *pointer	The pointer location at which to open the dialogue.
+ * \param *target	A client-specified target for the dialogue.
+ * \param *data		The AppDB data to display in the dialogue.
+ */
+
+void edit_open_dialogue(wimp_pointer *pointer, void *target, struct appdb_entry *data);
+
 #endif
 

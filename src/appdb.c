@@ -133,8 +133,8 @@ void appdb_terminate(void)
 /**
  * Load the contents of a button file into the buttons database.
  *
- * \param *leaf_name		The file leafname to load.
- * \return			TRUE on success; else FALSE.
+ * \param *leaf_name	The file leafname to load.
+ * \return		TRUE on success; else FALSE.
  */
 
 osbool appdb_load_file(char *leaf_name)
@@ -194,8 +194,8 @@ osbool appdb_load_file(char *leaf_name)
 /**
  * Save the contents of the buttons database into a buttons file.
  *
- * \param *leaf_name		The file leafname to save to.
- * \return			TRUE on success; else FALSE.
+ * \param *leaf_name	The file leafname to save to.
+ * \return		TRUE on success; else FALSE.
  */
 
 osbool appdb_save_file(char *leaf_name)
@@ -263,7 +263,7 @@ void appdb_boot_all(void)
 /**
  * Create a new, empty entry in the database and return its key.
  *
- * \return			The new key, or APPDB_NULL_KEY.
+ * \return		The new key, or APPDB_NULL_KEY.
  */
 
 unsigned appdb_create_key(void)
@@ -281,7 +281,7 @@ unsigned appdb_create_key(void)
 /**
  * Delete an enrty from the database.
  *
- * \param key			The key of the enrty to delete.
+ * \param key		The key of the enrty to delete.
  */
 
 void appdb_delete_key(unsigned key)
@@ -301,8 +301,8 @@ void appdb_delete_key(unsigned key)
 /**
  * Given a database key, return the next key from the database.
  *
- * \param key			The current key, or APPDB_NULL_KEY to start sequence.
- * \return			The next key, or APPDB_NULL_KEY.
+ * \param key		The current key, or APPDB_NULL_KEY to start sequence.
+ * \return		The next key, or APPDB_NULL_KEY.
  */
 
 unsigned appdb_get_next_key(unsigned key)
@@ -325,9 +325,9 @@ unsigned appdb_get_next_key(unsigned key)
  * the heap contents are changed.
  * 
  *
- * \param key			The key of the netry to be returned.
- * \param *data			Pointer to structure to return the data, or NULL.
- * \return			Pointer to the returned data, or NULL on failure.
+ * \param key		The key of the netry to be returned.
+ * \param *data		Pointer to structure to return the data, or NULL.
+ * \return		Pointer to the returned data, or NULL on failure.
  */
 
 struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data)
@@ -348,15 +348,7 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
 
 	/* Copy the data into the supplied buffer. */
 
-	data->key = appdb_list[index].key;
-	data->x = appdb_list[index].x;
-	data->y = appdb_list[index].y;
-	data->local_copy = appdb_list[index].local_copy;
-	data->filer_boot = appdb_list[index].filer_boot;
-
-	string_copy(data->name, appdb_list[index].name, APPDB_NAME_LENGTH);
-	string_copy(data->sprite, appdb_list[index].sprite, APPDB_SPRITE_LENGTH);
-	string_copy(data->command, appdb_list[index].command, APPDB_COMMAND_LENGTH);
+	appdb_copy(data, appdb_list + index);
 
 	return data;
 }
@@ -366,8 +358,8 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
  * Given a data structure, set the details of a database entry by copying the
  * contents of the structure into the database.
  *
- * \param *data			Pointer to the structure containing the data.
- * \return			TRUE if an entry was updated; else FALSE.
+ * \param *data		Pointer to the structure containing the data.
+ * \return		TRUE if an entry was updated; else FALSE.
  */
 
 osbool appdb_set_button_info(struct appdb_entry *data)
@@ -382,14 +374,7 @@ osbool appdb_set_button_info(struct appdb_entry *data)
 	if (index == -1)
 		return FALSE;
 
-	appdb_list[index].x = data->x;
-	appdb_list[index].y = data->y;
-	appdb_list[index].local_copy = data->local_copy;
-	appdb_list[index].filer_boot = data->filer_boot;
-
-	string_copy(appdb_list[index].name, data->name, APPDB_NAME_LENGTH);
-	string_copy(appdb_list[index].sprite, data->sprite, APPDB_SPRITE_LENGTH);
-	string_copy(appdb_list[index].command, data->command, APPDB_COMMAND_LENGTH);
+	appdb_copy(appdb_list + index, data);
 
 	return TRUE;
 }
@@ -397,8 +382,8 @@ osbool appdb_set_button_info(struct appdb_entry *data)
 /**
  * Find the index of an application based on its key.
  *
- * \param key			The key to locate.
- * \return			The current index, or -1 if not found.
+ * \param key		The key to locate.
+ * \return		The current index, or -1 if not found.
  */
 
 static int appdb_find(unsigned key)
@@ -427,7 +412,7 @@ static int appdb_find(unsigned key)
  * Claim a block for a new application, fill in the unique key and set
  * default values for the data.
  *
- * \return			The new block number, or -1 on failure.
+ * \return		The new block number, or -1 on failure.
  */
 
 static int appdb_new()
@@ -456,7 +441,7 @@ static int appdb_new()
 /**
  * Delete an application block, given its index.
  *
- * \param index			The index of the block to be deleted.
+ * \param index		The index of the block to be deleted.
  */
 
 static void appdb_delete(int index)
@@ -466,5 +451,25 @@ static void appdb_delete(int index)
 
 	flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct appdb_entry),
 			-sizeof(struct appdb_entry));
+}
+
+
+/**
+ * Copy the contents of an application block into a second block.
+ *
+ * \param *to		The block to copy the data to.
+ * \param *from		The block to copy the data from.
+ */
+
+void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
+{
+	to->x = from->x;
+	to->y = from->y;
+	to->local_copy = from->local_copy;
+	to->filer_boot = from->filer_boot;
+
+	string_copy(to->name, from->name, APPDB_NAME_LENGTH);
+	string_copy(to->sprite, from->sprite, APPDB_SPRITE_LENGTH);
+	string_copy(to->command, from->command, APPDB_COMMAND_LENGTH);
 }
 
