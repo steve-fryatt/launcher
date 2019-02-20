@@ -76,7 +76,7 @@
 static void		edit_close_window(void);
 static void		edit_fill_edit_window(struct appdb_entry *data);
 static void		edit_redraw_edit_window(void);
-static struct button	*edit_read_edit_window(struct button *button);
+static osbool		edit_read_edit_window(void);
 static osbool		edit_message_data_load(wimp_message *message);
 static osbool		edit_edit_keypress_handler(wimp_key *key);
 static void		edit_edit_click_handler(wimp_pointer *pointer);
@@ -166,19 +166,13 @@ void edit_open_dialogue(wimp_pointer *pointer, void *target, struct appdb_entry 
 
 static void edit_edit_click_handler(wimp_pointer *pointer)
 {
-	struct button		*button;
-
 	if (pointer == NULL)
 		return;
 
 	switch (pointer->i) {
 	case ICON_EDIT_OK:
-		button = edit_read_edit_window(edit_edit_icon);
-		if (button != NULL) {
-			edit_create_icon(button);
-			if (pointer->buttons == wimp_CLICK_SELECT)
-				edit_close_window();
-		}
+		if (edit_read_edit_window() && (pointer->buttons == wimp_CLICK_SELECT))
+			edit_close_window();
 		break;
 
 	case ICON_EDIT_CANCEL:
@@ -202,19 +196,13 @@ static void edit_edit_click_handler(wimp_pointer *pointer)
 
 static osbool edit_edit_keypress_handler(wimp_key *key)
 {
-	struct button		*button;
-
-
 	if (key == NULL)
 		return FALSE;
 
 	switch (key->c) {
 	case wimp_KEY_RETURN:
-		button = edit_read_edit_window(edit_edit_icon);
-		if (button != NULL) {
-			edit_create_icon(button);
+		if (edit_read_edit_window())
 			edit_close_window();
-		}
 		break;
 
 	case wimp_KEY_ESCAPE:
@@ -235,7 +223,7 @@ static void edit_close_window(void)
 {
 	wimp_close_window(edit_window);
 
-	edit_edit_icon = NULL;
+	edit_target_icon = NULL;
 
 	if (edit_default_data != NULL) {
 		free(edit_default_data);
@@ -278,25 +266,14 @@ static void edit_redraw_edit_window(void)
 }
 
 
-/**
- * Read the contents of the button edit window, validate it and store the
- * details into a button definition.
- *
- * \param *button		The button to update; NULL to create a new entry.
- * \return			Pointer to the button containing the data.
- */
 
-static struct button *edit_read_edit_window(struct button *button)
+
+static osbool edit_read_edit_window(void)
 {
 	struct appdb_entry	entry;
 
 	entry.x = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_XPOS));
 	entry.y = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_YPOS));
-
-	if (entry.x < 0 || entry.y < 0 || entry.x >= edit_grid_columns || entry.y >= edit_grid_rows) {
-		error_msgs_report_info("CoordRange");
-		return NULL;
-	}
 
 	entry.local_copy = icons_get_selected(edit_window, ICON_EDIT_KEEP_LOCAL);
 	entry.filer_boot = icons_get_selected(edit_window, ICON_EDIT_BOOT);
@@ -305,41 +282,7 @@ static struct button *edit_read_edit_window(struct button *button)
 	icons_copy_text(edit_window, ICON_EDIT_SPRITE, entry.sprite, APPDB_SPRITE_LENGTH);
 	icons_copy_text(edit_window, ICON_EDIT_LOCATION, entry.command, APPDB_COMMAND_LENGTH);
 
-	if (*entry.name == '\0' || *entry.sprite == '\0' || *entry.command == '\0') {
-		error_msgs_report_info("MissingText");
-		return NULL;
-	}
-
-	/* If this is a new button, create its entry and get a database
-	 * key for the application details.
-	 */
-
-	if (button == NULL) {
-		button = heap_alloc(sizeof(struct button));
-
-		if (button != NULL) {
-			button->key = appdb_create_key();
-			button->icon = -1;
-			button->validation[0] = '\0';
-
-			if (button->key != APPDB_NULL_KEY) {
-				button->next = edit_list;
-				edit_list = button;
-			} else {
-				heap_free(button);
-				button = NULL;
-			}
-		}
-	}
-
-	/* Store the application in the database. */
-
-	if (button != NULL) {
-		entry.key = button->key;
-		appdb_set_button_info(&entry);
-	}
-
-	return button;
+	return FALSE;
 }
 
 

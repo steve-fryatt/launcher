@@ -756,6 +756,61 @@ static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *but
 }
 
 
+static osbool buttons_process_edit_dialogue(void *data, struct appdb_entry *entry)
+{
+	struct button *button = data;
+
+	/* Validate the button location. */
+
+	if (entry->x < 0 || entry->y < 0 || entry->x >= buttons_grid_columns || entry->y >= buttons_grid_rows) {
+		error_msgs_report_info("CoordRange");
+		return FALSE;
+	}
+
+
+	if (*(entry->name) == '\0' || *(entry->sprite) == '\0' || *(entry->command) == '\0') {
+		error_msgs_report_info("MissingText");
+		return FALSE;
+	}
+
+
+	/* If this is a new button, create its entry and get a database
+	 * key for the application details.
+	 */
+
+	if (button == NULL) {
+		button = heap_alloc(sizeof(struct button));
+
+		if (button != NULL) {
+			button->key = appdb_create_key();
+			button->icon = -1;
+			button->validation[0] = '\0';
+
+			if (button->key != APPDB_NULL_KEY) {
+				button->next = buttons_list;
+				buttons_list = button;
+			} else {
+				heap_free(button);
+				button = NULL;
+			}
+		}
+	}
+
+	/* Store the application in the database. */
+
+	if (button != NULL) {
+		entry->key = button->key;
+		appdb_set_button_info(entry);
+
+		buttons_create_icon(button);
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+
 /**
  * Handle clicks on the Website action button in the program info window.
  *
