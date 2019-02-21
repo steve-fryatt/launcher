@@ -127,21 +127,24 @@ static os_coord		buttons_menu_coordinate;				/**< The grid coordinates where the
 static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.				*/
 static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
 
+/* Static Function Prototypes. */
 
-static void		buttons_create_icon(struct button *button);
-static void		buttons_delete_icon(struct button *button);
-
-static void		buttons_toggle_window(void);
 static void		buttons_open_event_handler(wimp_open *open);
-static void		buttons_window_open(int columns, wimp_w window_level, osbool use_level);
-
-static void		buttons_press(wimp_i icon);
-static osbool		buttons_message_mode_change(wimp_message *message);
-static void		buttons_update_window_position(void);
-static void		buttons_update_grid_info(void);
 static void		buttons_click_handler(wimp_pointer *pointer);
 static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static osbool		buttons_message_mode_change(wimp_message *message);
+
+static void		buttons_toggle_window(void);
+static void		buttons_window_open(int columns, wimp_w window_level, osbool use_level);
+static void		buttons_update_window_position(void);
+
+static void		buttons_update_grid_info(void);
+
+static void		buttons_create_icon(struct button *button);
+static void		buttons_delete_icon(struct button *button);
+static void		buttons_press(wimp_i icon);
+
 static void		buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *button, os_coord *grid);
 static osbool		buttons_process_edit_dialogue(struct appdb_entry *entry, void *data);
 
@@ -220,36 +223,6 @@ void buttons_terminate(void)
 
 
 /**
- * Create a full set of buttons from the contents of the application database.
- */
-
-void buttons_create_from_db(void)
-{
-	unsigned	key = APPDB_NULL_KEY;
-	struct button	*new;
-
-	do {
-		key = appdb_get_next_key(key);
-
-		if (key != APPDB_NULL_KEY) {
-			new = heap_alloc(sizeof(struct button));
-
-			if (new != NULL) {
-				new->next = buttons_list;
-				buttons_list = new;
-
-				new->key = key;
-				new->icon = -1;
-				new->validation[0] = '\0';
-
-				buttons_create_icon(new);
-			}
-		}
-	} while (key != APPDB_NULL_KEY);
-}
-
-
-/**
  * Inform the buttons module that the global system choices have changed,
  * and force an update of any relevant parameters.
  */
@@ -271,106 +244,6 @@ void buttons_refresh_choices(void)
 
 
 /**
- * Create (or recreate) an icon for a button, based on that icon's definition
- * block.
- *
- * \param *button		The definition to create an icon for.
- */
-
-static void buttons_create_icon(struct button *button)
-{
-	os_error		*error = NULL;
-	struct appdb_entry	*entry = NULL;
-
-	if (button == NULL)
-		return;
-
-	if (button->icon != -1) {
-		error = xwimp_delete_icon(buttons_icon_def.w, button->icon);
-		if (error != NULL)
-			error_report_program(error);
-		button->icon = -1;
-	}
-
-	entry = appdb_get_button_info(button->key, NULL);
-	if (entry == NULL)
-		return;
-
-	buttons_icon_def.icon.extent.x1 = buttons_origin_x - entry->x * (buttons_grid_square + buttons_grid_spacing);
-	buttons_icon_def.icon.extent.x0 = buttons_icon_def.icon.extent.x1 - buttons_slab_width;
-	buttons_icon_def.icon.extent.y1 = buttons_origin_y - entry->y * (buttons_grid_square + buttons_grid_spacing);
-	buttons_icon_def.icon.extent.y0 = buttons_icon_def.icon.extent.y1 - buttons_slab_height;
-
-	string_printf(button->validation, BUTTONS_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
-	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
-
-	button->icon = wimp_create_icon(&buttons_icon_def);
-
-	windows_redraw(buttons_window);
-}
-
-
-/**
- * Delete a button and all its associated information.
- *
- * \param *button		The button to be deleted.
- */
-
-static void buttons_delete_icon(struct button *button)
-{
-	struct button	*parent;
-	os_error	*error;
-
-	if (button == NULL)
-		return;
-
-	/* Delete the button's icon. */
-
-	if (button->icon != -1) {
-		error = xwimp_delete_icon(buttons_icon_def.w, button->icon);
-		if (error != NULL)
-			error_report_program(error);
-		button->icon = -1;
-
-		windows_redraw(buttons_window);
-	}
-
-	/* Delete the application details from the database. */
-
-	appdb_delete_key(button->key);
-
-	/* Delink and delete the button data. */
-
-	if (buttons_list == button) {
-		buttons_list = button->next;
-	} else {
-		parent = buttons_list;
-
-		while (parent != NULL && parent->next != button)
-			parent = parent->next;
-
-		if (parent != NULL)
-			parent->next = button->next;
-	}
-
-	heap_free(button);
-}
-
-
-/**
- * Toggle the state of the button window, open and closed.
- */
-
-static void buttons_toggle_window(void)
-{
-	if (buttons_window_is_open)
-		buttons_window_open(0, wimp_BOTTOM, TRUE);
-	else
-		buttons_window_open(buttons_grid_columns, wimp_TOP, TRUE);
-}
-
-
-/**
  * Handle Window Open events for the button window.
  *
  * \param *open			Pointer to the Window Open event data.
@@ -380,215 +253,6 @@ static void buttons_open_event_handler(wimp_open *open)
 {
 	debug_printf("Open Window Event: y0=%d, y1=%d", open->visible.y0, open->visible.y1);
 	wimp_open_window(open);
-}
-
-/**
- * Open or 'close' the buttons window to a given number of columns and
- * place it at a defined point in the window stack.
- *
- * \param columns		The number of columns to display, or 0 to hide.
- * \param window_level		The window to open behind.
- * \param use_level		TRUE to use the window_level; false to leave in situ.
- */
-
-static void buttons_window_open(int columns, wimp_w window_level, osbool use_level)
-{
-	int			sidebar_width;
-	wimp_open		window;
-	wimp_icon_state		state;
-	os_error		*error;
-
-	state.w = buttons_window;
-	state.i = BUTTONS_ICON_SIDEBAR;
-	error = xwimp_get_icon_state(&state);
-	if (error != NULL)
-		return;
-
-	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
-
-	window.w = buttons_window;
-
-	window.visible.x0 = 0;
-	window.visible.x1 = ((columns > 0) ? (buttons_grid_spacing + columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_width;
-	window.visible.y0 = buttons_window_y0;
-	window.visible.y1 = buttons_window_y1;
-
-	debug_printf("Open Window: y0=%d, y1=%d", window.visible.y0, window.visible.y1);
-
-	window.xscroll = (columns == buttons_grid_columns) ? 0 : (buttons_grid_spacing + (buttons_grid_columns - columns) * (buttons_grid_spacing + buttons_grid_square));
-	window.yscroll = 0;
-	window.next = window_level;
-
-	wimp_open_window(&window);
-
-	buttons_window_is_open = (columns != 0) ? TRUE : FALSE;
-}
-
-
-/**
- * Press a button in the window.
- *
- * \param icon			The handle of the icon being pressed.
- */
-
-static void buttons_press(wimp_i icon)
-{
-	struct appdb_entry	entry;
-	char			*buffer;
-	int			length;
-	os_error		*error;
-	struct button		*button = buttons_list;
-
-
-	while (button!= NULL && button->icon != icon)
-		button = button->next;
-
-	if (button == NULL)
-		return;
-
-	if (appdb_get_button_info(button->key, &entry) == NULL)
-		return;
-
-	length = strlen(entry.command) + 19;
-
-	buffer = heap_alloc(length);
-
-	if (buffer == NULL)
-		return;
-
-	string_printf(buffer, length, "%%StartDesktopTask %s", entry.command);
-	error = xos_cli(buffer);
-	if (error != NULL)
-		error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
-
-	heap_free(buffer);
-
-	return;
-}
-
-
-/**
- * Handle incoming Message_ModeChange.
- *
- * \param *message		The message data block from the Wimp.
- */
-
-static osbool buttons_message_mode_change(wimp_message *message)
-{
-	buttons_update_window_position();
-
-	buttons_window_open((buttons_window_is_open) ? buttons_grid_columns : 0, wimp_TOP, FALSE);
-
-	return TRUE;
-}
-
-
-/**
- * Update the vertical position of the buttons window to take into account
- * a change of screen mode.
- */
-
-static void buttons_update_window_position(void)
-{
-	int			mode_height, window_height;
-	wimp_window_info	info;
-	wimp_icon_state		state;
-	os_error		*error;
-
-
-	info.w = buttons_window;
-	error = xwimp_get_window_info_header_only(&info);
-	if (error != NULL)
-		return;
-
-	state.w = buttons_window;
-	state.i = BUTTONS_ICON_SIDEBAR;
-	error = xwimp_get_icon_state(&state);
-	if (error != NULL)
-		return;
-
-	mode_height = general_mode_height();
-	window_height = mode_height - sf_ICONBAR_HEIGHT;
-
-	if ((info.extent.y1 - info.extent.y0) != window_height) {
-		info.extent.y1 = 0;
-		info.extent.y0 = info.extent.y1 - window_height;
-
-		error = xwimp_set_extent(buttons_window, &(info.extent));
-		if (error != NULL)
-			return;
-
-		error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
-			state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y1);
-	}
-
-	buttons_window_y0 = sf_ICONBAR_HEIGHT;
-	buttons_window_y1 = mode_height;
-
-	if (buttons_grid_square + buttons_grid_spacing != 0)
-		buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
-				(buttons_grid_square + buttons_grid_spacing);
-	else
-		buttons_grid_rows = 0;
-}
-
-
-/**
- * Update the button window grid details to take into account new values from
- * the configuration.
- */
-
-static void buttons_update_grid_info(void)
-{
-	wimp_window_info	info;
-	wimp_icon_state		state;
-	os_error		*error;
-	int			sidebar_width;
-
-
-	info.w = buttons_window;
-	error = xwimp_get_window_info_header_only(&info);
-	if (error != NULL)
-		return;
-
-	state.w = buttons_window;
-	state.i = BUTTONS_ICON_SIDEBAR;
-	error = xwimp_get_icon_state(&state);
-	if (error != NULL)
-		return;
-
-	buttons_grid_square = config_int_read("GridSize");
-	buttons_grid_spacing = config_int_read("GridSpacing");
-	buttons_grid_columns = config_int_read("WindowColumns");
-
-	if (buttons_grid_square + buttons_grid_spacing != 0)
-		buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
-				(buttons_grid_square + buttons_grid_spacing);
-	else
-		buttons_grid_rows = 0;
-
-	/* Origin is top-right of the grid. */
-
-	buttons_origin_x = info.extent.x0 + buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing);
-	buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
-
-	/* Buttons span two grid squares, and cover the spacing in between those. */
-
-	buttons_slab_width = 2 * buttons_grid_square + buttons_grid_spacing;
-	buttons_slab_height = 2 * buttons_grid_square + buttons_grid_spacing;
-
-	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
-
-	info.extent.x0 = 0;
-	info.extent.x1 = info.extent.x0 + sidebar_width + buttons_grid_spacing +
-			buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square);
-
-	error = xwimp_set_extent(buttons_window, &(info.extent));
-	if (error != NULL)
-		return;
-
-	error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
-		info.extent.x1 - sidebar_width, state.icon.extent.y0, info.extent.x1, state.icon.extent.y1);
 }
 
 
@@ -717,6 +381,353 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 
 /**
+ * Handle incoming Message_ModeChange.
+ *
+ * \param *message		The message data block from the Wimp.
+ */
+
+static osbool buttons_message_mode_change(wimp_message *message)
+{
+	buttons_update_window_position();
+
+	buttons_window_open((buttons_window_is_open) ? buttons_grid_columns : 0, wimp_TOP, FALSE);
+
+	return TRUE;
+}
+
+
+/**
+ * Toggle the state of the button window, open and closed.
+ */
+
+static void buttons_toggle_window(void)
+{
+	if (buttons_window_is_open)
+		buttons_window_open(0, wimp_BOTTOM, TRUE);
+	else
+		buttons_window_open(buttons_grid_columns, wimp_TOP, TRUE);
+}
+
+
+/**
+ * Open or 'close' the buttons window to a given number of columns and
+ * place it at a defined point in the window stack.
+ *
+ * \param columns		The number of columns to display, or 0 to hide.
+ * \param window_level		The window to open behind.
+ * \param use_level		TRUE to use the window_level; false to leave in situ.
+ */
+
+static void buttons_window_open(int columns, wimp_w window_level, osbool use_level)
+{
+	int			sidebar_width;
+	wimp_open		window;
+	wimp_icon_state		state;
+	os_error		*error;
+
+	state.w = buttons_window;
+	state.i = BUTTONS_ICON_SIDEBAR;
+	error = xwimp_get_icon_state(&state);
+	if (error != NULL)
+		return;
+
+	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
+
+	window.w = buttons_window;
+
+	window.visible.x0 = 0;
+	window.visible.x1 = ((columns > 0) ? (buttons_grid_spacing + columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_width;
+	window.visible.y0 = buttons_window_y0;
+	window.visible.y1 = buttons_window_y1;
+
+	debug_printf("Open Window: y0=%d, y1=%d", window.visible.y0, window.visible.y1);
+
+	window.xscroll = (columns == buttons_grid_columns) ? 0 : (buttons_grid_spacing + (buttons_grid_columns - columns) * (buttons_grid_spacing + buttons_grid_square));
+	window.yscroll = 0;
+	window.next = window_level;
+
+	wimp_open_window(&window);
+
+	buttons_window_is_open = (columns != 0) ? TRUE : FALSE;
+}
+
+
+/**
+ * Update the vertical position of the buttons window to take into account
+ * a change of screen mode.
+ */
+
+static void buttons_update_window_position(void)
+{
+	int			mode_height, window_height;
+	wimp_window_info	info;
+	wimp_icon_state		state;
+	os_error		*error;
+
+
+	info.w = buttons_window;
+	error = xwimp_get_window_info_header_only(&info);
+	if (error != NULL)
+		return;
+
+	state.w = buttons_window;
+	state.i = BUTTONS_ICON_SIDEBAR;
+	error = xwimp_get_icon_state(&state);
+	if (error != NULL)
+		return;
+
+	mode_height = general_mode_height();
+	window_height = mode_height - sf_ICONBAR_HEIGHT;
+
+	if ((info.extent.y1 - info.extent.y0) != window_height) {
+		info.extent.y1 = 0;
+		info.extent.y0 = info.extent.y1 - window_height;
+
+		error = xwimp_set_extent(buttons_window, &(info.extent));
+		if (error != NULL)
+			return;
+
+		error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
+			state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y1);
+	}
+
+	buttons_window_y0 = sf_ICONBAR_HEIGHT;
+	buttons_window_y1 = mode_height;
+
+	if (buttons_grid_square + buttons_grid_spacing != 0)
+		buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
+				(buttons_grid_square + buttons_grid_spacing);
+	else
+		buttons_grid_rows = 0;
+}
+
+
+/**
+ * Update the button window grid details to take into account new values from
+ * the configuration.
+ */
+
+static void buttons_update_grid_info(void)
+{
+	wimp_window_info	info;
+	wimp_icon_state		state;
+	os_error		*error;
+	int			sidebar_width;
+
+
+	info.w = buttons_window;
+	error = xwimp_get_window_info_header_only(&info);
+	if (error != NULL)
+		return;
+
+	state.w = buttons_window;
+	state.i = BUTTONS_ICON_SIDEBAR;
+	error = xwimp_get_icon_state(&state);
+	if (error != NULL)
+		return;
+
+	buttons_grid_square = config_int_read("GridSize");
+	buttons_grid_spacing = config_int_read("GridSpacing");
+	buttons_grid_columns = config_int_read("WindowColumns");
+
+	if (buttons_grid_square + buttons_grid_spacing != 0)
+		buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
+				(buttons_grid_square + buttons_grid_spacing);
+	else
+		buttons_grid_rows = 0;
+
+	/* Origin is top-right of the grid. */
+
+	buttons_origin_x = info.extent.x0 + buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing);
+	buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
+
+	/* Buttons span two grid squares, and cover the spacing in between those. */
+
+	buttons_slab_width = 2 * buttons_grid_square + buttons_grid_spacing;
+	buttons_slab_height = 2 * buttons_grid_square + buttons_grid_spacing;
+
+	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
+
+	info.extent.x0 = 0;
+	info.extent.x1 = info.extent.x0 + sidebar_width + buttons_grid_spacing +
+			buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square);
+
+	error = xwimp_set_extent(buttons_window, &(info.extent));
+	if (error != NULL)
+		return;
+
+	error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
+		info.extent.x1 - sidebar_width, state.icon.extent.y0, info.extent.x1, state.icon.extent.y1);
+}
+
+
+/**
+ * Create a full set of buttons from the contents of the application database.
+ */
+
+void buttons_create_from_db(void)
+{
+	unsigned	key = APPDB_NULL_KEY;
+	struct button	*new;
+
+	do {
+		key = appdb_get_next_key(key);
+
+		if (key != APPDB_NULL_KEY) {
+			new = heap_alloc(sizeof(struct button));
+
+			if (new != NULL) {
+				new->next = buttons_list;
+				buttons_list = new;
+
+				new->key = key;
+				new->icon = -1;
+				new->validation[0] = '\0';
+
+				buttons_create_icon(new);
+			}
+		}
+	} while (key != APPDB_NULL_KEY);
+}
+
+
+
+
+
+
+
+
+
+/**
+ * Create (or recreate) an icon for a button, based on that icon's definition
+ * block.
+ *
+ * \param *button		The definition to create an icon for.
+ */
+
+static void buttons_create_icon(struct button *button)
+{
+	os_error		*error = NULL;
+	struct appdb_entry	*entry = NULL;
+
+	if (button == NULL)
+		return;
+
+	if (button->icon != -1) {
+		error = xwimp_delete_icon(buttons_icon_def.w, button->icon);
+		if (error != NULL)
+			error_report_program(error);
+		button->icon = -1;
+	}
+
+	entry = appdb_get_button_info(button->key, NULL);
+	if (entry == NULL)
+		return;
+
+	buttons_icon_def.icon.extent.x1 = buttons_origin_x - entry->x * (buttons_grid_square + buttons_grid_spacing);
+	buttons_icon_def.icon.extent.x0 = buttons_icon_def.icon.extent.x1 - buttons_slab_width;
+	buttons_icon_def.icon.extent.y1 = buttons_origin_y - entry->y * (buttons_grid_square + buttons_grid_spacing);
+	buttons_icon_def.icon.extent.y0 = buttons_icon_def.icon.extent.y1 - buttons_slab_height;
+
+	string_printf(button->validation, BUTTONS_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
+	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
+
+	button->icon = wimp_create_icon(&buttons_icon_def);
+
+	windows_redraw(buttons_window);
+}
+
+
+/**
+ * Delete a button and all its associated information.
+ *
+ * \param *button		The button to be deleted.
+ */
+
+static void buttons_delete_icon(struct button *button)
+{
+	struct button	*parent;
+	os_error	*error;
+
+	if (button == NULL)
+		return;
+
+	/* Delete the button's icon. */
+
+	if (button->icon != -1) {
+		error = xwimp_delete_icon(buttons_icon_def.w, button->icon);
+		if (error != NULL)
+			error_report_program(error);
+		button->icon = -1;
+
+		windows_redraw(buttons_window);
+	}
+
+	/* Delete the application details from the database. */
+
+	appdb_delete_key(button->key);
+
+	/* Delink and delete the button data. */
+
+	if (buttons_list == button) {
+		buttons_list = button->next;
+	} else {
+		parent = buttons_list;
+
+		while (parent != NULL && parent->next != button)
+			parent = parent->next;
+
+		if (parent != NULL)
+			parent->next = button->next;
+	}
+
+	heap_free(button);
+}
+
+
+/**
+ * Press a button in the window.
+ *
+ * \param icon			The handle of the icon being pressed.
+ */
+
+static void buttons_press(wimp_i icon)
+{
+	struct appdb_entry	entry;
+	char			*buffer;
+	int			length;
+	os_error		*error;
+	struct button		*button = buttons_list;
+
+
+	while (button!= NULL && button->icon != icon)
+		button = button->next;
+
+	if (button == NULL)
+		return;
+
+	if (appdb_get_button_info(button->key, &entry) == NULL)
+		return;
+
+	length = strlen(entry.command) + 19;
+
+	buffer = heap_alloc(length);
+
+	if (buffer == NULL)
+		return;
+
+	string_printf(buffer, length, "%%StartDesktopTask %s", entry.command);
+	error = xos_cli(buffer);
+	if (error != NULL)
+		error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
+
+	heap_free(buffer);
+
+	return;
+}
+
+
+/*
  * Open an edit dialogue box for a button.
  *
  * \param *pointer	The pointer coordinates at which to open the dialogue.
