@@ -591,13 +591,6 @@ void buttons_create_from_db(void)
 }
 
 
-
-
-
-
-
-
-
 /**
  * Create (or recreate) an icon for a button, based on that icon's definition
  * block.
