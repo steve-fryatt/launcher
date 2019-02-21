@@ -65,6 +65,7 @@
 #include "appdb.h"
 #include "buttons.h"
 #include "choices.h"
+#include "proginfo.h"
 
 #define RES_PATH_LEN 255
 
@@ -203,6 +204,7 @@ static void main_initialise(void)
 
 	ihelp_initialise();
 	url_initialise();
+	proginfo_initialise();
 	appdb_initialise();
 	buttons_initialise();
 	choices_initialise();

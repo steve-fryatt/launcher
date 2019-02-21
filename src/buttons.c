@@ -68,12 +68,6 @@
 #define BUTTONS_ICON_SIDEBAR 0
 #define BUTTONS_ICON_TEMPLATE 1
 
-/* Program Info Window */
-
-#define ICON_PROGINFO_AUTHOR  4
-#define ICON_PROGINFO_VERSION 6
-#define ICON_PROGINFO_WEBSITE 8
-
 /* Main Menu */
 
 #define BUTTONS_MENU_INFO 0
@@ -124,7 +118,6 @@ static osbool		buttons_window_is_open = FALSE;				/**< TRUE if the window is cur
 
 
 static wimp_w		buttons_window = NULL;					/**< The handle of the buttons window.				*/
-static wimp_w		buttons_info_window = NULL;				/**< The handle of the program info window.			*/
 
 static wimp_menu	*buttons_menu = NULL;					/**< The main menu.						*/
 
@@ -151,7 +144,6 @@ static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *point
 static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static void		buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *button, os_coord *grid);
 static osbool		buttons_process_edit_dialogue(struct appdb_entry *entry, void *data);
-static osbool		buttons_proginfo_web_click(wimp_pointer *pointer);
 
 /* ================================================================================================================== */
 
@@ -162,7 +154,6 @@ static osbool		buttons_proginfo_web_click(wimp_pointer *pointer);
 
 void buttons_initialise(void)
 {
-	char*			date = BUILD_DATE;
 	wimp_window		*def = NULL;
 
 
@@ -190,15 +181,6 @@ void buttons_initialise(void)
 	buttons_icon_def.w = buttons_window;
 
 	free(def);
-
-	/* Initialise the Program Info window. */
-
-	buttons_info_window = templates_create_window("ProgInfo");
-	ihelp_add_window(buttons_info_window, "ProgInfo", NULL);
-	icons_msgs_param_lookup(buttons_info_window, ICON_PROGINFO_VERSION, "Version", BUILD_VERSION, date, NULL, NULL);
-	icons_printf(buttons_info_window, ICON_PROGINFO_AUTHOR, "\xa9 Stephen Fryatt, 2003-%s", date + 7);
-	event_add_window_icon_click(buttons_info_window, ICON_PROGINFO_WEBSITE, buttons_proginfo_web_click);
-	templates_link_menu_dialogue("ProgInfo", buttons_info_window);
 
 	/* Watch out for Message_ModeChange. */
 
@@ -829,26 +811,5 @@ static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *dat
 	}
 
 	return FALSE;
-}
-
-
-/**
- * Handle clicks on the Website action button in the program info window.
- *
- * \param *pointer	The Wimp Event message block for the click.
- * \return		TRUE if we handle the click; else FALSE.
- */
-
-static osbool buttons_proginfo_web_click(wimp_pointer *pointer)
-{
-	char		temp_buf[256];
-
-	msgs_lookup("SupportURL:http://www.stevefryatt.org.uk/software/utils/", temp_buf, sizeof(temp_buf));
-	url_launch(temp_buf);
-
-	if (pointer->buttons == wimp_CLICK_SELECT)
-		wimp_create_menu((wimp_menu *) -1, 0, 0);
-
-	return TRUE;
 }
 

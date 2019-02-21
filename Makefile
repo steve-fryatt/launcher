@@ -1,4 +1,4 @@
-# Copyright 2012-2018, Stephen Fryatt
+# Copyright 2012-2019, Stephen Fryatt
 #
 # This file is part of Launcher:
 #
@@ -32,7 +32,8 @@ OBJS =  appdb.o		\
 	buttons.o	\
 	choices.o	\
 	edit.o		\
-	main.o
+	main.o		\
+	proginfo.o
 
 include $(SFTOOLS_MAKE)/CApp
 
