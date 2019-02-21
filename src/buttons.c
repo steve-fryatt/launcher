@@ -150,6 +150,7 @@ static void		buttons_click_handler(wimp_pointer *pointer);
 static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static void		buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *button, os_coord *grid);
+static osbool		buttons_process_edit_dialogue(struct appdb_entry *entry, void *data);
 static osbool		buttons_proginfo_web_click(wimp_pointer *pointer);
 
 /* ================================================================================================================== */
@@ -203,6 +204,10 @@ void buttons_initialise(void)
 
 	event_add_message_handler(message_MODE_CHANGE, EVENT_MESSAGE_INCOMING, buttons_message_mode_change);
 
+	/* Initialise the Edit dialogue. */
+
+	edit_initialise();
+
 	/* Correctly size the window for the current mode. */
 
 	buttons_update_window_position();
@@ -227,6 +232,8 @@ void buttons_terminate(void)
 		buttons_list = current->next;
 		heap_free(current);
 	}
+
+	edit_terminate();
 }
 
 
@@ -380,6 +387,12 @@ static void buttons_toggle_window(void)
 		buttons_window_open(buttons_grid_columns, wimp_TOP, TRUE);
 }
 
+
+/**
+ * Handle Window Open events for the button window.
+ *
+ * \param *open			Pointer to the Window Open event data.
+ */
 
 static void buttons_open_event_handler(wimp_open *open)
 {
@@ -752,11 +765,19 @@ static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *but
 		entry.y = grid->y;
 	}
 
-	edit_open_dialogue(pointer, button, &entry);
+	edit_open_dialogue(pointer, &entry, buttons_process_edit_dialogue, button);
 }
 
 
-static osbool buttons_process_edit_dialogue(void *data, struct appdb_entry *entry)
+/**
+ * Handle the data returned from an Edit dialogue instance.
+ *
+ * \param *entry	Pointer to the data from the dialogue.
+ * \param *data		Pointer to the button owning the dialogue, or NULL.
+ * \return		TRUE if the data is OK; FALSE to reject it.
+ */
+
+static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *data)
 {
 	struct button *button = data;
 

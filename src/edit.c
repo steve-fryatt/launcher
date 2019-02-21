@@ -90,6 +90,12 @@ static void		edit_edit_click_handler(wimp_pointer *pointer);
 static wimp_w			edit_window = NULL;
 
 /**
+ * The client callback function for the current dialogue.
+ */
+
+static osbool			(*edit_callback)(struct appdb_entry *entry, void *data) = NULL;
+
+/**
  * The handle of the target button icon.
  */
 
@@ -135,11 +141,12 @@ void edit_terminate(void)
  * Open a Button Edit dialogue for a given target.
  *
  * \param *pointer	The pointer location at which to open the dialogue.
- * \param *target	A client-specified target for the dialogue.
  * \param *data		The AppDB data to display in the dialogue.
+ * \param *callback	A callback to receive the dialogue data.
+ * \param *target	A client-specified target for the callback.
  */
 
-void edit_open_dialogue(wimp_pointer *pointer, void *target, struct appdb_entry *data)
+void edit_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, osbool (*callback)(struct appdb_entry *entry, void *data), void *target)
 {
 	if (data == NULL)
 		return;
@@ -150,6 +157,7 @@ void edit_open_dialogue(wimp_pointer *pointer, void *target, struct appdb_entry 
 
 	appdb_copy(edit_default_data, data);
 
+	edit_callback = callback;
 	edit_target_icon = target;
 
 	edit_fill_edit_window(edit_default_data);
@@ -161,7 +169,7 @@ void edit_open_dialogue(wimp_pointer *pointer, void *target, struct appdb_entry 
 /**
  * Process mouse clicks in the Edit dialogue.
  *
- * \param *pointer		The mouse event block to handle.
+ * \param *pointer	The mouse event block to handle.
  */
 
 static void edit_edit_click_handler(wimp_pointer *pointer)
@@ -190,8 +198,8 @@ static void edit_edit_click_handler(wimp_pointer *pointer)
 /**
  * Process keypresses in the Edit dialogue.
  *
- * \param *key			The keypress event block to handle.
- * \return			TRUE if the event was handled; else FALSE.
+ * \param *key		The keypress event block to handle.
+ * \return		TRUE if the event was handled; else FALSE.
  */
 
 static osbool edit_edit_keypress_handler(wimp_key *key)
@@ -218,11 +226,15 @@ static osbool edit_edit_keypress_handler(wimp_key *key)
 }
 
 
+/**
+ * Close the current instance of the edit dialogue.
+ */
 
 static void edit_close_window(void)
 {
 	wimp_close_window(edit_window);
 
+	edit_callback = NULL;
 	edit_target_icon = NULL;
 
 	if (edit_default_data != NULL) {
@@ -232,6 +244,12 @@ static void edit_close_window(void)
 	}
 }
 
+
+/**
+ * Fill the fields of the edit dialogue.
+ *
+ * \param *data		The data to write into the dialogue.
+ */
 
 static void edit_fill_edit_window(struct appdb_entry *data)
 {
@@ -266,11 +284,18 @@ static void edit_redraw_edit_window(void)
 }
 
 
-
+/**
+ * Read the data from the edit window, and feed it back to the client.
+ *
+ * \return		TRUE if the client accepted the date; otherwise FALSE.
+ */
 
 static osbool edit_read_edit_window(void)
 {
 	struct appdb_entry	entry;
+
+	if (edit_callback == NULL)
+		return TRUE;
 
 	entry.x = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_XPOS));
 	entry.y = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_YPOS));
@@ -282,7 +307,7 @@ static osbool edit_read_edit_window(void)
 	icons_copy_text(edit_window, ICON_EDIT_SPRITE, entry.sprite, APPDB_SPRITE_LENGTH);
 	icons_copy_text(edit_window, ICON_EDIT_LOCATION, entry.command, APPDB_COMMAND_LENGTH);
 
-	return FALSE;
+	return edit_callback(&entry, edit_target_icon);
 }
 
 
@@ -290,7 +315,7 @@ static osbool edit_read_edit_window(void)
  * Handle incoming Message_DataSave to the button edit window, by using the
  * information to populate the relevant fields.
  *
- * \param *message		The message data block from the Wimp.
+ * \param *message	The message data block from the Wimp.
  */
 
 static osbool edit_message_data_load(wimp_message *message)
