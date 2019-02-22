@@ -129,14 +129,14 @@ static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
 
 /* Static Function Prototypes. */
 
-static void		buttons_open_event_handler(wimp_open *open);
 static void		buttons_click_handler(wimp_pointer *pointer);
 static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static osbool		buttons_message_mode_change(wimp_message *message);
 
 static void		buttons_toggle_window(void);
-static void		buttons_window_open(int columns, wimp_w window_level, osbool use_level);
+static void		buttons_reopen_window(void);
+static void		buttons_open_window(wimp_open *open);
 static void		buttons_update_window_position(void);
 
 static void		buttons_update_grid_info(void);
@@ -174,7 +174,7 @@ void buttons_initialise(void)
 	def->icon_count = 1;
 	buttons_window = wimp_create_window(def);
 	ihelp_add_window(buttons_window, "Launch", NULL);
-	event_add_window_open_event(buttons_window, buttons_open_event_handler);
+	event_add_window_open_event(buttons_window, buttons_open_window);
 	event_add_window_mouse_event(buttons_window, buttons_click_handler);
 	event_add_window_menu(buttons_window, buttons_menu);
 	event_add_window_menu_prepare(buttons_window, buttons_menu_prepare);
@@ -200,7 +200,7 @@ void buttons_initialise(void)
 
 	/* Open the window. */
 
-	buttons_window_open(0, wimp_BOTTOM, TRUE);
+	buttons_reopen_window();
 }
 
 
@@ -239,20 +239,7 @@ void buttons_refresh_choices(void)
 		button = button->next;
 	}
 
-	buttons_window_open((buttons_window_is_open) ? buttons_grid_columns : 0, wimp_TOP, FALSE);
-}
-
-
-/**
- * Handle Window Open events for the button window.
- *
- * \param *open			Pointer to the Window Open event data.
- */
-
-static void buttons_open_event_handler(wimp_open *open)
-{
-	debug_printf("Open Window Event: y0=%d, y1=%d", open->visible.y0, open->visible.y1);
-	wimp_open_window(open);
+	buttons_reopen_window();
 }
 
 
@@ -388,9 +375,9 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 static osbool buttons_message_mode_change(wimp_message *message)
 {
-	buttons_update_window_position();
 
-	buttons_window_open((buttons_window_is_open) ? buttons_grid_columns : 0, wimp_TOP, FALSE);
+	buttons_update_window_position();
+	buttons_reopen_window();
 
 	return TRUE;
 }
@@ -402,28 +389,45 @@ static osbool buttons_message_mode_change(wimp_message *message)
 
 static void buttons_toggle_window(void)
 {
-	if (buttons_window_is_open)
-		buttons_window_open(0, wimp_BOTTOM, TRUE);
-	else
-		buttons_window_open(buttons_grid_columns, wimp_TOP, TRUE);
+	buttons_window_is_open = !buttons_window_is_open;
+
+	buttons_reopen_window();
 }
 
+
+/**
+ * Re-open the buttons window using any changed parameters which might
+ * have been calculated.
+ */
+
+static void buttons_reopen_window(void)
+{
+	wimp_window_state	state;
+	os_error		*error;
+
+	state.w = buttons_window;
+	error = xwimp_get_window_state(&state);
+	if (error != NULL)
+		return;
+
+	buttons_open_window((wimp_open *) &state);
+}
 
 /**
  * Open or 'close' the buttons window to a given number of columns and
  * place it at a defined point in the window stack.
  *
- * \param columns		The number of columns to display, or 0 to hide.
- * \param window_level		The window to open behind.
- * \param use_level		TRUE to use the window_level; false to leave in situ.
+ * \param *open			The Wimp_Open data for the window.
  */
 
-static void buttons_window_open(int columns, wimp_w window_level, osbool use_level)
+static void buttons_open_window(wimp_open *open)
 {
 	int			sidebar_width;
-	wimp_open		window;
 	wimp_icon_state		state;
 	os_error		*error;
+
+	if (open == NULL || open->w != buttons_window)
+		return;
 
 	state.w = buttons_window;
 	state.i = BUTTONS_ICON_SIDEBAR;
@@ -433,22 +437,16 @@ static void buttons_window_open(int columns, wimp_w window_level, osbool use_lev
 
 	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
 
-	window.w = buttons_window;
+	open->visible.x0 = 0;
+	open->visible.x1 = ((buttons_window_is_open) ? (buttons_grid_spacing + buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_width;
+	open->visible.y0 = buttons_window_y0;
+	open->visible.y1 = buttons_window_y1;
 
-	window.visible.x0 = 0;
-	window.visible.x1 = ((columns > 0) ? (buttons_grid_spacing + columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_width;
-	window.visible.y0 = buttons_window_y0;
-	window.visible.y1 = buttons_window_y1;
+	open->xscroll = (buttons_window_is_open) ? 0 : (buttons_grid_spacing + buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square));
+	open->yscroll = 0;
+	open->next = (buttons_window_is_open) ? wimp_TOP : wimp_BOTTOM;
 
-	debug_printf("Open Window: y0=%d, y1=%d", window.visible.y0, window.visible.y1);
-
-	window.xscroll = (columns == buttons_grid_columns) ? 0 : (buttons_grid_spacing + (buttons_grid_columns - columns) * (buttons_grid_spacing + buttons_grid_square));
-	window.yscroll = 0;
-	window.next = window_level;
-
-	wimp_open_window(&window);
-
-	buttons_window_is_open = (columns != 0) ? TRUE : FALSE;
+	wimp_open_window(open);
 }
 
 
@@ -459,7 +457,7 @@ static void buttons_window_open(int columns, wimp_w window_level, osbool use_lev
 
 static void buttons_update_window_position(void)
 {
-	int			mode_height, window_height;
+	int			mode_height, old_window_height, new_window_height;
 	wimp_window_info	info;
 	wimp_icon_state		state;
 	os_error		*error;
@@ -476,20 +474,30 @@ static void buttons_update_window_position(void)
 	if (error != NULL)
 		return;
 
+	old_window_height = info.extent.y1 - info.extent.y0;
+
+	/* Calculate the new vertical size of the window. */
+
 	mode_height = general_mode_height();
-	window_height = mode_height - sf_ICONBAR_HEIGHT;
+	new_window_height = mode_height - sf_ICONBAR_HEIGHT;
 
-	if ((info.extent.y1 - info.extent.y0) != window_height) {
-		info.extent.y1 = 0;
-		info.extent.y0 = info.extent.y1 - window_height;
+	info.extent.y1 = 0;
+	info.extent.y0 = info.extent.y1 - new_window_height;
 
+	/* Extend the extent if required, but never bother to shrink it. */
+
+	if (old_window_height < new_window_height) {
 		error = xwimp_set_extent(buttons_window, &(info.extent));
 		if (error != NULL)
 			return;
-
-		error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
-			state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y1);
 	}
+
+	/* Resize the icon to fit the new dimensions. */
+
+	error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
+		state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y1);
+
+	/* Adjust the new visible window height. */
 
 	buttons_window_y0 = sf_ICONBAR_HEIGHT;
 	buttons_window_y1 = mode_height;
