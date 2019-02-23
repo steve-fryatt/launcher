@@ -27,34 +27,25 @@
 
 /* ANSI C header files */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 /* Acorn C header files */
 
 #include "flex.h"
 
 /* OSLib header files */
 
-#include "oslib/help.h"
 #include "oslib/hourglass.h"
-#include "oslib/os.h"
 #include "oslib/wimp.h"
-#include "oslib/messagetrans.h"
-#include "oslib/uri.h"
 
 /* SF-Lib header files */
 
 #include "sflib/config.h"
-#include "sflib/debug.h"
 #include "sflib/event.h"
 #include "sflib/errors.h"
 #include "sflib/heap.h"
 #include "sflib/ihelp.h"
-#include "sflib/menus.h"
 #include "sflib/msgs.h"
 #include "sflib/resources.h"
+#include "sflib/string.h"
 #include "sflib/templates.h"
 #include "sflib/url.h"
 
@@ -67,28 +58,39 @@
 #include "choices.h"
 #include "proginfo.h"
 
-#define RES_PATH_LEN 255
+/**
+ * The size of buffer allocated to resource filename processing.
+ */
 
-/* ================================================================================================================== */
+#define MAIN_FILENAME_BUFFER_LEN 1024
+
+/**
+ * The size of buffer allocated to the task name.
+ */
+
+#define MAIN_TASKNAME_BUFFER_LEN 64
+
+
+/* Cross file global variables */
+
+/**
+ * The Wimp task handle for the Launcher application.
+ */
+
+wimp_t			main_task_handle;
+
+/**
+ * Set TRUE for the application to quit at the next oppoprtunity.
+ */
+
+osbool			main_quit_flag = FALSE;
+
+
+/* Static Function Prototypes */
 
 static void	main_poll_loop(void);
 static void	main_initialise(void);
 static osbool	main_message_quit(wimp_message *message);
-
-
-/* Declare the global variables that are used. */
-
-wimp_i          button_menu_icon;
-
-/*
- * Cross file global variables
- */
-
-wimp_t			main_task_handle;
-osbool			main_quit_flag = FALSE;
-
-/* ================================================================================================================== */
-
 
 
 /**
@@ -145,18 +147,18 @@ static void main_poll_loop(void)
 
 static void main_initialise(void)
 {
-	static char		task_name[255];
-	char			resources[RES_PATH_LEN], res_temp[RES_PATH_LEN];
+	static char		task_name[MAIN_TASKNAME_BUFFER_LEN];
+	char			resources[MAIN_FILENAME_BUFFER_LEN], res_temp[MAIN_FILENAME_BUFFER_LEN];
 
 
 	hourglass_on();
 
-	strcpy(resources, "<Launcher$Dir>.Resources");
-	resources_find_path(resources, RES_PATH_LEN);
+	string_copy(resources, "<Launcher$Dir>.Resources", MAIN_FILENAME_BUFFER_LEN);
+	resources_find_path(resources, MAIN_FILENAME_BUFFER_LEN);
 
 	/* Load the messages file. */
 
-	snprintf(res_temp, sizeof(res_temp), "%s.Messages", resources);
+	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Messages", resources);
 	msgs_initialise(res_temp);
 
 	/* Initialise the error message system. */
@@ -165,7 +167,7 @@ static void main_initialise(void)
 
 	/* Initialise with the Wimp. */
 
-	msgs_lookup("TaskName:Launcher", task_name, sizeof(task_name));
+	msgs_lookup("TaskName:Launcher", task_name, MAIN_TASKNAME_BUFFER_LEN);
 	main_task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, NULL, NULL);
 
 	event_add_message_handler(message_QUIT, EVENT_MESSAGE_INCOMING, main_message_quit);
@@ -192,12 +194,12 @@ static void main_initialise(void)
 
 	/* Load the menu structure. */
 
-	snprintf(res_temp, sizeof(res_temp), "%s.Menus", resources);
+	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Menus", resources);
 	templates_load_menus(res_temp);
 
 	/* Load the window templates. */
 
-	snprintf(res_temp, sizeof(res_temp), "%s.Templates", resources);
+	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Templates", resources);
 	templates_open(res_temp);
 
 	/* Initialise the individual modules. */
