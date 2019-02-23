@@ -60,6 +60,7 @@
 #include "appdb.h"
 #include "choices.h"
 #include "edit.h"
+#include "icondb.h"
 #include "main.h"
 
 
@@ -86,20 +87,6 @@
 
 /* ================================================================================================================== */
 
-#define BUTTONS_VALIDATION_LENGTH 40
-
-struct button {
-	unsigned	key;							/**< The database key relating to the icon.			*/
-
-	wimp_i		icon;
-	char		validation[BUTTONS_VALIDATION_LENGTH];			/**< Storage for the icon's validation string.			*/
-
-	struct button	*next;							/**< Pointer to the next button definition.			*/
-};
-
-
-static struct button	*buttons_list = NULL;
-
 static wimp_icon_create	buttons_icon_def;					/**< The definition for a button icon.				*/
 
 static int		buttons_grid_square;					/**< The size of a grid square (in OS units).			*/
@@ -117,15 +104,43 @@ static int		buttons_slab_height;					/**< The height of one button slab (in OS u
 static osbool		buttons_window_is_open = FALSE;				/**< TRUE if the window is currently 'open'; else FALSE.	*/
 
 
-static wimp_w		buttons_window = NULL;					/**< The handle of the buttons window.				*/
 
-static wimp_menu	*buttons_menu = NULL;					/**< The main menu.						*/
 
-static struct button	*buttons_menu_icon = NULL;				/**< The block for the icon over which the main menu opened.	*/
-static os_coord		buttons_menu_coordinate;				/**< The grid coordinates where the main menu opened.		*/
+/**
+ * The handle of the buttons window.
+ */
 
-static int		buttons_window_y0 = 0;					/**< The bottom of the buttons window.				*/
-static int		buttons_window_y1 = 0;					/**< The top of the buttons window.				*/
+static wimp_w buttons_window = NULL;
+
+/**
+ * The handle of the main menu.
+ */
+
+static wimp_menu *buttons_menu = NULL;
+
+/**
+ * The block for the icon over which the main menu last opened.
+ */
+
+static struct icondb_button *buttons_menu_icon = NULL;
+
+/**
+ * The grid coordinates where the main menu last opened.
+ */
+
+static os_coord buttons_menu_coordinate;
+
+/**
+ * The lower (bottom) coordinate of the buttons window.
+ */
+
+static int buttons_window_y0 = 0;
+
+/**
+ * The upper (top) coordinate of the buttons window.
+ */
+
+static int buttons_window_y1 = 0;
 
 /* Static Function Prototypes. */
 
@@ -141,14 +156,12 @@ static void		buttons_update_window_position(void);
 
 static void		buttons_update_grid_info(void);
 
-static void		buttons_create_icon(struct button *button);
-static void		buttons_delete_icon(struct button *button);
+static void		buttons_create_icon(struct icondb_button *button);
+static void		buttons_delete_icon(struct icondb_button *button);
 static void		buttons_press(wimp_i icon);
 
-static void		buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *button, os_coord *grid);
+static void		buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid);
 static osbool		buttons_process_edit_dialogue(struct appdb_entry *entry, void *data);
-
-/* ================================================================================================================== */
 
 
 /**
@@ -210,14 +223,7 @@ void buttons_initialise(void)
 
 void buttons_terminate(void)
 {
-	struct button	*current;
-
-	while (buttons_list != NULL) {
-		current = buttons_list;
-		buttons_list = current->next;
-		heap_free(current);
-	}
-
+	icondb_terminate();
 	edit_terminate();
 }
 
@@ -229,7 +235,7 @@ void buttons_terminate(void)
 
 void buttons_refresh_choices(void)
 {
-	struct button	*button = buttons_list;
+	struct icondb_button *button = icondb_get_list();
 
 	buttons_update_grid_info();
 
@@ -286,14 +292,10 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 	if (pointer == NULL)
 		return;
 
-	if (pointer->i == wimp_ICON_WINDOW || pointer->i == BUTTONS_ICON_SIDEBAR) {
+	if (pointer->i == wimp_ICON_WINDOW || pointer->i == BUTTONS_ICON_SIDEBAR)
 		buttons_menu_icon = NULL;
-	} else {
-		buttons_menu_icon = buttons_list;
-
-		while (buttons_menu_icon!= NULL && buttons_menu_icon->icon != pointer->i)
-			buttons_menu_icon = buttons_menu_icon->next;
-	}
+	else
+		buttons_menu_icon = icondb_find_icon(pointer->i);
 
 	menus_shade_entry(buttons_menu, BUTTONS_MENU_BUTTON, (buttons_menu_icon == NULL) ? TRUE : FALSE);
 	menus_shade_entry(buttons_menu, BUTTONS_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
@@ -575,23 +577,17 @@ static void buttons_update_grid_info(void)
 
 void buttons_create_from_db(void)
 {
-	unsigned	key = APPDB_NULL_KEY;
-	struct button	*new;
+	unsigned		key = APPDB_NULL_KEY;
+	struct icondb_button	*new;
 
 	do {
 		key = appdb_get_next_key(key);
 
 		if (key != APPDB_NULL_KEY) {
-			new = heap_alloc(sizeof(struct button));
+			new = icondb_create_icon(key);
 
 			if (new != NULL) {
-				new->next = buttons_list;
-				buttons_list = new;
-
 				new->key = key;
-				new->icon = -1;
-				new->validation[0] = '\0';
-
 				buttons_create_icon(new);
 			}
 		}
@@ -606,7 +602,7 @@ void buttons_create_from_db(void)
  * \param *button		The definition to create an icon for.
  */
 
-static void buttons_create_icon(struct button *button)
+static void buttons_create_icon(struct icondb_button *button)
 {
 	os_error		*error = NULL;
 	struct appdb_entry	*entry = NULL;
@@ -630,7 +626,7 @@ static void buttons_create_icon(struct button *button)
 	buttons_icon_def.icon.extent.y1 = buttons_origin_y - entry->y * (buttons_grid_square + buttons_grid_spacing);
 	buttons_icon_def.icon.extent.y0 = buttons_icon_def.icon.extent.y1 - buttons_slab_height;
 
-	string_printf(button->validation, BUTTONS_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
+	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
 	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
 	button->icon = wimp_create_icon(&buttons_icon_def);
@@ -645,9 +641,8 @@ static void buttons_create_icon(struct button *button)
  * \param *button		The button to be deleted.
  */
 
-static void buttons_delete_icon(struct button *button)
+static void buttons_delete_icon(struct icondb_button *button)
 {
-	struct button	*parent;
 	os_error	*error;
 
 	if (button == NULL)
@@ -664,25 +659,10 @@ static void buttons_delete_icon(struct button *button)
 		windows_redraw(buttons_window);
 	}
 
-	/* Delete the application details from the database. */
+	/* Delete the application and button details from the databases. */
 
 	appdb_delete_key(button->key);
-
-	/* Delink and delete the button data. */
-
-	if (buttons_list == button) {
-		buttons_list = button->next;
-	} else {
-		parent = buttons_list;
-
-		while (parent != NULL && parent->next != button)
-			parent = parent->next;
-
-		if (parent != NULL)
-			parent->next = button->next;
-	}
-
-	heap_free(button);
+	icondb_delete_icon(button);
 }
 
 
@@ -698,11 +678,10 @@ static void buttons_press(wimp_i icon)
 	char			*buffer;
 	int			length;
 	os_error		*error;
-	struct button		*button = buttons_list;
+	struct icondb_button	*button = NULL;
 
 
-	while (button!= NULL && button->icon != icon)
-		button = button->next;
+	button = icondb_find_icon(icon);
 
 	if (button == NULL)
 		return;
@@ -737,7 +716,7 @@ static void buttons_press(wimp_i icon)
  * \param *grid		The coordinates for a blank dialogue.
  */
 
-static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *button, os_coord *grid)
+static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid)
 {
 	struct appdb_entry entry;
 
@@ -773,7 +752,7 @@ static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct button *but
 
 static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *data)
 {
-	struct button *button = data;
+	struct icondb_button *button = data;
 
 	/* Validate the button location. */
 
@@ -793,35 +772,19 @@ static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *dat
 	 * key for the application details.
 	 */
 
-	if (button == NULL) {
-		button = heap_alloc(sizeof(struct button));
+	if (button == NULL)
+		button = icondb_create_icon(appdb_create_key());
 
-		if (button != NULL) {
-			button->key = appdb_create_key();
-			button->icon = -1;
-			button->validation[0] = '\0';
-
-			if (button->key != APPDB_NULL_KEY) {
-				button->next = buttons_list;
-				buttons_list = button;
-			} else {
-				heap_free(button);
-				button = NULL;
-			}
-		}
-	}
+	if (button == NULL)
+		return FALSE;
 
 	/* Store the application in the database. */
 
-	if (button != NULL) {
-		entry->key = button->key;
-		appdb_set_button_info(entry);
+	entry->key = button->key;
+	appdb_set_button_info(entry);
 
-		buttons_create_icon(button);
+	buttons_create_icon(button);
 
-		return TRUE;
-	}
-
-	return FALSE;
+	return TRUE;
 }
 

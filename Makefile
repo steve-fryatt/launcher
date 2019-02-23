@@ -32,6 +32,7 @@ OBJS =  appdb.o		\
 	buttons.o	\
 	choices.o	\
 	edit.o		\
+	icondb.o	\
 	main.o		\
 	proginfo.o
 
