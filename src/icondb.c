@@ -27,31 +27,13 @@
 
 /* ANSI C header files. */
 
-#include <string.h>
-#include <stdio.h>
-
 /* OSLib header files. */
 
 #include "oslib/wimp.h"
-#include "oslib/messagetrans.h"
-#include "oslib/os.h"
 
 /* SF-Lib header files. */
 
-#include "sflib/config.h"
-#include "sflib/debug.h"
-#include "sflib/errors.h"
-#include "sflib/event.h"
-#include "sflib/general.h"
 #include "sflib/heap.h"
-#include "sflib/icons.h"
-#include "sflib/ihelp.h"
-#include "sflib/menus.h"
-#include "sflib/msgs.h"
-#include "sflib/string.h"
-#include "sflib/templates.h"
-#include "sflib/url.h"
-#include "sflib/windows.h"
 
 /* Application header files. */
 
@@ -176,5 +158,4 @@ struct icondb_button *icondb_find_icon(wimp_i icon)
 
 	return button;
 }
-
 
