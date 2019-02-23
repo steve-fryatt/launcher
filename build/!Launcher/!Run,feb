@@ -44,4 +44,3 @@ RMEnsure SharedCLibrary 5.43 Error Launcher requires version 5.43 or later of th
 WimpSlot -min 128k -max 128k
 
 Run <Launcher$Dir>.!RunImage %*0
-
