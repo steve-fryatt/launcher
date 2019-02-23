@@ -36,6 +36,58 @@
 
 
 /**
+ * Application data structure -- Implementation.
+ */
+
+struct appdb_entry {
+
+	/**
+	 * Primary key to index database entries.
+	 */
+
+	unsigned	key;
+
+	/**
+	 * Button name.
+	 */
+
+	char		name[APPDB_NAME_LENGTH];
+
+	/**
+	 * X and Y positions of the button in the window.
+	 */
+
+	int		x, y;
+
+	/**
+	 * The sprite name.
+	 */
+
+	char		sprite[APPDB_SPRITE_LENGTH];
+
+	/**
+	 * Do we keep a local copy of the sprite?
+	 */
+
+	osbool		local_copy;
+
+	/**
+	 * The command to be executed.
+	 */
+
+	char		command[APPDB_COMMAND_LENGTH];
+
+	/**
+	 * Should the item be Filer_Booted on startup?
+	 */
+
+	osbool		filer_boot;
+};
+
+
+
+
+/**
  * Initialise the buttons window.
  */
 
@@ -87,7 +139,7 @@ unsigned appdb_create_key(void);
 
 
 /**
- * Delete an enrty from the database.
+ * Delete an entry from the database.
  *
  * \param key			The key of the enrty to delete.
  */
@@ -107,42 +159,38 @@ unsigned appdb_get_next_key(unsigned key);
 
 /**
  * Given a key, return details of the button associated with the application.
- * Any parameters passed as NULL will not be returned. String pointers will only
- * remain valid until the memory heap is disturbed.
+ * If a structure is provided, the data is copied into it; otherwise, a pointer
+ * to a structure to the flex heap is returned which will remain valid only
+ * the heap contents are changed.
+ * 
  *
  * \param key			The key of the netry to be returned.
- * \param *x_pos		Place to return the X coordinate of the button.
- * \param *y_pos		Place to return the Y coordinate of the button.
- * \param **name		Place to return a pointer to the button name.
- * \param **sprite		Place to return a pointer to the sprite name
- *				used in the button.
- * \param **command		Place to return a pointer to the command associated
- *				with a button.
- * \param *local_copy		Place to return the local copy flag.
- * \param *filer_boot		Place to return the filer boot flag.
- * \return			TRUE if an entry was found; else FALSE.
+ * \param *data			Pointer to structure to return the data, or NULL.
+ * \return			Pointer to the returned data, or NULL on failure.
  */
 
-osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **name, char **sprite,
-		char **command, osbool *local_copy, osbool *filer_boot);
+struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data);
 
 
 /**
- * Given a key, set details of the button associated with the application.
+ * Given a data structure, set the details of a database entry by copying the
+ * contents of the structure into the database.
  *
- * \param key			The key of the entry to be updated.
- * \param *x_pos		The new X coordinate of the button.
- * \param *y_pos		The new Y coordinate of the button.
- * \param **name		Pointer to the new button name.
- * \param **sprite		Pointer to the new sprite name to be used in the button.
- * \param **command		Pointer to the command associated with the button.
- * \param *local_copy		The new local copy flag.
- * \param *filer_boot		The new filer boot flag.
+ * \param *data			Pointer to the structure containing the data.
  * \return			TRUE if an entry was updated; else FALSE.
  */
 
-osbool appdb_set_button_info(unsigned key, int x_pos, int y_pos, char *name, char *sprite,
-		char *command, osbool local_copy, osbool filer_boot);
+osbool appdb_set_button_info(struct appdb_entry *data);
+
+
+/**
+ * Copy the contents of an application block into a second block.
+ *
+ * \param *to		The block to copy the data to.
+ * \param *from		The block to copy the data from.
+ */
+
+void appdb_copy(struct appdb_entry *to, struct appdb_entry *from);
 
 #endif
 

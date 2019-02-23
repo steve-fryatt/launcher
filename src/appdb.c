@@ -57,32 +57,51 @@
 
 #include "appdb.h"
 
+/**
+ * The number of new blocks to allocate when more space is required.
+ */
 
 #define APPDB_ALLOC_CHUNK 10
 
 /**
- * Application data structure -- Implementation.
+ * The maximum length of a settings filename.
  */
 
-struct application
-{
-	unsigned	key;							/**< Primary key to index database entries.			*/
-	char		name[APPDB_NAME_LENGTH];				/**< Button name.						*/
-	int		x, y;							/**< X and Y positions of the button in the window.		*/
-	char		sprite[APPDB_SPRITE_LENGTH];				/**< The sprite name.						*/
-	osbool		local_copy;						/**< Do we keep a local copy of the sprite?			*/
-	char		command[APPDB_COMMAND_LENGTH];				/**< The command to be executed.				*/
-	osbool		filer_boot;						/**< Should the item be Filer_Booted on startup?		*/
-};
+#define APPDB_MAX_FILENAME_LENGTH 1024
 
+/**
+ * The length of the *Filer_Boot command string.
+ */
 
-static struct application		*appdb_list = NULL;			/**< Array of application data.					*/
+#define APPDB_FILER_BOOT_LENGTH 15
 
-static int				appdb_apps = 0;				/**< The number of applications stored in the database.		*/
-static int				appdb_allocation = 0;			/**< The number of applications for which space is allocated.	*/
+/* Global Variables. */
 
-static unsigned				appdb_key = 0;				/**< Track new unique primary keys.				*/
+/**
+ * The flex array of application data.
+ */
 
+static struct appdb_entry		*appdb_list = NULL;
+
+/**
+ * The number of applications stored in the database.
+ */
+
+static int				appdb_apps = 0;
+
+/**
+ * The number of applications for which space is allocated.
+ */
+
+static int				appdb_allocation = 0;
+
+/**
+ * The next unique database primary key.
+ */
+
+static unsigned				appdb_key = 0;
+
+/* Static Function Prototypes. */
 
 static int	appdb_find(unsigned key);
 static int	appdb_new();
@@ -95,7 +114,7 @@ static void	appdb_delete(int index);
 void appdb_initialise(void)
 {
 	if (flex_alloc((flex_ptr) &appdb_list,
-			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct application)) == 1)
+			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct appdb_entry)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
 }
 
@@ -114,20 +133,20 @@ void appdb_terminate(void)
 /**
  * Load the contents of a button file into the buttons database.
  *
- * \param *leaf_name		The file leafname to load.
- * \return			TRUE on success; else FALSE.
+ * \param *leaf_name	The file leafname to load.
+ * \return		TRUE on success; else FALSE.
  */
 
 osbool appdb_load_file(char *leaf_name)
 {
 	enum config_read_status	result;
 	int			current = -1;
-	char			token[1024], contents[1024], section[1024], filename[1024];
+	char			token[1024], contents[1024], section[1024], filename[APPDB_MAX_FILENAME_LENGTH];
 	FILE			*file;
 
 	/* Find a buttons file somewhere in the usual config locations. */
 
-	config_find_load_file(filename, sizeof(filename), leaf_name);
+	config_find_load_file(filename, APPDB_MAX_FILENAME_LENGTH, leaf_name);
 
 	if (*filename == '\0')
 		return FALSE;
@@ -175,20 +194,20 @@ osbool appdb_load_file(char *leaf_name)
 /**
  * Save the contents of the buttons database into a buttons file.
  *
- * \param *leaf_name		The file leafname to save to.
- * \return			TRUE on success; else FALSE.
+ * \param *leaf_name	The file leafname to save to.
+ * \return		TRUE on success; else FALSE.
  */
 
 osbool appdb_save_file(char *leaf_name)
 {
-	char	filename[1024];
+	char	filename[APPDB_MAX_FILENAME_LENGTH];
 	int	current;
 	FILE	*file;
 
 
 	/* Find a buttons file to write somewhere in the usual config locations. */
 
-	config_find_save_file(filename, sizeof(filename), leaf_name);
+	config_find_save_file(filename, APPDB_MAX_FILENAME_LENGTH, leaf_name);
 
 	if (*filename == '\0')
 		return FALSE;
@@ -225,13 +244,17 @@ osbool appdb_save_file(char *leaf_name)
 void appdb_boot_all(void)
 {
 	int		current;
-	char		command[1024];
+	char		command[APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH];
 	os_error	*error;
 
 	for (current = 0; current < appdb_apps; current++) {
 		if (appdb_list[current].filer_boot) {
-			snprintf(command, sizeof(command), "Filer_Boot %s", appdb_list[current].command);
+			string_printf(command, APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH, "Filer_Boot %s", appdb_list[current].command);
 			error = xos_cli(command);
+
+			if ((error != NULL) &&
+					(error_msgs_param_report_error("BootFail", appdb_list[current].name, error->errmess, NULL, NULL) == wimp_ERROR_BOX_SELECTED_CANCEL))
+				break;
 		}
 	}
 }
@@ -240,7 +263,7 @@ void appdb_boot_all(void)
 /**
  * Create a new, empty entry in the database and return its key.
  *
- * \return			The new key, or APPDB_NULL_KEY.
+ * \return		The new key, or APPDB_NULL_KEY.
  */
 
 unsigned appdb_create_key(void)
@@ -258,7 +281,7 @@ unsigned appdb_create_key(void)
 /**
  * Delete an enrty from the database.
  *
- * \param key			The key of the enrty to delete.
+ * \param key		The key of the enrty to delete.
  */
 
 void appdb_delete_key(unsigned key)
@@ -278,8 +301,8 @@ void appdb_delete_key(unsigned key)
 /**
  * Given a database key, return the next key from the database.
  *
- * \param key			The current key, or APPDB_NULL_KEY to start sequence.
- * \return			The next key, or APPDB_NULL_KEY.
+ * \param key		The current key, or APPDB_NULL_KEY to start sequence.
+ * \return		The next key, or APPDB_NULL_KEY.
  */
 
 unsigned appdb_get_next_key(unsigned key)
@@ -297,92 +320,61 @@ unsigned appdb_get_next_key(unsigned key)
 
 /**
  * Given a key, return details of the button associated with the application.
- * Any parameters passed as NULL will not be returned. String pointers will only
- * remain valid until the memory heap is disturbed.
+ * If a structure is provided, the data is copied into it; otherwise, a pointer
+ * to a structure to the flex heap is returned which will remain valid only
+ * the heap contents are changed.
+ * 
  *
- * \param key			The key of the netry to be returned.
- * \param *x_pos		Place to return the X coordinate of the button.
- * \param *y_pos		Place to return the Y coordinate of the button.
- * \param **name		Place to return a pointer to the button name.
- * \param **sprite		Place to return a pointer to the sprite name
- *				used in the button.
- * \param **command		Place to return a pointer to the command associated
- *				with a button.
- * \param *local_copy		Place to return the local copy flag.
- * \param *filer_boot		Place to return the filer boot flag.
- * \return			TRUE if an entry was found; else FALSE.
+ * \param key		The key of the netry to be returned.
+ * \param *data		Pointer to structure to return the data, or NULL.
+ * \return		Pointer to the returned data, or NULL on failure.
  */
 
-osbool appdb_get_button_info(unsigned key, int *x_pos, int *y_pos, char **name, char **sprite,
-		char **command, osbool *local_copy, osbool *filer_boot)
+struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data)
 {
 	int index;
+
+	/* Locate the requested key, and return NULL if it isn't found. */
 
 	index = appdb_find(key);
 
 	if (index == -1)
-		return FALSE;
+		return NULL;
 
-	if (x_pos != NULL)
-		*x_pos = appdb_list[index].x;
+	/* If no buffer is supplied, just return a pointer into the flex heap. */
 
-	if (y_pos != NULL)
-		*y_pos = appdb_list[index].y;
+	if (data == NULL)
+		return appdb_list + index;
 
-	if (name != NULL)
-		*name = appdb_list[index].name;
+	/* Copy the data into the supplied buffer. */
 
-	if (sprite != NULL)
-		*sprite = appdb_list[index].sprite;
+	appdb_copy(data, appdb_list + index);
 
-	if (command != NULL)
-		*command = appdb_list[index].command;
-
-	if (local_copy != NULL)
-		*local_copy = appdb_list[index].local_copy;
-
-	if (filer_boot != NULL)
-		*filer_boot = appdb_list[index].filer_boot;
-
-	return TRUE;
+	return data;
 }
 
 
 /**
- * Given a key, set details of the button associated with the application.
+ * Given a data structure, set the details of a database entry by copying the
+ * contents of the structure into the database.
  *
- * \param key			The key of the entry to be updated.
- * \param *x_pos		The new X coordinate of the button.
- * \param *y_pos		The new Y coordinate of the button.
- * \param **name		Pointer to the new button name.
- * \param **sprite		Pointer to the new sprite name to be used in the button.
- * \param **command		Pointer to the command associated with the button.
- * \param *local_copy		The new local copy flag.
- * \param *filer_boot		The new filer boot flag.
- * \return			TRUE if an entry was updated; else FALSE.
+ * \param *data		Pointer to the structure containing the data.
+ * \return		TRUE if an entry was updated; else FALSE.
  */
 
-osbool appdb_set_button_info(unsigned key, int x_pos, int y_pos, char *name, char *sprite,
-		char *command, osbool local_copy, osbool filer_boot)
+osbool appdb_set_button_info(struct appdb_entry *data)
 {
 	int index;
 
-	index = appdb_find(key);
+	if (data == NULL)
+		return FALSE;
+
+	index = appdb_find(data->key);
 
 	if (index == -1)
 		return FALSE;
 
-	appdb_list[index].x = x_pos;
-	appdb_list[index].y = y_pos;
-	appdb_list[index].local_copy = local_copy;
-	appdb_list[index].filer_boot = filer_boot;
-
-	if (name != NULL)
-		strncpy(appdb_list[index].name, name, APPDB_NAME_LENGTH);
-	if (sprite != NULL)
-		strncpy(appdb_list[index].sprite, sprite, APPDB_SPRITE_LENGTH);
-	if (command != NULL)
-		strncpy(appdb_list[index].command, command, APPDB_COMMAND_LENGTH);
+	appdb_copy(appdb_list + index, data);
 
 	return TRUE;
 }
@@ -390,8 +382,8 @@ osbool appdb_set_button_info(unsigned key, int x_pos, int y_pos, char *name, cha
 /**
  * Find the index of an application based on its key.
  *
- * \param key			The key to locate.
- * \return			The current index, or -1 if not found.
+ * \param key		The key to locate.
+ * \return		The current index, or -1 if not found.
  */
 
 static int appdb_find(unsigned key)
@@ -420,13 +412,13 @@ static int appdb_find(unsigned key)
  * Claim a block for a new application, fill in the unique key and set
  * default values for the data.
  *
- * \return			The new block number, or -1 on failure.
+ * \return		The new block number, or -1 on failure.
  */
 
 static int appdb_new()
 {
 	if (appdb_apps >= appdb_allocation && flex_extend((flex_ptr) &appdb_list,
-			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct application)) == 1)
+			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct appdb_entry)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
 
 	if (appdb_apps >= appdb_allocation)
@@ -449,7 +441,7 @@ static int appdb_new()
 /**
  * Delete an application block, given its index.
  *
- * \param index			The index of the block to be deleted.
+ * \param index		The index of the block to be deleted.
  */
 
 static void appdb_delete(int index)
@@ -457,7 +449,27 @@ static void appdb_delete(int index)
 	if (index < 0 || index >= appdb_apps)
 		return;
 
-	flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct application),
-			-sizeof(struct application));
+	flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct appdb_entry),
+			-sizeof(struct appdb_entry));
+}
+
+
+/**
+ * Copy the contents of an application block into a second block.
+ *
+ * \param *to		The block to copy the data to.
+ * \param *from		The block to copy the data from.
+ */
+
+void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
+{
+	to->x = from->x;
+	to->y = from->y;
+	to->local_copy = from->local_copy;
+	to->filer_boot = from->filer_boot;
+
+	string_copy(to->name, from->name, APPDB_NAME_LENGTH);
+	string_copy(to->sprite, from->sprite, APPDB_SPRITE_LENGTH);
+	string_copy(to->command, from->command, APPDB_COMMAND_LENGTH);
 }
 
