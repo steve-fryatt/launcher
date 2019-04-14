@@ -25,7 +25,7 @@ Launcher - Yet Another RISC OS Application Launcher              Version $$versi
 
 <body>
 <h1 align="center">Launcher</h1>
-<p align="center"><b>Yet Another RISC OS Application Launcher</b> - &copy; Stephen Fryatt, 2003-2012<br>
+<p align="center"><b>Yet Another RISC&nbsp;OS Application Launcher</b> - &copy; Stephen Fryatt, 2003-2012<br>
 Version $$version$$ ($$date$$)</p>
 
 </literal>
@@ -53,20 +53,17 @@ The necessary libraries and build tools can be found at <link ref="#url http://w
 
 
 
-<chapter title="Introduction" file="Introduction">
+<chapter title="Introduction &amp; Installation" file="Introduction">
 
-<cite>Launcher</cite> is yet another application launcher for RISC OS, which sits to the side of the desktop and allows applications to be started from a palette of shortcuts.
+<cite>Launcher</cite> is yet another application launcher for RISC&nbsp;OS, which sits to the side of the desktop and allows applications to be started from a palette of shortcuts. It can slide out of sight when not in use, and quickly brought into view with a click of the mouse.
 
-</chapter>
+<subhead title="Installation">
 
+<cite>Launcher</cite> is designed to work with RISC&nbsp;OS&nbsp;4 or later; it can be used on RISC&nbsp;OS&nbsp;3, but a copy of the Nested Wimp must be installed. It is 26/32-bit neutral, and should therefore run on all hardware systems as long as the 32-bit Shared C Library is installed. If required, this can be found in the System Resources on RISC&nbsp;OS Open Ltd&rsquo;s website at <link ref="https://www.riscosopen.org/content/downloads/common">https://www.riscosopen.org/content/downloads/common</link>.
 
+To install, copy the <file>!Launcher</file> application from the archive into a suitable place on your hard disc.  It can be run from a floppy disc, but this is not recommended.  Once installed, double-click on the <file>!Launcher</file> application in the Filer window to load it on to the desktop.
 
-
-<chapter title="Installing Launcher" file="Installation">
-
-<cite>Launcher</cite> requires RISC OS 3.1 or later.  It can be run off a hard disc or floppy disc.
-
-To install <cite>Locate</cite> on a hard disc, copy the <file>!Launcher</file> application to a suitable directory.
+If <cite>Launcher</cite> is to be used on a regular basis, it may be desirable to have it run automatically when the system starts. The easiest way to achieve this is to add it to the list of applications in <cite>Configure</cite>. Start <cite>Configure</cite> by double-clicking on <file>!Boot</file> (or selecting <menu>Configure...</menu> from the Task Manager&rsquo;s iconbar menu on recent versions of RISC&nbsp;OS), then select <icon>Boot</icon> and finally <icon>Run</icon>. Drag the <file>!Launcher</file> application from your hard disc into the list of applications.
 
 </chapter>
 
@@ -75,7 +72,14 @@ To install <cite>Locate</cite> on a hard disc, copy the <file>!Launcher</file> a
 
 <chapter title="Using Launcher" file="Use">
 
-To use <cite>Launcher</cite>, run it in the usual way by double-clicking on its icon. It will install itself on the desktop, placing a bar down the left-hand side of the screen.
+To use <cite>Launcher</cite>, run it in the usual way by double-clicking on its icon within a Filer window (or ensure that it runs at start up, as described in the previous section). It will install itself on the desktop, placing a bar down the left-hand side of the screen.
+
+To access the shortcuts, click on the bar and the panel will expand on to the screen; click again on the bar to shrink it back again. A <mouse>select</mouse>-click on a shortcut will launch the associated application and shrink the panel back, while clicking with <mouse>adjust</mouse> will leave the panel open on screen for another shortcut to be selected.
+
+<subhead title="Adding shortcuts">
+
+
+
 
 </chapter>
 
@@ -85,6 +89,14 @@ To use <cite>Launcher</cite>, run it in the usual way by double-clicking on its 
 <chapter title="Configuration" file="Configuration">
 
 Selecting <menu>Choices...</menu> from the main menu allows the default behaviour of <cite>Launcher</cite> to be changed.
+
+The <icon>Grid dimensions</icon> section controls the dimensions of the grid in the launch panel. The number of colums can be set using <icon>Display columns</icon>, remembering that each button occupies 2 grid squares by 2 grid squares. The number of rows on the grid is determined by the size of the screen mode that is currently in use.
+
+The size of a grid square can be set using <icon>Grid size</icon>, using OS&nbsp;Units and again remembering that a button occupies two grid cells in each direction. The spacing between cells in the grid, which sets any spacing between buttons, is set in the <icon>Grid spacing</icon> field.
+
+If <icon>Confirm deletions</icon> is ticked, <cite>Launcher</cite> will confirm any attempt to delete a button from the grid.
+
+Clicking on <icon>Apply</icon> will store the settings in the window for the current session (using <mouse>adjust</mouse> will leave the dialogue box open), whilst clicking <icon>Save</icon> will also save any changes to disc for future use. Clicking <mouse>select</mouse> on <icon>Cancel</icon> will close the dialogue and discard the changes, whilst using <mouse>adjust</mouse> will reset any values which have been changed.
 
 </chapter>
 
