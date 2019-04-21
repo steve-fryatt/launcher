@@ -55,7 +55,7 @@ The necessary libraries and build tools can be found at <link ref="#url http://w
 
 <chapter title="Introduction &amp; Installation" file="Introduction">
 
-<cite>Launcher</cite> is yet another application launcher for RISC&nbsp;OS, which sits to the side of the desktop and allows applications to be started from a palette of shortcuts. It can slide out of sight when not in use, and quickly brought into view with a click of the mouse.
+<cite>Launcher</cite> is yet another application launcher for RISC&nbsp;OS, which sits to the side of the desktop and allows applications to be started from a palette of shortcuts. It can slide out of sight when not in use, and can be quickly brought into view with a click of the mouse.
 
 Despite being in use on my desktop since 2003, it took sixteen years and many nudges from people who saw it on my machine at RISC&nbsp;OS shows and WROCC meetings to make it out into the wild.
 
@@ -86,7 +86,7 @@ If the shortcut is to be used to launch an application, the easiest thing to do 
 
 If not, or if the details need to be changed from the defaults offered, then the <icon>Name</icon> of the button is a unique identifier, which will often be the name of the application or script to be run by the shortcut. The <icon>Sprite</icon> field holds the name of the sprite, and should be a sprite which is held in the Wimp Sprite Pool (such as one belonging to an application which has been seen by the Filer). Finally, the <icon>Location</icon> is the full path to an object to be run when the button is pressed: often the application folder, or maybe an Obey file within it.
 
-The position of button is set by the <icon>X position</icon> and <icon>Y position</icon> fields: these specify the top-right occupied by the button, and will initially be filled in with the square over which the menu was opened. The grid coordinates count from the top-right of the pane, starting at (0,0) and increasing as they move leftwards and downwards.
+The position of button is set by the <icon>X position</icon> and <icon>Y position</icon> fields: these specify the top-right grid square which is occupied by the button, and will initially be filled in with the square over which the menu was opened. The grid coordinates count from the top-right of the pane, starting at (0,0) and increasing as they move leftwards and downwards; each button occupies a space of two squares by two squares, to allow them to be offset from each other if required.
 
 Finally, <icon>Filer boot on startup</icon> determines whether <cite>Launcher</cite> should attempt to boot the object when it starts up. This is equivalent to a Filer window containing the object being opened, and would ensure that things like filetypes are set up correctly.
 
@@ -94,9 +94,9 @@ To store the new shortcut, click on <icon>OK</icon>; to abandon the changes, cli
 
 <subhead title="Editing shortcuts">
 
-To edit an existing shortcut, click <mouse>menu</mouse> over the button and select <menu>Button &mesp; Edit...</menu>. This opens the <window>Edit button</window> dialogue, as described in the previous section, to allow changes to be made. Buttons can be moved around the panel by changing their <icon>X position</icon> and <icon>Y position</icon> values.
+To edit an existing shortcut, click <mouse>menu</mouse> over the button and select <menu>Button &msep; Edit...</menu>. This opens the <window>Edit button</window> dialogue, as described in the previous section, to allow changes to be made. Buttons can be moved around the panel by changing their <icon>X position</icon> and <icon>Y position</icon> values.
 
-To delete a shortcut from the panel, click <mouse>menu</mouuse> over it and select <menu>Button &msep; Delete</menu>.
+To delete a shortcut from the panel, click <mouse>menu</mouse> over it and select <menu>Button &msep; Delete</menu>.
 
 As with new shortcuts, any edits or deletions to shortcuts will not be saved for future sessions unless <menu>Save buttons</menu> is selected from the main menu after the changes have been made.
 
