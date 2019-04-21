@@ -57,6 +57,8 @@ The necessary libraries and build tools can be found at <link ref="#url http://w
 
 <cite>Launcher</cite> is yet another application launcher for RISC&nbsp;OS, which sits to the side of the desktop and allows applications to be started from a palette of shortcuts. It can slide out of sight when not in use, and quickly brought into view with a click of the mouse.
 
+Despite being in use on my desktop since 2003, it took sixteen years and many nudges from people who saw it on my machine at RISC&nbsp;OS shows and WROCC meetings to make it out into the wild.
+
 <subhead title="Installation">
 
 <cite>Launcher</cite> is designed to work with RISC&nbsp;OS&nbsp;4 or later; it can be used on RISC&nbsp;OS&nbsp;3, but a copy of the Nested Wimp must be installed. It is 26/32-bit neutral, and should therefore run on all hardware systems as long as the 32-bit Shared C Library is installed. If required, this can be found in the System Resources on RISC&nbsp;OS Open Ltd&rsquo;s website at <link ref="https://www.riscosopen.org/content/downloads/common">https://www.riscosopen.org/content/downloads/common</link>.
@@ -78,8 +80,25 @@ To access the shortcuts, click on the bar and the panel will expand on to the sc
 
 <subhead title="Adding shortcuts">
 
+New shortcuts can be added by clicking <mouse>menu</mouse> over an empty part of the panel and selecting <menu>New button...</menu>. This will open the <window>Edit button</window> dialogue, allowing a new shortcut button to be created.
 
+If the shortcut is to be used to launch an application, the easiest thing to do is to drag the application&rsquo;s icon from a Filer window into the dialogue. This will complete the <icon>Name</icon>, <icon>Sprite</icon> and <icon>Location</icon> fields based on the application's details. 
 
+If not, or if the details need to be changed from the defaults offered, then the <icon>Name</icon> of the button is a unique identifier, which will often be the name of the application or script to be run by the shortcut. The <icon>Sprite</icon> field holds the name of the sprite, and should be a sprite which is held in the Wimp Sprite Pool (such as one belonging to an application which has been seen by the Filer). Finally, the <icon>Location</icon> is the full path to an object to be run when the button is pressed: often the application folder, or maybe an Obey file within it.
+
+The position of button is set by the <icon>X position</icon> and <icon>Y position</icon> fields: these specify the top-right occupied by the button, and will initially be filled in with the square over which the menu was opened. The grid coordinates count from the top-right of the pane, starting at (0,0) and increasing as they move leftwards and downwards.
+
+Finally, <icon>Filer boot on startup</icon> determines whether <cite>Launcher</cite> should attempt to boot the object when it starts up. This is equivalent to a Filer window containing the object being opened, and would ensure that things like filetypes are set up correctly.
+
+To store the new shortcut, click on <icon>OK</icon>; to abandon the changes, click <icon>Cancel</icon>. New shortcuts will not be saved for future sessions unless <menu>Save buttons</menu> is selected from the main menu after the changes have been made.
+
+<subhead title="Editing shortcuts">
+
+To edit an existing shortcut, click <mouse>menu</mouse> over the button and select <menu>Button &mesp; Edit...</menu>. This opens the <window>Edit button</window> dialogue, as described in the previous section, to allow changes to be made. Buttons can be moved around the panel by changing their <icon>X position</icon> and <icon>Y position</icon> values.
+
+To delete a shortcut from the panel, click <mouse>menu</mouuse> over it and select <menu>Button &msep; Delete</menu>.
+
+As with new shortcuts, any edits or deletions to shortcuts will not be saved for future sessions unless <menu>Save buttons</menu> is selected from the main menu after the changes have been made.
 
 </chapter>
 
@@ -92,7 +111,7 @@ Selecting <menu>Choices...</menu> from the main menu allows the default behaviou
 
 The <icon>Grid dimensions</icon> section controls the dimensions of the grid in the launch panel. The number of colums can be set using <icon>Display columns</icon>, remembering that each button occupies 2 grid squares by 2 grid squares. The number of rows on the grid is determined by the size of the screen mode that is currently in use.
 
-The size of a grid square can be set using <icon>Grid size</icon>, using OS&nbsp;Units and again remembering that a button occupies two grid cells in each direction. The spacing between cells in the grid, which sets any spacing between buttons, is set in the <icon>Grid spacing</icon> field.
+The size of a grid square can be set using <icon>Grid size</icon>, using OS&nbsp;Units and again remembering that a button occupies two grid cells in each direction. The spacing between cells in the grid, which sets any spacing between buttons, is set in the <icon>Grid spacing</icon> field &ndash; the size of cells includes the spacing that crosses between their pairs of grid squares.
 
 If <icon>Confirm deletions</icon> is ticked, <cite>Launcher</cite> will confirm any attempt to delete a button from the grid.
 
@@ -107,32 +126,13 @@ Clicking on <icon>Apply</icon> will store the settings in the window for the cur
 
 This is a complete list of all the changes made to the publicly released versions of <cite>Launcher</cite>.
 
-<subhead title="0.30 (18 December 2004)">
+<subhead title="0.10 (21 April 2019)">
 
 <list>
-<li>Initial unreleased version.
+<li>First publicly released version.
 </list>
 
-
-<subhead title="0.40 (--------)">
-
-<list>
-<li>Refactored for modular style and updated to handle new SFLib APIs.
-<li>Rebuilt for ARMv7 systems, and the opportunity taken to restructure the code and tidy aspects of the user interface.
-</list>
-
-
 </chapter>
-
-
-
-
-<chapter title="Future Plans" file="ToDo">
-
-This version of <cite>Launcher</cite> is still not finished and several intended features are not yet implemented.
-
-</chapter>
-
 
 
 
