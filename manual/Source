@@ -55,7 +55,7 @@ The necessary libraries and build tools can be found at <link ref="#url http://w
 
 <chapter title="Introduction &amp; Installation" file="Introduction">
 
-<cite>Launcher</cite> is yet another application launcher for RISC&nbsp;OS, which sits to the side of the desktop and allows applications to be started from a palette of shortcuts. It can slide out of sight when not in use, and can be quickly brought into view with a click of the mouse.
+<cite>Launcher</cite> is yet another application launcher for RISC&nbsp;OS, which sits to the side of the desktop and allows applications to be started from a palette of shortcuts. It can slide out of sight when not in use, and can be quickly brought back into view with a click of the mouse.
 
 Despite being in use on my desktop since 2003, it took sixteen years and many nudges from people who saw it on my machine at RISC&nbsp;OS shows and WROCC meetings to make it out into the wild.
 
