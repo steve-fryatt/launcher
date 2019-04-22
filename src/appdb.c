@@ -427,7 +427,6 @@ static int appdb_new()
 	appdb_list[appdb_apps].key = appdb_key++;
 	appdb_list[appdb_apps].x = 0;
 	appdb_list[appdb_apps].y = 0;
-	appdb_list[appdb_apps].local_copy = FALSE;
 	appdb_list[appdb_apps].filer_boot = TRUE;
 
 	*(appdb_list[appdb_apps].name) = '\0';
@@ -465,7 +464,6 @@ void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
 {
 	to->x = from->x;
 	to->y = from->y;
-	to->local_copy = from->local_copy;
 	to->filer_boot = from->filer_boot;
 
 	string_copy(to->name, from->name, APPDB_NAME_LENGTH);

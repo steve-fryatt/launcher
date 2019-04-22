@@ -67,9 +67,8 @@
 #define ICON_EDIT_XPOS 5
 #define ICON_EDIT_YPOS 7
 #define ICON_EDIT_SPRITE 8
-#define ICON_EDIT_KEEP_LOCAL 10
-#define ICON_EDIT_LOCATION 11
-#define ICON_EDIT_BOOT 13
+#define ICON_EDIT_LOCATION 10
+#define ICON_EDIT_BOOT 12
 
 /* Static Function Prototypes. */
 
@@ -263,7 +262,6 @@ static void edit_fill_edit_window(struct appdb_entry *data)
 	icons_printf(edit_window, ICON_EDIT_XPOS, "%d", data->x);
 	icons_printf(edit_window, ICON_EDIT_YPOS, "%d", data->y);
 
-	icons_set_selected(edit_window, ICON_EDIT_KEEP_LOCAL, data->local_copy);
 	icons_set_selected(edit_window, ICON_EDIT_BOOT, data->filer_boot);
 }
 
@@ -300,7 +298,6 @@ static osbool edit_read_edit_window(void)
 	entry.x = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_XPOS));
 	entry.y = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_YPOS));
 
-	entry.local_copy = icons_get_selected(edit_window, ICON_EDIT_KEEP_LOCAL);
 	entry.filer_boot = icons_get_selected(edit_window, ICON_EDIT_BOOT);
 
 	icons_copy_text(edit_window, ICON_EDIT_NAME, entry.name, APPDB_NAME_LENGTH);

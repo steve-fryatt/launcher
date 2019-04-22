@@ -759,7 +759,6 @@ static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_butt
 
 	entry.x = 0;
 	entry.y = 0;
-	entry.local_copy = FALSE;
 	entry.filer_boot = TRUE;
 	*entry.name = '\0';
 	*entry.sprite = '\0';

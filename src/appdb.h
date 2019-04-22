@@ -66,12 +66,6 @@ struct appdb_entry {
 	char		sprite[APPDB_SPRITE_LENGTH];
 
 	/**
-	 * Do we keep a local copy of the sprite?
-	 */
-
-	osbool		local_copy;
-
-	/**
 	 * The command to be executed.
 	 */
 

@@ -49,7 +49,6 @@ Help.Edit.XPos:\Thorizontal position of the button on the grid.
 Help.Edit.YPos:\Tvertical position of the button on the grid.
 Help.Edit.Sprite:\Tname of the sprite used on the button.
 Help.Edit.Location:\Tlocation of the file or application which will be run when the button is clicked.
-Help.Edit.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
 Help.Edit.Boot:\Stoggle whether the application will be filer-booted when Launcher starts.
 
 Help.Choices:\Tchoices window for Launcher.
