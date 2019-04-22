@@ -28,7 +28,7 @@ Set Launcher$Dir <Obey$Dir>
 
 | Set the application sprites.
 
-|IconSprites <Launcher$Dir>.!Sprites
+IconSprites <Launcher$Dir>.!Sprites
 
 | Ensure the Nested Wimp is installed.
 
