@@ -45,8 +45,5 @@ menu(MainMenu, "Launcher") {
 menu(button_menu, "Button")
 {
 	item("Edit...");
-	item("Move") {
-		dotted;
-	}
 	item("Delete");
 }

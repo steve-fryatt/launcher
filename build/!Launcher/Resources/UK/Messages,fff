@@ -73,8 +73,7 @@ Help.MainMenu.00:\Rsee information about Launcher.
 Help.MainMenu.01:\Sread the online help.
 Help.MainMenu.02:\Rto see options relating to the button under the pointer.
 Help.MainMenu.0200:\Sopen the button edit \w and edit the button under the pointer.
-Help.MainMenu.0201:\Smove the button under the pointer.
-Help.MainMenu.0202:\Sdelete the button under the pointer.
+Help.MainMenu.0201:\Sdelete the button under the pointer.
 Help.MainMenu.03:\Sopen the button edit \w and create a new button.
 Help.MainMenu.04:\Ssave the current button arrangement to file for future sessions.
 Help.MainMenu.05:\Schange the Launcher options.

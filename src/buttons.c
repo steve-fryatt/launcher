@@ -76,8 +76,7 @@
 /* Button Submenu */
 
 #define BUTTONS_MENU_BUTTON_EDIT 0
-#define BUTTONS_MENU_BUTTON_MOVE 1
-#define BUTTONS_MENU_BUTTON_DELETE 2
+#define BUTTONS_MENU_BUTTON_DELETE 1
 
 /* Global Variables. */
 
