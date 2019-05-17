@@ -132,13 +132,21 @@ This is a complete list of all the changes made to the publicly released version
 <li>First publicly released version.
 </list>
 
+<subhead title="0.51 (17 May 2019)">
+
+Update to first publicly released version.
+
+<list>
+<li>Add <file>!Boot</file> file to ensure that Help works correctly (ticket&nbsp;#679).
+<li>Correctly redraw edit dialogue when contents change (ticket&nbsp;#680).
+</list>
+
 </chapter>
 
 
 
 
 <literal mode="Text">
-
 
 Updates and Contacting Me
 -------------------------

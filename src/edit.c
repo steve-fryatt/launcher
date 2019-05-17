@@ -150,6 +150,9 @@ void edit_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, osbool 
 	if (data == NULL)
 		return;
 
+	if (windows_get_open(edit_window))
+		wimp_close_window(edit_window);
+
 	edit_default_data = malloc(sizeof(struct appdb_entry));
 	if (edit_default_data == NULL)
 		return;
