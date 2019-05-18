@@ -132,6 +132,7 @@ This is a complete list of all the changes made to the publicly released version
 <li>First publicly released version.
 </list>
 
+
 <subhead title="0.51 (17 May 2019)">
 
 Update to first publicly released version.
@@ -139,6 +140,15 @@ Update to first publicly released version.
 <list>
 <li>Add <file>!Boot</file> file to ensure that Help works correctly (ticket&nbsp;#679).
 <li>Correctly redraw edit dialogue when contents change (ticket&nbsp;#680).
+</list>
+
+
+<subhead title="Test Build">
+
+Alpha release for feedback.
+
+<list>
+<li>Prevent multiple copies of <cite>Launcher</cite> from starting by mistake (ticket&nbsp;#683).
 </list>
 
 </chapter>
