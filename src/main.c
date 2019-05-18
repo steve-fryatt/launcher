@@ -46,6 +46,7 @@
 #include "sflib/msgs.h"
 #include "sflib/resources.h"
 #include "sflib/string.h"
+#include "sflib/tasks.h"
 #include "sflib/templates.h"
 #include "sflib/url.h"
 
@@ -169,6 +170,9 @@ static void main_initialise(void)
 
 	msgs_lookup("TaskName:Launcher", task_name, MAIN_TASKNAME_BUFFER_LEN);
 	main_task_handle = wimp_initialise(wimp_VERSION_RO3, task_name, NULL, NULL);
+
+	if (tasks_test_for_duplicate(task_name, main_task_handle, "DupTask", "DupTaskB"))
+		main_quit_flag = TRUE;
 
 	event_add_message_handler(message_QUIT, EVENT_MESSAGE_INCOMING, main_message_quit);
 

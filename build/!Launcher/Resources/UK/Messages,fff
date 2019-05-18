@@ -28,6 +28,9 @@ Version:%0 (%1)
 TaskSpr:application
 SupportURL:http://www.stevefryatt.org.uk/software/utils/
 
+DupTask:A copy of %0 is already running. Do you want to continue loading a second copy?
+DupTaskB:Stop,Continue
+
 QDelete:Are you sure that you wish to delete this button?
 QDeleteB:Delete,Cancel
 
