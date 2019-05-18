@@ -85,61 +85,67 @@
  * The Wimp icon definition for a button icon.
  */
 
-static wimp_icon_create	buttons_icon_def;
+static wimp_icon_create buttons_icon_def;
+
+/**
+ * The location of the panel.
+ */
+
+static enum buttons_position buttons_location;
 
 /**
  * The size of a grid square (in OS units).
  */
 
-static int		buttons_grid_square;
+static int buttons_grid_square;
 
 /**
  * The spacing between grid squares (in OS units).
  */
 
-static int		buttons_grid_spacing;
+static int buttons_grid_spacing;
 
 /**
  * The number of columns in the visible grid.
  */
 
-static int		buttons_grid_columns;
+static int buttons_grid_columns;
 
 /**
  * The number of rows in the visible grid.
  */
 
-static int		buttons_grid_rows;
+static int buttons_grid_rows;
 
 /**
  * The horizontal origin of the button grid (in OS units).
  */
 
-static int		buttons_origin_x;
+static int buttons_origin_x;
 
 /**
  * The vertical origin of the button grid (in OS units).
  */
 
-static int		buttons_origin_y;
+static int buttons_origin_y;
 
 /**
  * The width of one button slab (in OS units).
  */
 
-static int		buttons_slab_width;
+static int buttons_slab_width;
 
 /**
  * The height of one button slab (in OS units).
  */
 
-static int		buttons_slab_height;
+static int buttons_slab_height;
 
 /**
  * Indicate whether the window is currently "open" (TRUE) or "closed" (FALSE).
  */
 
-static osbool		buttons_window_is_open = FALSE;
+static osbool buttons_window_is_open = FALSE;
 
 /**
  * The handle of the buttons window.
@@ -207,6 +213,7 @@ void buttons_initialise(void)
 {
 	wimp_window		*def = NULL;
 
+	buttons_location = BUTTONS_POSITION_LEFT;
 
 	/* Initialise the menus used in the window. */
 

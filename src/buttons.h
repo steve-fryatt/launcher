@@ -28,21 +28,19 @@
 #ifndef LAUNCHER_BUTTONS
 #define LAUNCHER_BUTTONS
 
-/* ================================================================================================================== */
+/**
+ * The possible buttons window positions.
+ */
 
-#define LAUNCHER_TOP    1
-#define LAUNCHER_BOTTOM 2
-#define LAUNCHER_LEFT   3
-#define LAUNCHER_RIGHT  4
+enum buttons_position {
+	BUTTONS_POSITION_VERTICAL = 4,
+	BUTTONS_POSITION_LEFT = 6,
+	BUTTONS_POSITION_RIGHT = 7,
+	BUTTONS_POSITION_HORIZONTAL = 8,
+	BUTTONS_POSITION_TOP = 8,
+	BUTTONS_POSITION_BOTTOM = 9
+};
 
-/* ================================================================================================================== */
-
-/* Structure to hold details of a button. */
-
-
-/* ================================================================================================================== */
-
-/* Launch functions. */
 
 /**
  * Initialise the buttons window.
