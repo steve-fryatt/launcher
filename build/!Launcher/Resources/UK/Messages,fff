@@ -25,7 +25,7 @@
 TaskName:Launcher
 Version:%0 (%1)
 
-TaskSpr:application
+TaskSpr:!launcher
 SupportURL:http://www.stevefryatt.org.uk/software/utils/
 
 DupTask:A copy of %0 is already running. Do you want to continue loading a second copy?
