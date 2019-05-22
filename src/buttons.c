@@ -94,6 +94,18 @@ static wimp_icon_create buttons_icon_def;
 static enum buttons_position buttons_location;
 
 /**
+ * The width of the current mode, in OS Units.
+ */
+
+static int buttons_mode_width;
+
+/**
+ * The height of the current mode, in OS Units.
+ */
+
+static int buttons_mode_height;
+
+/**
  * The size of a grid square (in OS units).
  */
 
@@ -213,7 +225,7 @@ void buttons_initialise(void)
 {
 	wimp_window		*def = NULL;
 
-	buttons_location = BUTTONS_POSITION_LEFT;
+	buttons_location = BUTTONS_POSITION_RIGHT;
 
 	/* Initialise the menus used in the window. */
 
@@ -249,6 +261,9 @@ void buttons_initialise(void)
 	edit_initialise();
 
 	/* Correctly size the window for the current mode. */
+
+	buttons_mode_width = general_mode_width();
+	buttons_mode_height = general_mode_height();
 
 	buttons_update_window_position();
 	buttons_update_grid_info();
@@ -419,6 +434,8 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 static osbool buttons_message_mode_change(wimp_message *message)
 {
+	buttons_mode_width = general_mode_width();
+	buttons_mode_height = general_mode_height();
 
 	buttons_update_window_position();
 	buttons_reopen_window();
@@ -466,7 +483,7 @@ static void buttons_reopen_window(void)
 
 static void buttons_open_window(wimp_open *open)
 {
-	int			sidebar_width;
+	int			sidebar_size;
 	wimp_icon_state		state;
 	os_error		*error;
 
@@ -479,15 +496,32 @@ static void buttons_open_window(wimp_open *open)
 	if (error != NULL)
 		return;
 
-	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
+	switch (buttons_location) {
+	case BUTTONS_POSITION_LEFT:
+		sidebar_size = state.icon.extent.x1 - state.icon.extent.x0;
 
-	open->visible.x0 = 0;
-	open->visible.x1 = ((buttons_window_is_open) ? (buttons_grid_spacing + buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_width;
-	open->visible.y0 = buttons_window_y0;
-	open->visible.y1 = buttons_window_y1;
+		open->visible.x0 = 0;
+		open->visible.x1 = ((buttons_window_is_open) ? (buttons_grid_spacing + buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_size;
+		open->visible.y0 = buttons_window_y0;
+		open->visible.y1 = buttons_window_y1;
 
-	open->xscroll = (buttons_window_is_open) ? 0 : (buttons_grid_spacing + buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square));
-	open->yscroll = 0;
+		open->xscroll = (buttons_window_is_open) ? 0 : (buttons_grid_spacing + buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square));
+		open->yscroll = 0;
+		break;
+
+	case BUTTONS_POSITION_RIGHT:
+		sidebar_size = state.icon.extent.x1 - state.icon.extent.x0;
+
+		open->visible.x0 = buttons_mode_width - (((buttons_window_is_open) ? (buttons_grid_spacing + buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_size);
+		open->visible.x1 = buttons_mode_width;
+		open->visible.y0 = buttons_window_y0;
+		open->visible.y1 = buttons_window_y1;
+
+		open->xscroll = 0;
+		open->yscroll = 0;
+		break;
+	}
+
 	open->next = (buttons_window_is_open) ? wimp_TOP : wimp_BOTTOM;
 
 	wimp_open_window(open);
@@ -501,11 +535,10 @@ static void buttons_open_window(wimp_open *open)
 
 static void buttons_update_window_position(void)
 {
-	int			mode_height, old_window_height, new_window_height;
+	int			old_window_size, new_window_size;
 	wimp_window_info	info;
 	wimp_icon_state		state;
 	os_error		*error;
-
 
 	info.w = buttons_window;
 	error = xwimp_get_window_info_header_only(&info);
@@ -518,39 +551,73 @@ static void buttons_update_window_position(void)
 	if (error != NULL)
 		return;
 
-	old_window_height = info.extent.y1 - info.extent.y0;
+	if (buttons_location & BUTTONS_POSITION_VERTICAL) {
+		old_window_size = info.extent.y1 - info.extent.y0;
 
-	/* Calculate the new vertical size of the window. */
+		/* Calculate the new vertical size of the window. */
 
-	mode_height = general_mode_height();
-	new_window_height = mode_height - sf_ICONBAR_HEIGHT;
+		new_window_size = buttons_mode_height - sf_ICONBAR_HEIGHT;
 
-	info.extent.y1 = 0;
-	info.extent.y0 = info.extent.y1 - new_window_height;
+		info.extent.y1 = 0;
+		info.extent.y0 = info.extent.y1 - new_window_size;
 
-	/* Extend the extent if required, but never bother to shrink it. */
+		/* Extend the extent if required, but never bother to shrink it. */
 
-	if (old_window_height < new_window_height) {
-		error = xwimp_set_extent(buttons_window, &(info.extent));
-		if (error != NULL)
-			return;
+		if (old_window_size < new_window_size) {
+			error = xwimp_set_extent(buttons_window, &(info.extent));
+			if (error != NULL)
+				return;
+		}
+
+		/* Resize the icon to fit the new dimensions. */
+
+		error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
+			state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y1);
+
+		/* Adjust the new visible window height. */
+
+		buttons_window_y0 = sf_ICONBAR_HEIGHT;
+		buttons_window_y1 = buttons_mode_height;
+
+		if (buttons_grid_square + buttons_grid_spacing != 0)
+			buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
+					(buttons_grid_square + buttons_grid_spacing);
+		else
+			buttons_grid_rows = 0;
+	} else if (buttons_location & BUTTONS_POSITION_HORIZONTAL) {
+		old_window_size = info.extent.x1 - info.extent.x0;
+
+		/* Calculate the new horizontal size of the window. */
+
+		new_window_size = buttons_mode_width;
+
+		info.extent.x0 = 0;
+		info.extent.x1 = info.extent.x0 + new_window_size;
+
+		/* Extend the extent if required, but never bother to shrink it. */
+
+		if (old_window_size < new_window_size) {
+			error = xwimp_set_extent(buttons_window, &(info.extent));
+			if (error != NULL)
+				return;
+		}
+
+		/* Resize the icon to fit the new dimensions. */
+
+		error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
+			info.extent.x0, state.icon.extent.y0, info.extent.x1, state.icon.extent.y1);
+
+		/* Adjust the new visible window width. */
+
+		buttons_window_y0 = 0;
+		buttons_window_y1 = buttons_mode_width;
+
+		if (buttons_grid_square + buttons_grid_spacing != 0)
+			buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
+					(buttons_grid_square + buttons_grid_spacing);
+		else
+			buttons_grid_rows = 0;
 	}
-
-	/* Resize the icon to fit the new dimensions. */
-
-	error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
-		state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y1);
-
-	/* Adjust the new visible window height. */
-
-	buttons_window_y0 = sf_ICONBAR_HEIGHT;
-	buttons_window_y1 = mode_height;
-
-	if (buttons_grid_square + buttons_grid_spacing != 0)
-		buttons_grid_rows = (buttons_window_y1 - buttons_window_y0) /
-				(buttons_grid_square + buttons_grid_spacing);
-	else
-		buttons_grid_rows = 0;
 }
 
 
@@ -588,11 +655,6 @@ static void buttons_update_grid_info(void)
 	else
 		buttons_grid_rows = 0;
 
-	/* Origin is top-right of the grid. */
-
-	buttons_origin_x = info.extent.x0 + buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing);
-	buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
-
 	/* Buttons span two grid squares, and cover the spacing in between those. */
 
 	buttons_slab_width = 2 * buttons_grid_square + buttons_grid_spacing;
@@ -608,8 +670,24 @@ static void buttons_update_grid_info(void)
 	if (error != NULL)
 		return;
 
-	error = xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
-		info.extent.x1 - sidebar_width, state.icon.extent.y0, info.extent.x1, state.icon.extent.y1);
+	/* Origin is top-right of the grid. */
+
+	switch (buttons_location) {
+	case BUTTONS_POSITION_LEFT:
+		buttons_origin_x = info.extent.x0 + buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing);
+		buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
+
+		xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
+			info.extent.x1 - sidebar_width, state.icon.extent.y0, info.extent.x1, state.icon.extent.y1);
+		break;
+	case BUTTONS_POSITION_RIGHT:
+		buttons_origin_x = info.extent.x0 + buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing) + sidebar_width;
+		buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
+
+		xwimp_resize_icon(buttons_window, BUTTONS_ICON_SIDEBAR,
+			info.extent.x0, state.icon.extent.y0, info.extent.x0 + sidebar_width, state.icon.extent.y1);
+		break;
+	}
 }
 
 
