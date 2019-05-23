@@ -79,19 +79,86 @@
 #define BUTTONS_MENU_BUTTON_MOVE 1
 #define BUTTONS_MENU_BUTTON_DELETE 2
 
+/**
+ * The buttion instance data block.
+ */
+
+struct buttons_block {
+	/**
+	 * The location of the panel.
+	 */
+
+	enum buttons_position buttons_location;
+
+	/**
+	 * The number of columns in the visible grid.
+	 */
+
+	int buttons_grid_columns;
+
+	/**
+	 * The number of rows in the visible grid.
+	 */
+
+	int buttons_grid_rows;
+
+	/**
+	 * The horizontal origin of the button grid (in OS units).
+	 */
+
+	int buttons_origin_x;
+
+	/**
+	 * The vertical origin of the button grid (in OS units).
+	 */
+
+	int buttons_origin_y;
+
+	/**
+	 * Indicate whether the window is currently "open" (TRUE) or "closed" (FALSE).
+	 */
+
+	osbool buttons_window_is_open;
+
+	/**
+	 * The handle of the buttons window.
+	 */
+
+	wimp_w buttons_window;
+
+	/**
+	 * The lower (bottom) coordinate of the buttons window.
+	 */
+
+	int buttons_window_y0;
+
+	/**
+	 * The upper (top) coordinate of the buttons window.
+	 */
+
+	int buttons_window_y1;
+
+	/**
+	 * The next instance in the list, or NULL.
+	 */
+
+	struct buttons_block *next;
+};
+
 /* Global Variables. */
 
 /**
- * The Wimp icon definition for a button icon.
+ * The list of buttons windows.
  */
 
-static wimp_icon_create buttons_icon_def;
+static struct buttons_block *buttons_list = NULL;
 
 /**
- * The location of the panel.
+ * The Wimp window definition for a button window.
  */
 
-static enum buttons_position buttons_location;
+static wimp_window *buttons_window_def;
+
 
 /**
  * The width of the current mode, in OS Units.
@@ -117,29 +184,6 @@ static int buttons_grid_square;
 
 static int buttons_grid_spacing;
 
-/**
- * The number of columns in the visible grid.
- */
-
-static int buttons_grid_columns;
-
-/**
- * The number of rows in the visible grid.
- */
-
-static int buttons_grid_rows;
-
-/**
- * The horizontal origin of the button grid (in OS units).
- */
-
-static int buttons_origin_x;
-
-/**
- * The vertical origin of the button grid (in OS units).
- */
-
-static int buttons_origin_y;
 
 /**
  * The width of one button slab (in OS units).
@@ -152,18 +196,6 @@ static int buttons_slab_width;
  */
 
 static int buttons_slab_height;
-
-/**
- * Indicate whether the window is currently "open" (TRUE) or "closed" (FALSE).
- */
-
-static osbool buttons_window_is_open = FALSE;
-
-/**
- * The handle of the buttons window.
- */
-
-static wimp_w buttons_window = NULL;
 
 /**
  * The handle of the main menu.
@@ -182,18 +214,6 @@ static struct icondb_button *buttons_menu_icon = NULL;
  */
 
 static os_coord buttons_menu_coordinate;
-
-/**
- * The lower (bottom) coordinate of the buttons window.
- */
-
-static int buttons_window_y0 = 0;
-
-/**
- * The upper (top) coordinate of the buttons window.
- */
-
-static int buttons_window_y1 = 0;
 
 /* Static Function Prototypes. */
 
@@ -225,34 +245,18 @@ static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *dat
 
 void buttons_initialise(void)
 {
-	wimp_window		*def = NULL;
-
-	buttons_location = BUTTONS_POSITION_RIGHT;
-
 	/* Initialise the menus used in the window. */
 
 	buttons_menu = templates_get_menu("MainMenu");
 	ihelp_add_menu(buttons_menu, "MainMenu");
 
-	/* Initialise the main Buttons window. */
+	/* Initialise the main Buttons window template. */
 
-	def = templates_load_window("Launch");
-	if (def == NULL)
+	buttons_window_def = templates_load_window("Launch");
+	if (buttons_window_def == NULL)
 		error_msgs_report_fatal("BadTemplate");
 
-	def->icon_count = 1;
-	buttons_window = wimp_create_window(def);
-	ihelp_add_window(buttons_window, "Launch", NULL);
-	event_add_window_open_event(buttons_window, buttons_open_window);
-	event_add_window_mouse_event(buttons_window, buttons_click_handler);
-	event_add_window_menu(buttons_window, buttons_menu);
-	event_add_window_menu_prepare(buttons_window, buttons_menu_prepare);
-	event_add_window_menu_selection(buttons_window, buttons_menu_selection);
-
-	buttons_icon_def.icon = def->icons[1];
-	buttons_icon_def.w = buttons_window;
-
-	free(def);
+	buttons_window_def->icon_count = 1;
 
 	/* Watch out for Message_ModeChange. */
 
@@ -280,6 +284,38 @@ void buttons_terminate(void)
 {
 	icondb_terminate();
 	edit_terminate();
+}
+
+
+void buttons_create_instance(void)
+{
+	struct buttons_block *new;
+
+	new = malloc(sizeof(struct buttons_block));
+	if (new == NULL)
+		return;
+
+	new->buttons_location = BUTTONS_POSITION_RIGHT;
+	new->buttons_grid_columns = 0;
+	new->buttons_grid_rows = 0;
+	new->buttons_origin_x = 0;
+	new->buttons_origin_y = 0;
+	new->buttons_window_is_open = FALSE;
+	new->buttons_window_y0 = 0;
+	new->buttons_window_y1 = 0;
+	
+	new->buttons_window = wimp_create_window(buttons_window_def);
+	ihelp_add_window(new->buttons_window, "Launch", NULL);
+	event_add_window_open_event(new->buttons_window, buttons_open_window);
+	event_add_window_mouse_event(new->buttons_window, buttons_click_handler);
+	event_add_window_menu(new->buttons_window, buttons_menu);
+	event_add_window_menu_prepare(new->buttons_window, buttons_menu_prepare);
+	event_add_window_menu_selection(new->buttons_window, buttons_menu_selection);
+
+	/* Link the window in to the data structure. */
+
+	new->next = buttons_list;
+	buttons_list = new;
 }
 
 
