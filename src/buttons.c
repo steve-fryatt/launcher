@@ -197,24 +197,26 @@ static int buttons_window_y1 = 0;
 
 /* Static Function Prototypes. */
 
-static void		buttons_click_handler(wimp_pointer *pointer);
-static void		buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
-static void		buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
-static osbool		buttons_message_mode_change(wimp_message *message);
+static void buttons_click_handler(wimp_pointer *pointer);
+static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
+static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static osbool buttons_message_mode_change(wimp_message *message);
 
-static void		buttons_toggle_window(void);
-static void		buttons_reopen_window(void);
-static void		buttons_open_window(wimp_open *open);
-static void		buttons_update_window_position(void);
+static void buttons_update_mode_details(void);
 
-static void		buttons_update_grid_info(void);
+static void buttons_toggle_window(void);
+static void buttons_reopen_window(void);
+static void buttons_open_window(wimp_open *open);
+static void buttons_update_window_position(void);
 
-static void		buttons_create_icon(struct icondb_button *button);
-static void		buttons_delete_icon(struct icondb_button *button);
-static void		buttons_press(wimp_i icon);
+static void buttons_update_grid_info(void);
 
-static void		buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid);
-static osbool		buttons_process_edit_dialogue(struct appdb_entry *entry, void *data);
+static void buttons_create_icon(struct icondb_button *button);
+static void buttons_delete_icon(struct icondb_button *button);
+static void buttons_press(wimp_i icon);
+
+static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid);
+static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *data);
 
 
 /**
@@ -262,11 +264,7 @@ void buttons_initialise(void)
 
 	/* Correctly size the window for the current mode. */
 
-	buttons_mode_width = general_mode_width();
-	buttons_mode_height = general_mode_height();
-
-	buttons_update_window_position();
-	buttons_update_grid_info();
+	buttons_update_mode_details();
 
 	/* Open the window. */
 
@@ -434,13 +432,22 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 
 static osbool buttons_message_mode_change(wimp_message *message)
 {
+	buttons_update_mode_details();
+	return TRUE;
+}
+
+
+/**
+ * Update the details of the current screen mode.
+ */
+
+static void buttons_update_mode_details(void)
+{
 	buttons_mode_width = general_mode_width();
 	buttons_mode_height = general_mode_height();
 
 	buttons_update_window_position();
 	buttons_reopen_window();
-
-	return TRUE;
 }
 
 
