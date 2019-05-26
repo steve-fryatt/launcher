@@ -286,6 +286,10 @@ void buttons_initialise(void)
 	/* Correctly size the window for the current mode. */
 
 	buttons_update_mode_details();
+	buttons_refresh_choices();
+
+	buttons_create_instance(1);
+	buttons_create_instance(2);
 }
 
 
@@ -309,7 +313,7 @@ void buttons_create_instance(unsigned id)
 		return;
 
 	new->panel_id = id;
-	new->buttons_location = BUTTONS_POSITION_RIGHT;
+	new->buttons_location = (id == 1) ? BUTTONS_POSITION_LEFT : BUTTONS_POSITION_RIGHT;
 	new->buttons_grid_columns = 0;
 	new->buttons_grid_rows = 0;
 	new->buttons_origin_x = 0;
@@ -334,6 +338,9 @@ void buttons_create_instance(unsigned id)
 
 	/* Open the window. */
 
+	buttons_update_grid_info(new);
+	buttons_rebuild_window(new);
+	buttons_update_window_position(new);
 	buttons_reopen_window(new);
 }
 
@@ -532,9 +539,6 @@ static void buttons_update_mode_details(void)
 		windat = windat->next;
 	}
 }
-
-
-
 
 
 /**
