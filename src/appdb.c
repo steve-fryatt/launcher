@@ -172,7 +172,9 @@ osbool appdb_load_file(char *leaf_name)
 		/* If there is a current button object, add the current piece of data to it. */
 
 		if (current != -1) {
-			if (strcmp(token, "XPos") == 0)
+			if (strcmp(token, "Panel") == 0)
+				appdb_list[current].panel = (unsigned) atoi(contents);
+			else if (strcmp(token, "XPos") == 0)
 				appdb_list[current].x = atoi(contents);
 			else if (strcmp(token, "YPos") == 0)
 				appdb_list[current].y = atoi(contents);
@@ -223,6 +225,7 @@ osbool appdb_save_file(char *leaf_name)
 
 	for (current = 0; current < appdb_apps; current++) {
 		fprintf(file, "\n[%s]\n", appdb_list[current].name);
+		fprintf(file, "Panel: %u\n", appdb_list[current].panel);
 		fprintf(file, "XPos: %d\n", appdb_list[current].x);
 		fprintf(file, "YPos: %d\n", appdb_list[current].y);
 		fprintf(file, "Sprite: %s\n", appdb_list[current].sprite);
@@ -425,6 +428,7 @@ static int appdb_new()
 		return -1;
 
 	appdb_list[appdb_apps].key = appdb_key++;
+	appdb_list[appdb_apps].panel = 0;
 	appdb_list[appdb_apps].x = 0;
 	appdb_list[appdb_apps].y = 0;
 	appdb_list[appdb_apps].local_copy = FALSE;
@@ -463,6 +467,7 @@ static void appdb_delete(int index)
 
 void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
 {
+	to->panel = from->panel;
 	to->x = from->x;
 	to->y = from->y;
 	to->local_copy = from->local_copy;

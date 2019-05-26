@@ -48,6 +48,12 @@ struct appdb_entry {
 	unsigned	key;
 
 	/**
+	 * The target panel key.
+	 */
+
+	unsigned	panel;
+
+	/**
 	 * Button name.
 	 */
 

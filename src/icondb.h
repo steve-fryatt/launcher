@@ -47,6 +47,12 @@ struct icondb_button {
 	unsigned	key;
 
 	/**
+	 * The Wimp's handle for the panel window.
+	 */
+
+	wimp_w		window;
+
+	/**
 	 * The Wimp's handle for the icon.
 	 */
 
@@ -111,11 +117,12 @@ struct icondb_button *icondb_get_list(void);
 /**
  * Given an icon handle, find the associated IconDB entry.
  *
- * \param iccon		The icon handle to search for.
+ * \param window	The window handle to search for.
+ * \param icon		The icon handle to search for.
  * \return		The associated IconDB entry, or NULL.
  */
 
-struct icondb_button *icondb_find_icon(wimp_i icon);
+struct icondb_button *icondb_find_icon(wimp_w window, wimp_i icon);
 
 #endif
 

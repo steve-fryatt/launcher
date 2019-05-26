@@ -288,7 +288,7 @@ void buttons_create_instance(void)
 {
 	struct buttons_block *new;
 
-	new = malloc(sizeof(struct buttons_block));
+	new = heap_alloc(sizeof(struct buttons_block));
 	if (new == NULL)
 		return;
 
@@ -404,7 +404,7 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 	if (pointer->i == wimp_ICON_WINDOW || pointer->i == BUTTONS_ICON_SIDEBAR)
 		buttons_menu_icon = NULL;
 	else
-		buttons_menu_icon = icondb_find_icon(pointer->i);
+		buttons_menu_icon = icondb_find_icon(pointer->w, pointer->i);
 
 	menus_shade_entry(buttons_menu, BUTTONS_MENU_BUTTON, (buttons_menu_icon == NULL) ? TRUE : FALSE);
 	menus_shade_entry(buttons_menu, BUTTONS_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
@@ -800,7 +800,7 @@ void buttons_create_from_db(void)
 			new = icondb_create_icon(key);
 
 			if (new != NULL) {
-				new->key = key;
+				new->key = key; // TODO -- Why?
 				buttons_create_icon(new);
 			}
 		}
