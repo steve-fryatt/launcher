@@ -85,6 +85,12 @@
 
 struct buttons_block {
 	/**
+	 * The panel ID, as used in the configuration.
+	 */
+
+	unsigned panel_id;
+
+	/**
 	 * The location of the panel.
 	 */
 
@@ -158,6 +164,12 @@ static struct buttons_block *buttons_list = NULL;
  */
 
 static wimp_window *buttons_window_def;
+
+/**
+ * The Wimp icon definition for a button icon.
+ */
+
+static wimp_icon_create buttons_icon_def;
 
 
 /**
@@ -234,10 +246,12 @@ static void buttons_rebuild_window(struct buttons_block *windat);
 
 static void buttons_create_icon(struct buttons_block *windat, struct icondb_button *button);
 static void buttons_delete_icon(struct buttons_block *windat, struct icondb_button *button);
-static void buttons_press(wimp_i icon);
+static void buttons_press(struct buttons_block *windat, wimp_i icon);
 
 static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid);
 static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *data);
+
+static struct buttons_block *buttons_find_id(unsigned id);
 
 
 /**
@@ -258,6 +272,8 @@ void buttons_initialise(void)
 		error_msgs_report_fatal("BadTemplate");
 
 	buttons_window_def->icon_count = 1;
+
+	buttons_icon_def.icon = buttons_window_def->icons[1];
 
 	/* Watch out for Message_ModeChange. */
 
@@ -284,7 +300,7 @@ void buttons_terminate(void)
 }
 
 
-void buttons_create_instance(void)
+void buttons_create_instance(unsigned id)
 {
 	struct buttons_block *new;
 
@@ -292,6 +308,7 @@ void buttons_create_instance(void)
 	if (new == NULL)
 		return;
 
+	new->panel_id = id;
 	new->buttons_location = BUTTONS_POSITION_RIGHT;
 	new->buttons_grid_columns = 0;
 	new->buttons_grid_rows = 0;
@@ -370,7 +387,7 @@ static void buttons_click_handler(wimp_pointer *pointer)
 		if (pointer->i == BUTTONS_ICON_SIDEBAR) {
 			buttons_toggle_window(windat);
 		} else {
-			buttons_press(pointer->i);
+			buttons_press(windat, pointer->i);
 
 			if (pointer->buttons == wimp_CLICK_SELECT)
 				buttons_toggle_window(windat);
@@ -792,11 +809,13 @@ void buttons_create_from_db(void)
 {
 	unsigned		key = APPDB_NULL_KEY;
 	struct icondb_button	*new;
+	struct buttons_block	*windat;
 
 	do {
 		key = appdb_get_next_key(key);
 
 		if (key != APPDB_NULL_KEY) {
+			windat = buttons_find_id(
 			new = icondb_create_icon(key);
 
 			if (new != NULL) {
@@ -855,14 +874,17 @@ static void buttons_create_icon(struct buttons_block *windat, struct icondb_butt
 	if (entry == NULL)
 		return;
 
-	buttons_icon_def.icon.extent.x1 = buttons_origin_x - entry->x * (buttons_grid_square + buttons_grid_spacing);
+	buttons_icon_def.w = windat->buttons_window;
+
+	buttons_icon_def.icon.extent.x1 = windat->buttons_origin_x - entry->x * (buttons_grid_square + buttons_grid_spacing);
 	buttons_icon_def.icon.extent.x0 = buttons_icon_def.icon.extent.x1 - buttons_slab_width;
-	buttons_icon_def.icon.extent.y1 = buttons_origin_y - entry->y * (buttons_grid_square + buttons_grid_spacing);
+	buttons_icon_def.icon.extent.y1 = windat->buttons_origin_y - entry->y * (buttons_grid_square + buttons_grid_spacing);
 	buttons_icon_def.icon.extent.y0 = buttons_icon_def.icon.extent.y1 - buttons_slab_height;
 
 	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
 	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
+	button->window = windat->buttons_window;
 	button->icon = wimp_create_icon(&buttons_icon_def);
 
 	windows_redraw(windat->buttons_window);
@@ -886,7 +908,7 @@ static void buttons_delete_icon(struct buttons_block *windat, struct icondb_butt
 	/* Delete the button's icon. */
 
 	if (button->icon != -1) {
-		error = xwimp_delete_icon(windat->button_window, button->icon);
+		error = xwimp_delete_icon(windat->buttons_window, button->icon);
 		if (error != NULL)
 			error_report_program(error);
 		button->icon = -1;
@@ -904,10 +926,11 @@ static void buttons_delete_icon(struct buttons_block *windat, struct icondb_butt
 /**
  * Press a button in the window.
  *
+ * \param *windat		The window containing the icon.
  * \param icon			The handle of the icon being pressed.
  */
 
-static void buttons_press(wimp_i icon)
+static void buttons_press(struct buttons_block *windat, wimp_i icon)
 {
 	struct appdb_entry	entry;
 	char			*buffer;
@@ -915,8 +938,10 @@ static void buttons_press(wimp_i icon)
 	os_error		*error;
 	struct icondb_button	*button = NULL;
 
+	if (windat == NULL)
+		return;
 
-	button = icondb_find_icon(icon);
+	button = icondb_find_icon(windat->buttons_window, icon);
 
 	if (button == NULL)
 		return;
@@ -957,6 +982,7 @@ static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_butt
 
 	/* Initialise deafults if button data can't be found. */
 
+	entry.panel = 0;
 	entry.x = 0;
 	entry.y = 0;
 	entry.local_copy = FALSE;
@@ -988,10 +1014,20 @@ static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_butt
 static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *data)
 {
 	struct icondb_button *button = data;
+	struct buttons_block *windat = NULL;
+
+	if (entry == NULL)
+		return FALSE;
+
+	windat = buttons_find_id(entry->panel);
+	if (windat == NULL) {
+		error_msgs_report_error("BadPanel");
+		return FALSE;
+	}
 
 	/* Validate the button location. */
 
-	if (entry->x < 0 || entry->y < 0 || entry->x >= buttons_grid_columns || entry->y >= buttons_grid_rows) {
+	if (entry->x < 0 || entry->y < 0 || entry->x >= windat->buttons_grid_columns || entry->y >= windat->buttons_grid_rows) {
 		error_msgs_report_info("CoordRange");
 		return FALSE;
 	}
@@ -1018,8 +1054,26 @@ static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *dat
 	entry->key = button->key;
 	appdb_set_button_info(entry);
 
-	buttons_create_icon(button);
+	buttons_create_icon(windat, button);
 
 	return TRUE;
+}
+
+
+/**
+ * Given a panel id number, return the associated panel data block.
+ *
+ * \param id		The Panel Id to locate.
+ * \return		Pointer to the associated block, or NULL.
+ */
+
+static struct buttons_block *buttons_find_id(unsigned id)
+{
+	struct buttons_block *windat = buttons_list;
+
+	while (windat != NULL && windat->panel_id != id)
+		windat = windat->next;
+
+	return windat;
 }
 

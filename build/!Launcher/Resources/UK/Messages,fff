@@ -40,6 +40,8 @@ CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
 BadTemplate:Window template '%0' not found.
 
+BadPanel:Panel ID does not match database.
+
 Help.Launch:\TLauncher \w.|M\Slaunch applications and files.
 Help.Launch.Siebar:\TLauncher \w.|M\Sexpand or contract the display.
 Help.Launch.Button:\Sluanch this file or aplication.
