@@ -29,6 +29,7 @@
 #define LAUNCHER_APPDB
 
 #define APPDB_NULL_KEY 0xffffffffu
+#define APPDB_NULL_PANEL 0xffffffffu
 
 #define APPDB_NAME_LENGTH 64
 #define APPDB_SPRITE_LENGTH 20
@@ -161,6 +162,16 @@ void appdb_delete_key(unsigned key);
  */
 
 unsigned appdb_get_next_key(unsigned key);
+
+
+/**
+ * Given a database key, return the associated button panel ID.
+ *
+ * \param key		The database key to query.
+ * \return		The associated panel ID, or APPDB_NULL_PANEL.
+ */
+
+unsigned appdb_get_panel(unsigned key);
 
 
 /**

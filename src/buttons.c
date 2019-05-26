@@ -807,7 +807,7 @@ static void buttons_update_grid_info(struct buttons_block *windat)
 
 void buttons_create_from_db(void)
 {
-	unsigned		key = APPDB_NULL_KEY;
+	unsigned		key = APPDB_NULL_KEY, panel = APPDB_NULL_PANEL;
 	struct icondb_button	*new;
 	struct buttons_block	*windat;
 
@@ -815,13 +815,18 @@ void buttons_create_from_db(void)
 		key = appdb_get_next_key(key);
 
 		if (key != APPDB_NULL_KEY) {
-			windat = buttons_find_id(
+			panel = appdb_get_panel(panel);
+			if (panel == APPDB_NULL_PANEL)
+				continue;
+
+			windat = buttons_find_id(panel);
+			if (windat == NULL)
+				continue;
+
 			new = icondb_create_icon(key);
 
-			if (new != NULL) {
-				new->key = key; // TODO -- Why?
-				buttons_create_icon(new);
-			}
+			if (new != NULL)
+				buttons_create_icon(windat, new);
 		}
 	} while (key != APPDB_NULL_KEY);
 }

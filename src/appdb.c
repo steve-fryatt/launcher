@@ -322,6 +322,26 @@ unsigned appdb_get_next_key(unsigned key)
 
 
 /**
+ * Given a database key, return the associated button panel ID.
+ *
+ * \param key		The database key to query.
+ * \return		The associated panel ID, or APPDB_NULL_PANEL.
+ */
+
+unsigned appdb_get_panel(unsigned key)
+{
+	int index;
+
+	index = appdb_find(key);
+
+	if (index == NULL)
+		return APPDB_NULL_PANEL;
+
+	return appdb_list[index].panel;
+}
+
+
+/**
  * Given a key, return details of the button associated with the application.
  * If a structure is provided, the data is copied into it; otherwise, a pointer
  * to a structure to the flex heap is returned which will remain valid only
@@ -428,7 +448,7 @@ static int appdb_new()
 		return -1;
 
 	appdb_list[appdb_apps].key = appdb_key++;
-	appdb_list[appdb_apps].panel = 0;
+	appdb_list[appdb_apps].panel = APPDB_NULL_PANEL;
 	appdb_list[appdb_apps].x = 0;
 	appdb_list[appdb_apps].y = 0;
 	appdb_list[appdb_apps].local_copy = FALSE;
