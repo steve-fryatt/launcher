@@ -819,7 +819,7 @@ void buttons_create_from_db(void)
 		key = appdb_get_next_key(key);
 
 		if (key != APPDB_NULL_KEY) {
-			panel = appdb_get_panel(panel);
+			panel = appdb_get_panel(key);
 			if (panel == APPDB_NULL_PANEL)
 				continue;
 
