@@ -321,7 +321,7 @@ void buttons_create_instance(unsigned id)
 	new->buttons_window_is_open = FALSE;
 	new->buttons_window_y0 = 0;
 	new->buttons_window_y1 = 0;
-	
+
 	new->buttons_window = wimp_create_window(buttons_window_def);
 	ihelp_add_window(new->buttons_window, "Launch", NULL);
 	event_add_window_user_data(new->buttons_window, new);
