@@ -57,6 +57,7 @@
 #include "appdb.h"
 #include "buttons.h"
 #include "choices.h"
+#include "filing.h"
 #include "proginfo.h"
 
 /**
@@ -219,7 +220,7 @@ static void main_initialise(void)
 
 	/* Load the button definitions. */
 
-	appdb_load_file("Buttons");
+	filing_load("Buttons");
 	appdb_boot_all();
 	buttons_create_from_db();
 

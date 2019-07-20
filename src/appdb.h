@@ -35,6 +35,9 @@
 #define APPDB_SPRITE_LENGTH 20
 #define APPDB_COMMAND_LENGTH 1024
 
+#include <stdio.h>
+#include "filing.h"
+
 
 /**
  * Application data structure -- Implementation.
@@ -109,23 +112,35 @@ void appdb_terminate(void);
 
 
 /**
- * Load the contents of a button file into the buttons database.
+ * Load the contents of an old format button file into the buttons
+ * database.
  *
- * \param *leaf_name		The file leafname to load.
- * \return			TRUE on success; else FALSE.
+ * \param *leaf_name	The file leafname to load.
+ * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_load_file(char *leaf_name);
+osbool appdb_load_old_file(struct filing_block *in);
+
+
+/**
+ * Load the contents of a new format button file into the buttons
+ * database.
+ *
+ * \param *leaf_name	The file leafname to load.
+ * \return		TRUE on success; else FALSE.
+ */
+
+osbool appdb_load_new_file(struct filing_block *in);
 
 
 /**
  * Save the contents of the buttons database into a buttons file.
  *
- * \param *leaf_name		The file leafname to save to.
- * \return			TRUE on success; else FALSE.
+ * \param *file		The file handle to save to.
+ * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_save_file(char *leaf_name);
+osbool appdb_save_file(FILE *file);
 
 
 /**

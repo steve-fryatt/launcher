@@ -36,6 +36,12 @@ QDeleteB:Delete,Cancel
 
 BootFail:Error booting %0: '%1'.
 
+UnknownFileData:The bar or button definitions contained tokens which this version of Launcher did not understand. These have been discarded, and saving the settings will cause that information to be lost.
+UnknownFileFormat:The bar or button definitions are in a format newer than that understood by this version of Launcher. Try loading it into a newer version of the application.
+CorruptFile:The file contents appear to be corrupt, and it can not be loaded.
+NoMemLoadFile:There was not enough memory to load the bar or button definitions.
+BadMemory:There was an error with the memory block sizes.
+
 CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
 BadTemplate:Window template '%0' not found.

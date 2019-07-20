@@ -57,17 +57,13 @@
 
 #include "appdb.h"
 
+#include "filing.h"
+
 /**
  * The number of new blocks to allocate when more space is required.
  */
 
 #define APPDB_ALLOC_CHUNK 10
-
-/**
- * The maximum length of a settings filename.
- */
-
-#define APPDB_MAX_FILENAME_LENGTH 1024
 
 /**
  * The length of the *Filer_Boot command string.
@@ -131,97 +127,81 @@ void appdb_terminate(void)
 
 
 /**
- * Load the contents of a button file into the buttons database.
+ * Load the contents of an old format button file into the buttons
+ * database.
  *
  * \param *leaf_name	The file leafname to load.
  * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_load_file(char *leaf_name)
+osbool appdb_load_old_file(struct filing_block *in)
 {
-	enum config_read_status	result;
-	int			current = -1;
-	char			token[1024], contents[1024], section[1024], filename[APPDB_MAX_FILENAME_LENGTH];
-	FILE			*file;
+	int current = -1;
 
-	/* Find a buttons file somewhere in the usual config locations. */
+	debug_printf("Loading an old file...");
 
-	config_find_load_file(filename, APPDB_MAX_FILENAME_LENGTH, leaf_name);
-
-	if (*filename == '\0')
-		return FALSE;
-
-	/* Open the file and work through it using the config file handling library. */
-
-	file = fopen(filename, "r");
-
-	if (file == NULL)
-		return FALSE;
-
-	while ((result = config_read_token_pair(file, token, contents, section)) != sf_CONFIG_READ_EOF) {
-
-		/* A new section of the file, so create, initialise and link in a new button object. */
-
-		if (result == sf_CONFIG_READ_NEW_SECTION) {
-			current = appdb_new();
-
-			if (current != -1)
-				strncpy(appdb_list[current].name, section, APPDB_NAME_LENGTH);
-		}
-
-		/* If there is a current button object, add the current piece of data to it. */
+	while (filing_get_next_section(in)) {
+		current = appdb_new();
 
 		if (current != -1) {
-			if (strcmp(token, "Panel") == 0)
-				appdb_list[current].panel = (unsigned) atoi(contents);
-			else if (strcmp(token, "XPos") == 0)
-				appdb_list[current].x = atoi(contents);
-			else if (strcmp(token, "YPos") == 0)
-				appdb_list[current].y = atoi(contents);
-			else if (strcmp(token, "Sprite") == 0)
-				strncpy(appdb_list[current].sprite, contents, APPDB_SPRITE_LENGTH);
-			else if (strcmp(token, "RunPath") == 0)
-				strncpy(appdb_list[current].command, contents, APPDB_COMMAND_LENGTH);
-			else if (strcmp(token, "Boot") == 0)
-				appdb_list[current].filer_boot = config_read_opt_string(contents);
-		}
-	}
+			filing_get_section_name(in, appdb_list[current].name, APPDB_NAME_LENGTH);
 
-	fclose(file);
+			debug_printf("Loading section '%s'", appdb_list[current].name);
+		}
+
+		do {
+			if (current != -1) {
+				if (filing_test_token(in, "Panel"))
+					appdb_list[current].panel = filing_get_unsigned_value(in);
+				else if (filing_test_token(in, "XPos"))
+					appdb_list[current].x = filing_get_int_value(in);
+				else if (filing_test_token(in, "YPos"))
+					appdb_list[current].y = filing_get_int_value(in);
+				else if (filing_test_token(in, "Sprite"))
+					filing_get_text_value(in, appdb_list[current].sprite, APPDB_SPRITE_LENGTH);
+				else if (filing_test_token(in, "RunPath"))
+					filing_get_text_value(in, appdb_list[current].command, APPDB_COMMAND_LENGTH);
+				else if (filing_test_token(in, "Boot"))
+					appdb_list[current].filer_boot = filing_get_opt_value(in);
+				else
+					filing_set_status(in, FILING_STATUS_UNEXPECTED);
+			}
+		} while (filing_get_next_token(in));
+	}
 
 	return TRUE;
 }
 
 
 /**
- * Save the contents of the buttons database into a buttons file.
+ * Load the contents of a new format button file into the buttons
+ * database.
  *
- * \param *leaf_name	The file leafname to save to.
+ * \param *leaf_name	The file leafname to load.
  * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_save_file(char *leaf_name)
+osbool appdb_load_new_file(struct filing_block *in)
 {
-	char	filename[APPDB_MAX_FILENAME_LENGTH];
+	return FALSE;
+}
+
+
+/**
+ * Save the contents of the buttons database into a buttons file.
+ *
+ * \param *file		The file handle to save to.
+ * \return		TRUE on success; else FALSE.
+ */
+
+osbool appdb_save_file(FILE *file)
+{
 	int	current;
-	FILE	*file;
-
-
-	/* Find a buttons file to write somewhere in the usual config locations. */
-
-	config_find_save_file(filename, APPDB_MAX_FILENAME_LENGTH, leaf_name);
-
-	if (*filename == '\0')
-		return FALSE;
-
-	/* Open the file and work through it using the config file handling library. */
-
-	file = fopen(filename, "w");
 
 	if (file == NULL)
 		return FALSE;
 
-	fprintf(file, "# >Buttons\n#\n# Saved by Launcher.\n");
+	fprintf(file, "[Buttons]\n");
 
 	for (current = 0; current < appdb_apps; current++) {
 		fprintf(file, "\n[%s]\n", appdb_list[current].name);
@@ -232,8 +212,6 @@ osbool appdb_save_file(char *leaf_name)
 		fprintf(file, "RunPath: %s\n", appdb_list[current].command);
 		fprintf(file, "Boot: %s\n", config_return_opt_string(appdb_list[current].filer_boot));
 	}
-
-	fclose(file);
 
 	return TRUE;
 }
@@ -334,7 +312,7 @@ unsigned appdb_get_panel(unsigned key)
 
 	index = appdb_find(key);
 
-	if (index == NULL)
+	if (index == APPDB_NULL_PANEL)
 		return APPDB_NULL_PANEL;
 
 	return appdb_list[index].panel;
