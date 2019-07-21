@@ -35,6 +35,7 @@ OBJS =  appdb.o		\
 	filing.o	\
 	icondb.o	\
 	main.o		\
+	paneldb.o	\
 	proginfo.o
 
 include $(SFTOOLS_MAKE)/CApp

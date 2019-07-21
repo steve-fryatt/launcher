@@ -98,7 +98,7 @@ struct appdb_entry {
 
 
 /**
- * Initialise the buttons window.
+ * Initialise the application database.
  */
 
 void appdb_initialise(void);
@@ -115,18 +115,19 @@ void appdb_terminate(void);
  * Load the contents of an old format button file into the buttons
  * database.
  *
- * \param *leaf_name	The file leafname to load.
+ * \param *in		The filing operation to load from.
+ * \param panel		The panel to add the entries to.
  * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_load_old_file(struct filing_block *in);
+osbool appdb_load_old_file(struct filing_block *in, unsigned panel);
 
 
 /**
  * Load the contents of a new format button file into the buttons
  * database.
  *
- * \param *leaf_name	The file leafname to load.
+ * \param *in		The filing operation to load from.
  * \return		TRUE on success; else FALSE.
  */
 
@@ -163,7 +164,7 @@ unsigned appdb_create_key(void);
 /**
  * Delete an entry from the database.
  *
- * \param key			The key of the enrty to delete.
+ * \param key			The key of the entry to delete.
  */
 
 void appdb_delete_key(unsigned key);
@@ -192,11 +193,11 @@ unsigned appdb_get_panel(unsigned key);
 /**
  * Given a key, return details of the button associated with the application.
  * If a structure is provided, the data is copied into it; otherwise, a pointer
- * to a structure to the flex heap is returned which will remain valid only
+ * to a structure in the flex heap is returned which will remain valid only
  * the heap contents are changed.
  * 
  *
- * \param key			The key of the netry to be returned.
+ * \param key			The key of the entry to be returned.
  * \param *data			Pointer to structure to return the data, or NULL.
  * \return			Pointer to the returned data, or NULL on failure.
  */

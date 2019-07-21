@@ -58,6 +58,7 @@
 #include "buttons.h"
 #include "choices.h"
 #include "filing.h"
+#include "paneldb.h"
 #include "proginfo.h"
 
 /**
@@ -108,6 +109,7 @@ int main(void)
 	msgs_terminate();
 	buttons_terminate();
 	appdb_terminate();
+	paneldb_terminate();
 
 	wimp_close_down(main_task_handle);
 
@@ -212,6 +214,7 @@ static void main_initialise(void)
 	ihelp_initialise();
 	url_initialise();
 	proginfo_initialise();
+	paneldb_initialise();
 	appdb_initialise();
 	buttons_initialise();
 	choices_initialise();

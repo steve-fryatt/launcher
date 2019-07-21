@@ -60,6 +60,7 @@
 #include "filing.h"
 
 #include "appdb.h"
+#include "paneldb.h"
 
 /**
  * The maximum length of a filename.
@@ -110,8 +111,9 @@ struct filing_block {
 
 osbool filing_load(char *leaf_name)
 {
-	char filename[FILING_MAX_FILENAME_LENGTH];
+	char			filename[FILING_MAX_FILENAME_LENGTH];
 	struct filing_block	in;
+	unsigned		default_panel_key = PANELDB_NULL_KEY;
 
 	/* Find a buttons file somewhere in the usual config locations. */
 
@@ -136,13 +138,14 @@ osbool filing_load(char *leaf_name)
 	in.result = sf_CONFIG_READ_EOF;
 
 	do {
-		if ((string_nocase_strcmp(in.section, "Bars") == 0) && (in.format >= FILING_NEW_DATA_FORMAT))
-			;//		budget_read_file(file, &in);
-		else if ((string_nocase_strcmp(in.section, "Buttons") == 0) && (in.format >= FILING_NEW_DATA_FORMAT))
+		if ((string_nocase_strcmp(in.section, "Bars") == 0) && (in.format >= FILING_NEW_DATA_FORMAT)) {
+			paneldb_load_new_file(&in);
+		} else if ((string_nocase_strcmp(in.section, "Buttons") == 0) && (in.format >= FILING_NEW_DATA_FORMAT)) {
 			appdb_load_new_file(&in);
-		else if ((*in.section != '\0') && (in.format < FILING_NEW_DATA_FORMAT))
-			appdb_load_old_file(&in);
-		else {
+		} else if ((*in.section != '\0') && (in.format < FILING_NEW_DATA_FORMAT)) {
+			default_panel_key = paneldb_create_old_panel();
+			appdb_load_old_file(&in, default_panel_key);
+		} else {
 			do {
 				if (*in.section != '\0')
 					in.status = FILING_STATUS_UNEXPECTED;
