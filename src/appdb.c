@@ -146,15 +146,14 @@ osbool appdb_load_old_file(struct filing_block *in, unsigned panel)
 
 		if (current != -1) {
 			filing_get_section_name(in, appdb_list[current].name, APPDB_NAME_LENGTH);
+			appdb_list[current].panel = panel;
 
 			debug_printf("Loading section '%s'", appdb_list[current].name);
 		}
 
 		do {
 			if (current != -1) {
-				if (filing_test_token(in, "Panel"))
-					appdb_list[current].panel = filing_get_unsigned_value(in);
-				else if (filing_test_token(in, "XPos"))
+				if (filing_test_token(in, "XPos"))
 					appdb_list[current].x = filing_get_int_value(in);
 				else if (filing_test_token(in, "YPos"))
 					appdb_list[current].y = filing_get_int_value(in);
@@ -184,7 +183,40 @@ osbool appdb_load_old_file(struct filing_block *in, unsigned panel)
 
 osbool appdb_load_new_file(struct filing_block *in)
 {
-	return FALSE;
+	int current = -1;
+
+	debug_printf("Loading a new file...");
+/*
+	while (filing_get_next_section(in)) {
+		current = appdb_new();
+
+		if (current != -1) {
+			filing_get_section_name(in, appdb_list[current].name, APPDB_NAME_LENGTH);
+
+			debug_printf("Loading section '%s'", appdb_list[current].name);
+		}
+
+		do {
+			if (current != -1) {
+				if (filing_test_token(in, "Panel"))
+					appdb_list[current].panel = filing_get_unsigned_value(in);
+				else if (filing_test_token(in, "XPos"))
+					appdb_list[current].x = filing_get_int_value(in);
+				else if (filing_test_token(in, "YPos"))
+					appdb_list[current].y = filing_get_int_value(in);
+				else if (filing_test_token(in, "Sprite"))
+					filing_get_text_value(in, appdb_list[current].sprite, APPDB_SPRITE_LENGTH);
+				else if (filing_test_token(in, "RunPath"))
+					filing_get_text_value(in, appdb_list[current].command, APPDB_COMMAND_LENGTH);
+				else if (filing_test_token(in, "Boot"))
+					appdb_list[current].filer_boot = filing_get_opt_value(in);
+				else
+					filing_set_status(in, FILING_STATUS_UNEXPECTED);
+			}
+		} while (filing_get_next_token(in));
+	}
+*/
+	return TRUE;
 }
 
 
@@ -205,7 +237,7 @@ osbool appdb_save_file(FILE *file)
 	fprintf(file, "[Buttons]\n");
 
 	for (current = 0; current < appdb_apps; current++) {
-		fprintf(file, "\n[%s]\n", appdb_list[current].name);
+		fprintf(file, "\n@:%s\n", appdb_list[current].name);
 		fprintf(file, "Panel: %u\n", appdb_list[current].panel);
 		fprintf(file, "XPos: %d\n", appdb_list[current].x);
 		fprintf(file, "YPos: %d\n", appdb_list[current].y);

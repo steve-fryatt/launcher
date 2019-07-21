@@ -54,8 +54,10 @@
 #include "appdb.h"
 #include "choices.h"
 #include "edit.h"
+#include "filing.h"
 #include "icondb.h"
 #include "main.h"
+#include "paneldb.h"
 
 
 /* Button Window */
@@ -78,6 +80,19 @@
 #define BUTTONS_MENU_BUTTON_EDIT 0
 #define BUTTONS_MENU_BUTTON_MOVE 1
 #define BUTTONS_MENU_BUTTON_DELETE 2
+
+/**
+ * The possible buttons window positions.
+ */
+
+enum buttons_position {
+	BUTTONS_POSITION_LEFT = 1,
+	BUTTONS_POSITION_RIGHT = 2,
+	BUTTONS_POSITION_VERTICAL = 3,
+	BUTTONS_POSITION_TOP = 4,
+	BUTTONS_POSITION_BOTTOM = 8,
+	BUTTONS_POSITION_HORIZONTAL = 12
+};
 
 /**
  * The buttion instance data block.
@@ -229,6 +244,8 @@ static os_coord buttons_menu_coordinate;
 
 /* Static Function Prototypes. */
 
+static void buttons_create_instance(unsigned key);
+
 static void buttons_click_handler(wimp_pointer *pointer);
 static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
@@ -304,16 +321,19 @@ void buttons_terminate(void)
 }
 
 
-void buttons_create_instance(unsigned id)
+static void buttons_create_instance(unsigned key)
 {
+	struct paneldb_entry panel;
 	struct buttons_block *new;
+
+	if (paneldb_get_panel_info(key, &panel) == NULL)
+		return;
 
 	new = heap_alloc(sizeof(struct buttons_block));
 	if (new == NULL)
 		return;
 
-	new->panel_id = id;
-	new->buttons_location = (id == 1) ? BUTTONS_POSITION_LEFT : BUTTONS_POSITION_RIGHT;
+	new->panel_id = key;
 	new->buttons_grid_columns = 0;
 	new->buttons_grid_rows = 0;
 	new->buttons_origin_x = 0;
@@ -321,6 +341,24 @@ void buttons_create_instance(unsigned id)
 	new->buttons_window_is_open = FALSE;
 	new->buttons_window_y0 = 0;
 	new->buttons_window_y1 = 0;
+
+	switch (panel.position) {
+	case PANELDB_POSITION_LEFT:
+		new->buttons_location = BUTTONS_POSITION_LEFT;
+		break;
+	case PANELDB_POSITION_RIGHT:
+		new->buttons_location = BUTTONS_POSITION_RIGHT;
+		break;
+	case PANELDB_POSITION_TOP:
+		new->buttons_location = BUTTONS_POSITION_TOP;
+		break;
+	case PANELDB_POSITION_BOTTOM:
+		new->buttons_location = BUTTONS_POSITION_BOTTOM;
+		break;
+	default:
+		new->buttons_location = BUTTONS_POSITION_LEFT;
+		break;
+	}
 
 	new->buttons_window = wimp_create_window(buttons_window_def);
 	ihelp_add_window(new->buttons_window, "Launch", NULL);
@@ -493,7 +531,7 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 		break;
 
 	case BUTTONS_MENU_SAVE_BUTTONS:
-		appdb_save_file("Buttons");
+		filing_save("Buttons");
 		break;
 
 	case BUTTONS_MENU_CHOICES:
@@ -811,9 +849,24 @@ static void buttons_update_grid_info(struct buttons_block *windat)
 
 void buttons_create_from_db(void)
 {
-	unsigned		key = APPDB_NULL_KEY, panel = APPDB_NULL_PANEL;
+	unsigned		key, panel;
 	struct icondb_button	*new;
 	struct buttons_block	*windat;
+
+	/* Create the panels defined in the database. */
+
+	key = PANELDB_NULL_KEY;
+
+	do {
+		key = paneldb_get_next_key(key);
+
+		if (key != PANELDB_NULL_KEY)
+			buttons_create_instance(key);
+	} while (key != PANELDB_NULL_KEY);
+
+	/* Add the buttons defined in the database. */
+
+	key = APPDB_NULL_KEY;
 
 	do {
 		key = appdb_get_next_key(key);

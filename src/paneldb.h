@@ -35,6 +35,19 @@
 #include <stdio.h>
 #include "filing.h"
 
+/**
+ * The possible panel positions.
+ *
+ * This enum must match the names in the paneldb.c file.
+ */
+
+enum paneldb_position {
+	PANELDB_POSITION_LEFT,
+	PANELDB_POSITION_RIGHT,
+	PANELDB_POSITION_TOP,
+	PANELDB_POSITION_BOTTOM,
+	PANELDB_POSITION_MAX
+};
 
 /**
  * Panel data structure -- Implementation.
@@ -45,14 +58,17 @@ struct paneldb_entry {
 	/**
 	 * Primary key to index database entries.
 	 */
-
-	unsigned	key;
+	unsigned		key;
 
 	/**
 	 * Panel name.
 	 */
+	char			name[PANELDB_NAME_LENGTH];
 
-	char		name[PANELDB_NAME_LENGTH];
+	/**
+	 * Panel position.
+	 */
+	enum paneldb_position	position;
 };
 
 

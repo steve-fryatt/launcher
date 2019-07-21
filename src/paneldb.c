@@ -68,6 +68,14 @@
 /* Global Variables. */
 
 /**
+ * The names of the possible panel positions.
+ *
+ * This must match the enum defined in paneldb.h.
+ */
+
+static char *paneldb_position_names[] = { "Left", "Right", "Top", "Bottom" };
+
+/**
  * The flex array of panel data.
  */
 
@@ -77,7 +85,7 @@ static struct paneldb_entry		*paneldb_list = NULL;
  * The number of panels stored in the database.
  */
 
-static int				paneldb_apps = 0;
+static int				paneldb_panels = 0;
 
 /**
  * The number of panels for which space is allocated.
@@ -137,6 +145,7 @@ unsigned paneldb_create_old_panel(void)
 	if (current == -1)
 		return PANELDB_NULL_KEY;
 
+	paneldb_list[current].position = PANELDB_POSITION_LEFT;
 	string_copy(paneldb_list[current].name, "Default", PANELDB_NAME_LENGTH);
 
 	return paneldb_list[current].key;
@@ -173,8 +182,8 @@ osbool paneldb_save_file(FILE *file)
 
 	fprintf(file, "[Panels]\n");
 
-	for (current = 0; current < paneldb_apps; current++) {
-		fprintf(file, "@:%s\n\n", paneldb_list[current].name);
+	for (current = 0; current < paneldb_panels; current++) {
+		fprintf(file, "\n@:%s\n", paneldb_list[current].name);
 	}
 
 	return TRUE;
@@ -230,12 +239,12 @@ unsigned paneldb_get_next_key(unsigned key)
 {
 	int index;
 
-	if (key == PANELDB_NULL_KEY && paneldb_apps > 0)
+	if (key == PANELDB_NULL_KEY && paneldb_panels > 0)
 		return paneldb_list[0].key;
 
 	index = paneldb_find(key);
 
-	return (index != -1 && index < (paneldb_apps - 1)) ? paneldb_list[index + 1].key : PANELDB_NULL_KEY;
+	return (index != -1 && index < (paneldb_panels - 1)) ? paneldb_list[index + 1].key : PANELDB_NULL_KEY;
 }
 
 
@@ -318,7 +327,7 @@ static int paneldb_find(unsigned key)
 	 * we pass the key we're looking for.
 	 */
 
-	index = (key >= paneldb_apps) ? paneldb_apps - 1 : key;
+	index = (key >= paneldb_panels) ? paneldb_panels - 1 : key;
 
 	while (index >= 0 && paneldb_list[index].key > key)
 		index--;
@@ -339,18 +348,19 @@ static int paneldb_find(unsigned key)
 
 static int paneldb_new()
 {
-	if (paneldb_apps >= paneldb_allocation && flex_extend((flex_ptr) &paneldb_list,
+	if (paneldb_panels >= paneldb_allocation && flex_extend((flex_ptr) &paneldb_list,
 			(paneldb_allocation + PANELDB_ALLOC_CHUNK) * sizeof(struct paneldb_entry)) == 1)
 		paneldb_allocation += PANELDB_ALLOC_CHUNK;
 
-	if (paneldb_apps >= paneldb_allocation)
+	if (paneldb_panels >= paneldb_allocation)
 		return -1;
 
-	paneldb_list[paneldb_apps].key = paneldb_key++;
+	paneldb_list[paneldb_panels].key = paneldb_key++;
+	paneldb_list[paneldb_panels].position = PANELDB_POSITION_LEFT;
 
-	*(paneldb_list[paneldb_apps].name) = '\0';
+	*(paneldb_list[paneldb_panels].name) = '\0';
 
-	return paneldb_apps++;
+	return paneldb_panels++;
 }
 
 
@@ -362,7 +372,7 @@ static int paneldb_new()
 
 static void paneldb_delete(int index)
 {
-	if (index < 0 || index >= paneldb_apps)
+	if (index < 0 || index >= paneldb_panels)
 		return;
 
 	flex_midextend((flex_ptr) &paneldb_list, (index + 1) * sizeof(struct paneldb_entry),
