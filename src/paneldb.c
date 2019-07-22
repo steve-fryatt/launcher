@@ -162,7 +162,28 @@ unsigned paneldb_create_old_panel(void)
 
 osbool paneldb_load_new_file(struct filing_block *in)
 {
-	return FALSE;
+	int current = -1;
+
+	debug_printf("Loading a new file...");
+
+	do {
+		if (filing_test_token(in, "@")) {
+			current = paneldb_new();
+
+			if (current == -1) {
+				 filing_set_status(in, FILING_STATUS_MEMORY);
+				 return FALSE;
+			}
+
+			filing_get_text_value(in, paneldb_list[current].name, PANELDB_NAME_LENGTH);
+			debug_printf("Loading section '%s'", paneldb_list[current].name);
+		} else if ((current != -1) && filing_test_token(in, "Position"))
+			; //appdb_list[current].panel = filing_get_unsigned_value(in);
+		else
+			filing_set_status(in, FILING_STATUS_UNEXPECTED);
+	} while (filing_get_next_token(in));
+
+	return TRUE;
 }
 
 
@@ -180,10 +201,10 @@ osbool paneldb_save_file(FILE *file)
 	if (file == NULL)
 		return FALSE;
 
-	fprintf(file, "[Panels]\n");
+	fprintf(file, "\n[Panels]");
 
 	for (current = 0; current < paneldb_panels; current++) {
-		fprintf(file, "\n@:%s\n", paneldb_list[current].name);
+		fprintf(file, "\n@: %s\n", paneldb_list[current].name);
 	}
 
 	return TRUE;
@@ -245,6 +266,32 @@ unsigned paneldb_get_next_key(unsigned key)
 	index = paneldb_find(key);
 
 	return (index != -1 && index < (paneldb_panels - 1)) ? paneldb_list[index + 1].key : PANELDB_NULL_KEY;
+}
+
+
+/**
+ * Given a key, return a pointer to the name of the panel associated with
+ * it. The data pointed to is in the flex heap, and so will only remain
+ * valid until the heap contents are changed.
+ *
+ * \param key		The key of the entry to be returned.
+ * \return		Pointer to the name, or "" on failure.
+ */
+
+char *paneldb_get_name(unsigned key)
+{
+	int index;
+
+	/* Locate the index, and return an empty string if it isn't found. */
+
+	index = paneldb_find(key);
+
+	if (index == -1)
+		return "";
+
+	/* Return a volatile pointer to the name in the flex heap. */
+
+	return paneldb_list[index].name;
 }
 
 

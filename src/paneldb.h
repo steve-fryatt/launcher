@@ -148,6 +148,18 @@ unsigned paneldb_get_next_key(unsigned key);
 
 
 /**
+ * Given a key, return a pointer to the name of the panel associated with
+ * it. The data pointed to is in the flex heap, and so will only remain
+ * valid until the heap contents are changed.
+ *
+ * \param key		The key of the entry to be returned.
+ * \return		Pointer to the name, or "" on failure.
+ */
+
+char *paneldb_get_name(unsigned key);
+
+
+/**
  * Given a key, return details of the panel associated with it. If a structure
  * is provided, the data is copied into it; otherwise, a pointer to a structure
  * in the flex heap is returned which will remain valid only the heap contents

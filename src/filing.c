@@ -236,8 +236,9 @@ osbool filing_save(char *leaf_name)
 
 	fprintf(file, "# >Buttons\n#\n# Saved by Launcher.\n");
 
-	fprintf(file, "Format: 2.00\n");
+	fprintf(file, "\nFormat: 2.00\n");
 
+	paneldb_save_file(file);
 	appdb_save_file(file);
 
 	fclose(file);
