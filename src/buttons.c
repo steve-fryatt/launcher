@@ -1108,8 +1108,10 @@ static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *dat
 	if (button == NULL)
 		button = icondb_create_icon(appdb_create_key());
 
-	if (button == NULL)
+	if (button == NULL) {
+		error_msgs_report_error("NoMemNewButton");
 		return FALSE;
+	}
 
 	/* Store the application in the database. */
 

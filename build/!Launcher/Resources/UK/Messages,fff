@@ -42,6 +42,8 @@ CorruptFile:The file contents appear to be corrupt, and it can not be loaded.
 NoMemLoadFile:There was not enough memory to load the bar or button definitions.
 BadMemory:There was an error with the memory block sizes.
 
+NoMemNewButton:There was not enough memory to create a new button.
+
 CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
 BadTemplate:Window template '%0' not found.
