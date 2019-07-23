@@ -129,6 +129,9 @@ osbool filing_load(char *leaf_name)
 
 	hourglass_on();
 
+	appdb_reset();
+	paneldb_reset();
+
 	*in.section = '\0';
 	*in.token = '\0';
 	*in.value = '\0';

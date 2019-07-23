@@ -58,6 +58,7 @@
 #include "appdb.h"
 
 #include "filing.h"
+#include "paneldb.h"
 
 /**
  * The number of new blocks to allocate when more space is required.
@@ -123,6 +124,16 @@ void appdb_terminate(void)
 {
 	if (appdb_list != NULL)
 		flex_free((flex_ptr) &appdb_list);
+}
+
+
+/**
+ * Reset the application database.
+ */
+
+void appdb_reset(void)
+{
+	appdb_apps = 0;
 }
 
 

@@ -129,6 +129,15 @@ void paneldb_terminate(void)
 
 
 /**
+ * Reset the panels database.
+ */
+
+void paneldb_reset(void)
+{
+	paneldb_panels = 0;
+}
+
+/**
  * Create a single, default panel to match the old single-panel version
  * of Launcher.
  *

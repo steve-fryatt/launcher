@@ -112,6 +112,13 @@ void appdb_terminate(void);
 
 
 /**
+ * Reset the application database.
+ */
+
+void appdb_reset(void);
+
+
+/**
  * Load the contents of an old format button file into the buttons
  * database.
  *
