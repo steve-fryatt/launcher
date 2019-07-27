@@ -102,7 +102,8 @@ static unsigned				paneldb_key = 0;
 /* Static Function Prototypes. */
 
 static int	paneldb_find(unsigned key);
-static int	paneldb_new();
+static int	paneldb_find_name(char *name);
+static int	paneldb_new(osbool allocate);
 static void	paneldb_delete(int index);
 
 /**
@@ -135,29 +136,30 @@ void paneldb_terminate(void)
 void paneldb_reset(void)
 {
 	paneldb_panels = 0;
+	paneldb_key = 0;
 }
 
 /**
  * Create a single, default panel to match the old single-panel version
  * of Launcher.
  *
- * \return		The panel key on success; else PANELDB_NULL_KEY.
+ * \return		The panel index on success; else -1.
  */
 
-unsigned paneldb_create_old_panel(void)
+int paneldb_create_old_panel(void)
 {
 	int current = -1;
 
 	debug_printf("Loading an old file...");
 
-	current = paneldb_new();
+	current = paneldb_new(TRUE);
 	if (current == -1)
-		return PANELDB_NULL_KEY;
+		return -1;
 
 	paneldb_list[current].position = PANELDB_POSITION_LEFT;
 	string_copy(paneldb_list[current].name, "Default", PANELDB_NAME_LENGTH);
 
-	return paneldb_list[current].key;
+	return current;
 }
 
 
@@ -177,7 +179,18 @@ osbool paneldb_load_new_file(struct filing_block *in)
 
 	do {
 		if (filing_test_token(in, "@")) {
-			current = paneldb_new();
+			current = paneldb_lookup_name(filing_get_text_value(in, NULL, 0));
+
+			if (current != -1) {
+				if (paneldb_list[current].key == PANELDB_NULL_KEY) {
+					paneldb_list[current].key = current;
+				} else {
+					filing_set_status(in, FILING_STATUS_CORRUPT);
+					return FALSE;
+				}
+			} else {
+				current = paneldb_new(TRUE);
+			}
 
 			if (current == -1) {
 				 filing_set_status(in, FILING_STATUS_MEMORY);
@@ -229,7 +242,7 @@ osbool paneldb_save_file(FILE *file)
 unsigned paneldb_create_key(void)
 {
 	unsigned	key = PANELDB_NULL_KEY;
-	int		index = paneldb_new();
+	int		index = paneldb_new(TRUE);
 
 	if (index != -1)
 		key = paneldb_list[index].key;
@@ -367,6 +380,59 @@ osbool paneldb_set_panel_info(struct paneldb_entry *data)
 
 
 /**
+ * Given a panel name, look it up in the database. If a match is found,
+ * return the index. Otherwise, create a new phantom entry with a
+ * key of PANELDB_NULL_KEY, fill in the name, and return that index.
+ *
+ * \param *name		The name to look up.
+ * \return		The index of the entry.
+ */
+
+int paneldb_lookup_name(char *name)
+{
+	int index;
+
+	/* Attempt to find the name. */
+
+	index = paneldb_find_name(name);
+
+	/* If the name already exists, return the index. */
+
+	if (index != -1) {
+		debug_printf("'%s' already exists: index=%d", name, index);
+		return index;
+	}
+
+	/* If not, create a new entry and copy the name across. */
+
+	index = paneldb_new(FALSE);
+
+	if (index != -1)
+		string_copy(paneldb_list[index].name, name, PANELDB_NAME_LENGTH);
+
+	debug_printf("'%s' created from new: index=%d", name, index);
+
+	return index;
+}
+
+
+/**
+ * Given an index, return the key associated with it.
+ *
+ * \param index		The index to look up.
+ * \return		The associated key, or PANELDB_NULL_KEY.
+ */
+
+unsigned paneldb_lookup_key(int index)
+{
+	if (index < 0 || index >= paneldb_panels)
+		return PANELDB_NULL_KEY;
+
+	return paneldb_list[index].key;
+}
+
+
+/**
  * Find the index of a panel based on its key.
  *
  * \param key		The key to locate.
@@ -396,13 +462,34 @@ static int paneldb_find(unsigned key)
 
 
 /**
+ * Find the index of a panel based on its name.
+ *
+ * \param *name		The name to locate.
+ * \return		The current index, or -1 if not found.
+ */
+
+static int paneldb_find_name(char *name)
+{
+	int index;
+
+	for (index = 0; index < paneldb_panels; index++) {
+		if (string_nocase_strcmp(name, paneldb_list[index].name) == 0)
+			return index;
+	}
+
+	return -1;
+}
+
+
+/**
  * Claim a block for a new panel, fill in the unique key and set
  * default values for the data.
  *
+ * \param allocate	TRUE to allocate a key; FALSE to set to PANELBD_NULL_KEY.
  * \return		The new block number, or -1 on failure.
  */
 
-static int paneldb_new()
+static int paneldb_new(osbool allocate)
 {
 	if (paneldb_panels >= paneldb_allocation && flex_extend((flex_ptr) &paneldb_list,
 			(paneldb_allocation + PANELDB_ALLOC_CHUNK) * sizeof(struct paneldb_entry)) == 1)
@@ -415,6 +502,19 @@ static int paneldb_new()
 	paneldb_list[paneldb_panels].position = PANELDB_POSITION_LEFT;
 
 	*(paneldb_list[paneldb_panels].name) = '\0';
+
+	/* If we're not allocating a key, blank the entry out. We still
+	 * claim it, so that the next key number advances. Note that
+	 * non-allocation only works if the database has had no deletions.
+	 */
+ 
+	if (!allocate) {
+		if (paneldb_list[paneldb_panels].key != paneldb_panels) {
+			debug_printf("Non-allocted key mis-match!");
+			return -1;
+		}
+		paneldb_list[paneldb_panels].key = PANELDB_NULL_KEY;
+	}
 
 	return paneldb_panels++;
 }

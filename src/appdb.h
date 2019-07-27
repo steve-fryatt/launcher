@@ -123,11 +123,11 @@ void appdb_reset(void);
  * database.
  *
  * \param *in		The filing operation to load from.
- * \param panel		The panel to add the entries to.
+ * \param panel		The index of the panel to add the entries to.
  * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_load_old_file(struct filing_block *in, unsigned panel);
+osbool appdb_load_old_file(struct filing_block *in, int panel);
 
 
 /**
@@ -139,6 +139,16 @@ osbool appdb_load_old_file(struct filing_block *in, unsigned panel);
  */
 
 osbool appdb_load_new_file(struct filing_block *in);
+
+
+/**
+ * Once panels and buttons are loaded, scan the buttons replacing the
+ * panel indexes with the associated panel keys.
+ *
+ * \return		TRUE if successful; FALSE if errors occurred.
+ */
+
+osbool appdb_complete_file_load(void);
 
 
 /**

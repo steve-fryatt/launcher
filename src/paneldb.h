@@ -99,10 +99,10 @@ void paneldb_reset(void);
  * Create a single, default panel to match the old single-panel version
  * of Launcher.
  *
- * \return		The panel key on success; else PANELDB_NULL_KEY.
+ * \return		The panel index on success; else -1.
  */
 
-unsigned paneldb_create_old_panel(void);
+int paneldb_create_old_panel(void);
 
 
 /**
@@ -190,6 +190,28 @@ struct paneldb_entry *paneldb_get_panel_info(unsigned key, struct paneldb_entry 
  */
 
 osbool paneldb_set_panel_info(struct paneldb_entry *data);
+
+
+/**
+ * Given a panel name, look it up in the database. If a match is found,
+ * return the index. Otherwise, create a new phantom entry with a
+ * key of PANELDB_NULL_KEY, fill in the name, and return that index.
+ *
+ * \param *name		The name to look up.
+ * \return		The index of the entry.
+ */
+
+int paneldb_lookup_name(char *name);
+
+
+/**
+ * Given an index, return the key associated with it.
+ *
+ * \param index		The index to look up.
+ * \return		The associated key, or PANELDB_NULL_KEY.
+ */
+
+unsigned paneldb_lookup_key(int index);
 
 
 /**
