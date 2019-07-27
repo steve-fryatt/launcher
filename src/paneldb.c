@@ -101,10 +101,12 @@ static unsigned				paneldb_key = 0;
 
 /* Static Function Prototypes. */
 
-static int	paneldb_find(unsigned key);
-static int	paneldb_find_name(char *name);
-static int	paneldb_new(osbool allocate);
-static void	paneldb_delete(int index);
+static int paneldb_find(unsigned key);
+static int paneldb_find_name(char *name);
+static char *paneldb_position_to_name(enum paneldb_position position);
+static enum paneldb_position paneldb_position_from_name(char *name);
+static int paneldb_new(osbool allocate);
+static void paneldb_delete(int index);
 
 /**
  * Initialise the panels database.
@@ -200,7 +202,7 @@ osbool paneldb_load_new_file(struct filing_block *in)
 			filing_get_text_value(in, paneldb_list[current].name, PANELDB_NAME_LENGTH);
 			debug_printf("Loading section '%s'", paneldb_list[current].name);
 		} else if ((current != -1) && filing_test_token(in, "Position"))
-			; //appdb_list[current].panel = filing_get_unsigned_value(in);
+			paneldb_list[current].position = paneldb_position_from_name(filing_get_text_value(in, NULL, 0));
 		else
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
@@ -227,6 +229,7 @@ osbool paneldb_save_file(FILE *file)
 
 	for (current = 0; current < paneldb_panels; current++) {
 		fprintf(file, "\n@: %s\n", paneldb_list[current].name);
+		fprintf(file, "Position: %s\n", paneldb_position_to_name(paneldb_list[current].position));
 	}
 
 	return TRUE;
@@ -482,6 +485,42 @@ static int paneldb_find_name(char *name)
 
 
 /**
+ * Convert a panel position into textual form.
+ *
+ * \param position	The position to be converted.
+ * \return		Pointer to the corresponding name.
+ */
+
+static char *paneldb_position_to_name(enum paneldb_position position)
+{
+	if (position < 0 || position >= PANELDB_POSITION_MAX)
+		return "Unknown";
+
+	return paneldb_position_names[position];
+}
+
+
+/**
+ * Convert a textual name into a panel position.
+ *
+ * \param *name		Pointer to the name to be converted.
+ * \return		The corresponding position.
+ */
+
+static enum paneldb_position paneldb_position_from_name(char *name)
+{
+	int position;
+
+	for (position = 0; position < PANELDB_POSITION_MAX; position++) {
+		if (string_nocase_strcmp(name, paneldb_position_names[position]) == 0)
+			return position;
+	}
+
+	return PANELDB_POSITION_UNKNOWN;
+}
+
+
+/**
  * Claim a block for a new panel, fill in the unique key and set
  * default values for the data.
  *
@@ -545,6 +584,7 @@ static void paneldb_delete(int index)
 
 void paneldb_copy(struct paneldb_entry *to, struct paneldb_entry *from)
 {
+	to->position = from->position;
 	string_copy(to->name, from->name, PANELDB_NAME_LENGTH);
 }
 
