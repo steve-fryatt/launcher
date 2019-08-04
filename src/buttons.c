@@ -629,9 +629,10 @@ static void buttons_reopen_window(struct buttons_block *windat)
 static void buttons_open_window(wimp_open *open)
 {
 	struct buttons_block	*windat;
-	int			sidebar_size;
+	int			sidebar_size, grid_size;
 	wimp_icon_state		state;
 	os_error		*error;
+	wimp_window_info	info;
 
 	if (open == NULL)
 		return;
@@ -646,29 +647,64 @@ static void buttons_open_window(wimp_open *open)
 	if (error != NULL)
 		return;
 
+	info.w = windat->buttons_window;
+	error = xwimp_get_window_info_header_only(&info);
+	if (error != NULL)
+		return;
+
+	grid_size = buttons_grid_spacing + (windat->buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square));
+
 	switch (windat->buttons_location) {
 	case BUTTONS_POSITION_LEFT:
 		sidebar_size = state.icon.extent.x1 - state.icon.extent.x0;
 
 		open->visible.x0 = 0;
-		open->visible.x1 = ((windat->buttons_window_is_open) ? (buttons_grid_spacing + windat->buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_size;
+		open->visible.x1 = ((windat->buttons_window_is_open) ? grid_size : 0) + sidebar_size;
 		open->visible.y0 = windat->buttons_window_y0;
 		open->visible.y1 = windat->buttons_window_y1;
 
-		open->xscroll = (windat->buttons_window_is_open) ? 0 : (buttons_grid_spacing + windat->buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square));
+		open->xscroll = (windat->buttons_window_is_open) ? 0 : grid_size;
 		open->yscroll = 0;
 		break;
 
 	case BUTTONS_POSITION_RIGHT:
 		sidebar_size = state.icon.extent.x1 - state.icon.extent.x0;
 
-		open->visible.x0 = buttons_mode_width - (((windat->buttons_window_is_open) ? (buttons_grid_spacing + windat->buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square)) : 0) + sidebar_size);
+		open->visible.x0 = buttons_mode_width - (((windat->buttons_window_is_open) ? grid_size : 0) + sidebar_size);
 		open->visible.x1 = buttons_mode_width;
 		open->visible.y0 = windat->buttons_window_y0;
 		open->visible.y1 = windat->buttons_window_y1;
 
 		open->xscroll = 0;
 		open->yscroll = 0;
+		break;
+
+	case BUTTONS_POSITION_TOP:
+		sidebar_size = state.icon.extent.y1 - state.icon.extent.y0;
+
+		open->visible.x0 = windat->buttons_window_y0;
+		open->visible.x1 = windat->buttons_window_y1;
+		open->visible.y0 = buttons_mode_height - (((windat->buttons_window_is_open) ? grid_size : 0) + sidebar_size);
+		open->visible.y1 = buttons_mode_height;
+
+		open->xscroll = 0;
+		open->yscroll = (windat->buttons_window_is_open) ? 0 : -grid_size;
+		break;
+
+	case BUTTONS_POSITION_BOTTOM:
+		sidebar_size = state.icon.extent.y1 - state.icon.extent.y0;
+
+		open->visible.x0 = windat->buttons_window_y0;
+		open->visible.x1 = windat->buttons_window_y1;
+		open->visible.y0 = sf_ICONBAR_HEIGHT;
+		open->visible.y1 = sf_ICONBAR_HEIGHT + (((windat->buttons_window_is_open) ? grid_size : 0) + sidebar_size);
+
+		open->xscroll = 0;
+		open->yscroll = 0;
+		break;
+
+	case BUTTONS_POSITION_HORIZONTAL:
+	case BUTTONS_POSITION_VERTICAL:
 		break;
 	}
 
@@ -788,7 +824,7 @@ static void buttons_update_grid_info(struct buttons_block *windat)
 	wimp_window_info	info;
 	wimp_icon_state		state;
 	os_error		*error;
-	int			sidebar_width;
+	int			sidebar_width = 0;
 
 	if (windat == NULL)
 		return;
@@ -812,11 +848,19 @@ static void buttons_update_grid_info(struct buttons_block *windat)
 	else
 		windat->buttons_grid_rows = 0;
 
-	sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
+	if (windat->buttons_location & BUTTONS_POSITION_VERTICAL) {
+		sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
 
-	info.extent.x0 = 0;
-	info.extent.x1 = info.extent.x0 + sidebar_width + buttons_grid_spacing +
-			windat->buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square);
+		info.extent.x0 = 0;
+		info.extent.x1 = info.extent.x0 + sidebar_width + buttons_grid_spacing +
+				windat->buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square);
+	} else if (windat->buttons_location & BUTTONS_POSITION_HORIZONTAL) {
+		sidebar_width = state.icon.extent.y1 - state.icon.extent.y0;
+
+		info.extent.y1 = 0;
+		info.extent.y0 = info.extent.y1 - sidebar_width - buttons_grid_spacing -
+				windat->buttons_grid_columns * (buttons_grid_spacing + buttons_grid_square);
+	}
 
 	error = xwimp_set_extent(windat->buttons_window, &(info.extent));
 	if (error != NULL)
@@ -832,12 +876,33 @@ static void buttons_update_grid_info(struct buttons_block *windat)
 		xwimp_resize_icon(windat->buttons_window, BUTTONS_ICON_SIDEBAR,
 			info.extent.x1 - sidebar_width, state.icon.extent.y0, info.extent.x1, state.icon.extent.y1);
 		break;
+
 	case BUTTONS_POSITION_RIGHT:
 		windat->buttons_origin_x = info.extent.x0 + windat->buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing) + sidebar_width;
 		windat->buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
 
 		xwimp_resize_icon(windat->buttons_window, BUTTONS_ICON_SIDEBAR,
 			info.extent.x0, state.icon.extent.y0, info.extent.x0 + sidebar_width, state.icon.extent.y1);
+		break;
+
+	case BUTTONS_POSITION_TOP:
+		windat->buttons_origin_x = info.extent.x0 + windat->buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing);
+		windat->buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
+
+		xwimp_resize_icon(windat->buttons_window, BUTTONS_ICON_SIDEBAR,
+			state.icon.extent.x0, info.extent.y0, state.icon.extent.x1, info.extent.y0 + sidebar_width);
+		break;
+
+	case BUTTONS_POSITION_BOTTOM:
+		windat->buttons_origin_x = info.extent.x0 + windat->buttons_grid_columns * (buttons_grid_square + buttons_grid_spacing);
+		windat->buttons_origin_y = info.extent.y1 - buttons_grid_spacing;
+
+		xwimp_resize_icon(windat->buttons_window, BUTTONS_ICON_SIDEBAR,
+			state.icon.extent.x0, info.extent.y1 - sidebar_width, state.icon.extent.x1, info.extent.y1);
+		break;
+
+	case BUTTONS_POSITION_HORIZONTAL:
+	case BUTTONS_POSITION_VERTICAL:
 		break;
 	}
 }
