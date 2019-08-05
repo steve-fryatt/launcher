@@ -86,6 +86,7 @@
  */
 
 enum buttons_position {
+	BUTTONS_POSITION_NONE = 0,
 	BUTTONS_POSITION_LEFT = 1,
 	BUTTONS_POSITION_RIGHT = 2,
 	BUTTONS_POSITION_VERTICAL = 3,
@@ -252,11 +253,12 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 static osbool buttons_message_mode_change(wimp_message *message);
 
 static void buttons_update_mode_details(void);
+static void buttons_update_positions(void);
 
 static void buttons_toggle_window(struct buttons_block *windat);
 static void buttons_reopen_window(struct buttons_block *windat);
 static void buttons_open_window(wimp_open *open);
-static void buttons_update_window_position(struct buttons_block *windat);
+static void buttons_update_window_position(struct buttons_block *windat, enum buttons_position positions);
 
 static void buttons_update_grid_info(struct buttons_block *windat);
 static void buttons_rebuild_window(struct buttons_block *windat);
@@ -375,8 +377,8 @@ static void buttons_create_instance(unsigned key)
 
 	buttons_update_grid_info(new);
 	buttons_rebuild_window(new);
-	buttons_update_window_position(new);
-	buttons_reopen_window(new);
+//	buttons_update_window_position(new);
+//	buttons_reopen_window(new);
 }
 
 
@@ -561,18 +563,43 @@ static osbool buttons_message_mode_change(wimp_message *message)
 
 static void buttons_update_mode_details(void)
 {
-	struct buttons_block *windat = buttons_list;
 
 	buttons_mode_width = general_mode_width();
 	buttons_mode_height = general_mode_height();
 
+	buttons_update_positions();
+}
+
+
+/**
+ * Update the positions of all of the bars on the screen.
+ */
+
+static void buttons_update_positions(void)
+{
+	struct buttons_block	*windat = NULL;
+	enum buttons_position	locations = BUTTONS_POSITION_NONE;
+
+	/* Locate the positions of all of the panels.*/
+
+	windat = buttons_list;
 
 	while (windat != NULL) {
-		buttons_update_window_position(windat);
+		locations |= windat->buttons_location;
+		windat = windat->next;
+	}
+
+	/* Update all of the panel positions. */
+
+	windat = buttons_list;
+
+	while (windat != NULL) {
+		buttons_update_window_position(windat, locations);
 		buttons_reopen_window(windat);
 
 		windat = windat->next;
 	}
+
 }
 
 
@@ -702,6 +729,7 @@ static void buttons_open_window(wimp_open *open)
 
 	case BUTTONS_POSITION_HORIZONTAL:
 	case BUTTONS_POSITION_VERTICAL:
+	case BUTTONS_POSITION_NONE:
 		break;
 	}
 
@@ -716,11 +744,12 @@ static void buttons_open_window(wimp_open *open)
  * a change of screen mode.
  *
  * \param *windat		The window to be reopened.
+ * \param positions		The locations of all the bars.
  */
 
-static void buttons_update_window_position(struct buttons_block *windat)
+static void buttons_update_window_position(struct buttons_block *windat, enum buttons_position positions)
 {
-	int			old_window_size, new_window_size;
+	int			old_window_size, new_window_size, bar_size;
 	wimp_window_info	info;
 	wimp_icon_state		state;
 	os_error		*error;
@@ -741,10 +770,17 @@ static void buttons_update_window_position(struct buttons_block *windat)
 
 	if (windat->buttons_location & BUTTONS_POSITION_VERTICAL) {
 		old_window_size = info.extent.y1 - info.extent.y0;
+		bar_size = state.icon.extent.x1 - state.icon.extent.x0; // \TODO -- Assumes square icon!
 
 		/* Calculate the new vertical size of the window. */
 
 		new_window_size = buttons_mode_height - sf_ICONBAR_HEIGHT;
+
+		if (positions & BUTTONS_POSITION_TOP)
+			new_window_size -= bar_size;
+
+		if (positions & BUTTONS_POSITION_BOTTOM)
+			new_window_size -= bar_size;
 
 		info.extent.y1 = 0;
 		info.extent.y0 = info.extent.y1 - new_window_size;
@@ -765,7 +801,12 @@ static void buttons_update_window_position(struct buttons_block *windat)
 		/* Adjust the new visible window height. */
 
 		windat->buttons_window_y0 = sf_ICONBAR_HEIGHT;
+		if (positions & BUTTONS_POSITION_BOTTOM)
+			windat->buttons_window_y0 += bar_size;
+
 		windat->buttons_window_y1 = buttons_mode_height;
+		if (positions & BUTTONS_POSITION_TOP)
+			windat->buttons_window_y1 -= bar_size;
 
 		if (buttons_grid_square + buttons_grid_spacing != 0)
 			windat->buttons_grid_rows = (windat->buttons_window_y1 - windat->buttons_window_y0) /
@@ -774,10 +815,17 @@ static void buttons_update_window_position(struct buttons_block *windat)
 			windat->buttons_grid_rows = 0;
 	} else if (windat->buttons_location & BUTTONS_POSITION_HORIZONTAL) {
 		old_window_size = info.extent.x1 - info.extent.x0;
+		bar_size = state.icon.extent.y1 - state.icon.extent.y0; // \TODO -- Assumes square icon!
 
 		/* Calculate the new horizontal size of the window. */
 
 		new_window_size = buttons_mode_width;
+
+		if (positions & BUTTONS_POSITION_LEFT)
+			new_window_size -= bar_size;
+
+		if (positions & BUTTONS_POSITION_RIGHT)
+			new_window_size -= bar_size;
 
 		info.extent.x0 = 0;
 		info.extent.x1 = info.extent.x0 + new_window_size;
@@ -798,7 +846,12 @@ static void buttons_update_window_position(struct buttons_block *windat)
 		/* Adjust the new visible window width. */
 
 		windat->buttons_window_y0 = 0;
+		if (positions & BUTTONS_POSITION_LEFT)
+			windat->buttons_window_y0 += bar_size;
+
 		windat->buttons_window_y1 = buttons_mode_width;
+		if (positions & BUTTONS_POSITION_RIGHT)
+			windat->buttons_window_y1 -= bar_size;
 
 		if (buttons_grid_square + buttons_grid_spacing != 0)
 			windat->buttons_grid_rows = (windat->buttons_window_y1 - windat->buttons_window_y0) /
@@ -900,6 +953,7 @@ static void buttons_update_grid_info(struct buttons_block *windat)
 
 	case BUTTONS_POSITION_HORIZONTAL:
 	case BUTTONS_POSITION_VERTICAL:
+	case BUTTONS_POSITION_NONE:
 		break;
 	}
 }
@@ -948,6 +1002,8 @@ void buttons_create_from_db(void)
 				buttons_create_icon(windat, new);
 		}
 	} while (key != APPDB_NULL_KEY);
+
+	buttons_update_positions();
 }
 
 
