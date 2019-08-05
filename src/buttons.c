@@ -304,9 +304,6 @@ void buttons_initialise(void)
 
 	buttons_update_mode_details();
 	buttons_refresh_choices();
-
-	buttons_create_instance(1);
-	buttons_create_instance(2);
 }
 
 
