@@ -118,6 +118,15 @@ osbool paneldb_load_new_file(struct filing_block *in);
 
 
 /**
+ * Create a default bar if none exists in the database.
+ *
+ * \return		TRUE on success; else FALSE.
+ */
+
+osbool paneldb_create_default(void);
+
+
+/**
  * Save the contents of the panels database into a buttons file.
  *
  * \param *file		The file handle to save to.

@@ -120,12 +120,12 @@ osbool filing_load(char *leaf_name)
 	config_find_load_file(filename, FILING_MAX_FILENAME_LENGTH, leaf_name);
 
 	if (*filename == '\0')
-		return FALSE;
+		return paneldb_create_default();
 
 	in.handle = fopen(filename, "r");
 
 	if (in.handle == NULL)
-		return FALSE;
+		return paneldb_create_default();
 
 	hourglass_on();
 
@@ -181,6 +181,11 @@ osbool filing_load(char *leaf_name)
 
 	if (!appdb_complete_file_load())
 		in.status = FILING_STATUS_CORRUPT;
+
+	/* Create a default bar if none exists. */
+
+	if (!paneldb_create_default())
+		in.status = FILING_STATUS_MEMORY;
 
 	/* If the file format wasn't understood, get out now. */
 
