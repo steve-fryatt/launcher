@@ -201,6 +201,12 @@ static int buttons_mode_width;
 static int buttons_mode_height;
 
 /**
+ * The height of the iconbar, in OS Units.
+ */
+
+static int buttons_iconbar_height;
+
+/**
  * The size of a grid square (in OS units).
  */
 
@@ -563,9 +569,22 @@ static osbool buttons_message_mode_change(wimp_message *message)
 
 static void buttons_update_mode_details(void)
 {
+	wimp_window_state	state;
+	os_error		*error;
+
+	/* Get the screen mode dimensions. */
 
 	buttons_mode_width = general_mode_width();
 	buttons_mode_height = general_mode_height();
+
+	/* Get the iconbar height. */
+
+	state.w = wimp_ICON_BAR;
+	error = xwimp_get_window_state(&state);
+
+	buttons_iconbar_height = (error == NULL) ? state.visible.y1 : sf_ICONBAR_HEIGHT;
+
+	/* Update the bars. */
 
 	buttons_update_positions();
 }
@@ -720,8 +739,8 @@ static void buttons_open_window(wimp_open *open)
 
 		open->visible.x0 = windat->buttons_window_y0;
 		open->visible.x1 = windat->buttons_window_y1;
-		open->visible.y0 = sf_ICONBAR_HEIGHT;
-		open->visible.y1 = sf_ICONBAR_HEIGHT + (((windat->buttons_window_is_open) ? grid_size : 0) + sidebar_size);
+		open->visible.y0 = buttons_iconbar_height;
+		open->visible.y1 = buttons_iconbar_height + (((windat->buttons_window_is_open) ? grid_size : 0) + sidebar_size);
 
 		open->xscroll = 0;
 		open->yscroll = 0;
@@ -774,7 +793,7 @@ static void buttons_update_window_position(struct buttons_block *windat, enum bu
 
 		/* Calculate the new vertical size of the window. */
 
-		new_window_size = buttons_mode_height - sf_ICONBAR_HEIGHT;
+		new_window_size = buttons_mode_height - buttons_iconbar_height;
 
 		if (positions & BUTTONS_POSITION_TOP)
 			new_window_size -= bar_size;
@@ -800,7 +819,7 @@ static void buttons_update_window_position(struct buttons_block *windat, enum bu
 
 		/* Adjust the new visible window height. */
 
-		windat->buttons_window_y0 = sf_ICONBAR_HEIGHT;
+		windat->buttons_window_y0 = buttons_iconbar_height;
 		if (positions & BUTTONS_POSITION_BOTTOM)
 			windat->buttons_window_y0 += bar_size;
 
