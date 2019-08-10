@@ -203,6 +203,10 @@ osbool paneldb_load_new_file(struct filing_block *in)
 			debug_printf("Loading section '%s'", paneldb_list[current].name);
 		} else if ((current != -1) && filing_test_token(in, "Position"))
 			paneldb_list[current].position = paneldb_position_from_name(filing_get_text_value(in, NULL, 0));
+		else if ((current != -1) && filing_test_token(in, "Sort"))
+			paneldb_list[current].sort = filing_get_int_value(in);
+		else if ((current != -1) && filing_test_token(in, "Width"))
+			paneldb_list[current].width = filing_get_int_value(in);
 		else
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
@@ -253,6 +257,8 @@ osbool paneldb_save_file(FILE *file)
 	for (current = 0; current < paneldb_panels; current++) {
 		fprintf(file, "\n@: %s\n", paneldb_list[current].name);
 		fprintf(file, "Position: %s\n", paneldb_position_to_name(paneldb_list[current].position));
+		fprintf(file, "Sort: %d\n", paneldb_list[current].sort);
+		fprintf(file, "Width: %d\n", paneldb_list[current].width);
 	}
 
 	return TRUE;
@@ -562,6 +568,8 @@ static int paneldb_new(osbool allocate)
 
 	paneldb_list[paneldb_panels].key = paneldb_key++;
 	paneldb_list[paneldb_panels].position = PANELDB_POSITION_LEFT;
+	paneldb_list[paneldb_panels].width = 100;
+	paneldb_list[paneldb_panels].sort = 1;
 
 	*(paneldb_list[paneldb_panels].name) = '\0';
 
@@ -608,6 +616,8 @@ static void paneldb_delete(int index)
 void paneldb_copy(struct paneldb_entry *to, struct paneldb_entry *from)
 {
 	to->position = from->position;
+	to->width = from->width;
+	to->sort = from->sort;
 	string_copy(to->name, from->name, PANELDB_NAME_LENGTH);
 }
 

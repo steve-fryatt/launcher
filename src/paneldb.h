@@ -70,6 +70,16 @@ struct paneldb_entry {
 	 * Panel position.
 	 */
 	enum paneldb_position	position;
+
+	/**
+	 * Panel width weight.
+	 */
+	int width;
+
+	/**
+	 * Panel sort value.
+	 */
+	int sort;
 };
 
 
