@@ -74,12 +74,12 @@ struct paneldb_entry {
 	/**
 	 * Panel width weight.
 	 */
-	int width;
+	int			width;
 
 	/**
 	 * Panel sort value.
 	 */
-	int sort;
+	int			sort;
 };
 
 
