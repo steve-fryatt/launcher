@@ -954,6 +954,10 @@ static void buttons_update_positions(void)
 		buttons_update_window_position(panels[i]);
 		buttons_reopen_window(panels[i]);
 	}
+
+	/* Free the memory allocation. */
+
+	heap_free(panels);
 }
 
 
