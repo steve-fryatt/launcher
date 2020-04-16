@@ -122,7 +122,22 @@ struct icondb_block *icondb_create_instance()
 
 void icondb_destroy_instance(struct icondb_block *instance)
 {
-	struct icondb_button *current;
+	if (instance == NULL)
+		return;
+
+	icondb_reset_instance(instance);
+	heap_free(instance);
+}
+
+/**
+ * Reset an icon database instance, clearing all of the icons.
+ *
+ * \param *instance	The instance to reset.
+ */
+
+void icondb_reset_instance(struct icondb_block *instance)
+{
+	struct icondb_button *current = NULL;
 
 	if (instance == NULL)
 		return;
@@ -132,8 +147,6 @@ void icondb_destroy_instance(struct icondb_block *instance)
 		instance->buttons = current->next;
 		heap_free(current);
 	}
-
-	heap_free(instance);
 }
 
 /**

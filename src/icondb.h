@@ -111,6 +111,15 @@ void icondb_destroy_instance(struct icondb_block *instance);
 
 
 /**
+ * Reset an icon database instance, clearing all of the icons.
+ *
+ * \param *instance	The instance to reset.
+ */
+
+void icondb_reset_instance(struct icondb_block *instance);
+
+
+/**
  * Create a new button entry in an icon database instance.
  *
  * \param *instance	The instance to add the button to.
