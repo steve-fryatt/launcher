@@ -1,4 +1,4 @@
-/* Copyright 2003-2019, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of Launcher:
  *
@@ -33,6 +33,12 @@
  */
 
 #define ICONDB_VALIDATION_LENGTH 40
+
+/**
+ * An icon database instance.
+ */
+
+struct icondb_block;
 
 /**
  * Structure to hold the definition of a button's icon.
@@ -87,42 +93,65 @@ void icondb_terminate(void);
 
 
 /**
- * Create a new button entry in the IconDB.
+ * Construct a new icon database instance.
+ * 
+ * \return		The new instance, or NULL.
+ */
+
+struct icondb_block *icondb_create_instance();
+
+
+/**
+ * Destroy an icon database instance, freeing up memory.
+ * 
+ * \param *instance	The instance to destroy.
+ */
+
+void icondb_destroy_instance(struct icondb_block *instance);
+
+
+/**
+ * Create a new button entry in an icon database instance.
  *
+ * \param *instance	The instance to add the button to.
  * \param key		The key to assign to the new entry.
  * \return		Pointer to the new entry, or NULL on failure.
  */
 
-struct icondb_button *icondb_create_icon(unsigned key);
+struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned key);
 
 
 /**
- * Delete a button entry from the IconDB.
+ * Delete a button entry from an icon database instance.
  *
+ * \param *instance	The instance to delete the button from.
  * \param *button	Pointer to the entry to delete.
  */
 
-void icondb_delete_icon(struct icondb_button *button);
+void icondb_delete_icon(struct icondb_block *instance, struct icondb_button *button);
 
 
 /**
- * Request the first entry in the IconDB list.
+ * Request the first entry in an icon database instance.
  *
+ * \param *instance	The instance to return the button from.
  * \return		Pointer to the first entry, or NULL.
  */
 
-struct icondb_button *icondb_get_list(void);
+struct icondb_button *icondb_get_list(struct icondb_block *instance);
 
 
 /**
- * Given an icon handle, find the associated IconDB entry.
+ * Given an icon handle, find the associated entry in an icon
+ * database instance.
  *
+ * \param *instance	The instance to search within.
  * \param window	The window handle to search for.
  * \param icon		The icon handle to search for.
  * \return		The associated IconDB entry, or NULL.
  */
 
-struct icondb_button *icondb_find_icon(wimp_w window, wimp_i icon);
+struct icondb_button *icondb_find_icon(struct icondb_block *instance, wimp_w window, wimp_i icon);
 
 #endif
 

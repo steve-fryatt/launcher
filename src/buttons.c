@@ -1,4 +1,4 @@
-/* Copyright 2002-2019, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2002-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of Launcher:
  *
@@ -112,6 +112,12 @@ struct buttons_block {
 	 */
 
 	enum buttons_position location;
+
+	/**
+	 * The icon database to use for the panel.
+	 */
+
+	struct icondb_block *icondb;
 
 	/**
 	 * The sort position of the panel.
@@ -397,6 +403,8 @@ static void buttons_create_instance(unsigned key)
 		break;
 	}
 
+	new->icondb = icondb_create_instance();
+
 	new->longitude_weight = panel.width;
 	new->sort = panel.sort;
 
@@ -504,7 +512,7 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 	if (pointer->i == wimp_ICON_WINDOW || pointer->i == BUTTONS_ICON_SIDEBAR)
 		buttons_menu_icon = NULL;
 	else
-		buttons_menu_icon = icondb_find_icon(pointer->w, pointer->i);
+		buttons_menu_icon = icondb_find_icon(windat->icondb, pointer->w, pointer->i);
 
 	menus_shade_entry(buttons_menu, BUTTONS_MENU_BUTTON, (buttons_menu_icon == NULL) ? TRUE : FALSE);
 	menus_shade_entry(buttons_menu, BUTTONS_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
@@ -1177,7 +1185,7 @@ void buttons_create_from_db(void)
 			if (windat == NULL)
 				continue;
 
-			new = icondb_create_icon(key);
+			new = icondb_create_icon(windat->icondb, key);
 
 			if (new != NULL)
 				buttons_create_icon(windat, new);
@@ -1196,9 +1204,17 @@ void buttons_create_from_db(void)
 
 static void buttons_rebuild_window(struct buttons_block *windat)
 {
-	struct icondb_button *button = icondb_get_list();
+	struct icondb_button *button = NULL;
+	
+	if (windat == NULL)
+		return;
+
+	button = icondb_get_list(windat->icondb);
+
+	debug_printf("\\RRebuilding panel 0x%x", windat);
 
 	while (button != NULL) {
+		debug_printf("Recreating icon key=%u, window=0x%x, icon=%d", button->key, button->window, button->icon);
 		buttons_create_icon(windat, button);
 
 		button = button->next;
@@ -1280,7 +1296,7 @@ static void buttons_delete_icon(struct buttons_block *windat, struct icondb_butt
 	/* Delete the application and button details from the databases. */
 
 	appdb_delete_key(button->key);
-	icondb_delete_icon(button);
+	icondb_delete_icon(windat->icondb, button);
 }
 
 
@@ -1302,7 +1318,7 @@ static void buttons_press(struct buttons_block *windat, wimp_i icon)
 	if (windat == NULL)
 		return;
 
-	button = icondb_find_icon(windat->window, icon);
+	button = icondb_find_icon(windat->icondb, windat->window, icon);
 
 	if (button == NULL)
 		return;
@@ -1405,7 +1421,7 @@ static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *dat
 	 */
 
 	if (button == NULL)
-		button = icondb_create_icon(appdb_create_key());
+		button = icondb_create_icon(windat->icondb, appdb_create_key());
 
 	if (button == NULL) {
 		error_msgs_report_error("NoMemNewButton");
