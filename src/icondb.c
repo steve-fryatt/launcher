@@ -173,6 +173,8 @@ struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned
 	button->window = NULL;
 	button->icon = -1;
 	button->validation[0] = '\0';
+	button->position.x = 0;
+	button->position.y = 0;
 
 	button->next = instance->buttons;
 	instance->buttons = button;

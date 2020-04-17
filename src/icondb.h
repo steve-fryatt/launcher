@@ -71,6 +71,12 @@ struct icondb_button {
 	char		validation[ICONDB_VALIDATION_LENGTH];
 
 	/**
+	 * The actual position of the icon in the panel, after reflowing.
+	 */
+
+	os_coord	position;
+
+	/**
 	 * Pointer to the next button definition.
 	 */
 

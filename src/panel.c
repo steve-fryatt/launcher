@@ -1430,8 +1430,7 @@ static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data)
 
 	/* Store the application in the database. */
 
-	entry->key = button->key;
-	appdb_set_button_info(entry);
+	appdb_set_button_info(button->key, entry);
 
 	panel_create_icon(windat, button);
 

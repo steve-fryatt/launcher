@@ -44,13 +44,6 @@
  */
 
 struct appdb_entry {
-
-	/**
-	 * Primary key to index database entries.
-	 */
-
-	unsigned	key;
-
 	/**
 	 * The target panel key.
 	 */
@@ -226,11 +219,12 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
  * Given a data structure, set the details of a database entry by copying the
  * contents of the structure into the database.
  *
- * \param *data			Pointer to the structure containing the data.
- * \return			TRUE if an entry was updated; else FALSE.
+ * \param key		The key of the entry to update.
+ * \param *data		Pointer to the structure containing the data.
+ * \return		TRUE if an entry was updated; else FALSE.
  */
 
-osbool appdb_set_button_info(struct appdb_entry *data);
+osbool appdb_set_button_info(unsigned key, struct appdb_entry *data);
 
 
 /**

@@ -55,12 +55,6 @@ enum paneldb_position {
  */
 
 struct paneldb_entry {
-
-	/**
-	 * Primary key to index database entries.
-	 */
-	unsigned		key;
-
 	/**
 	 * Panel name.
 	 */
@@ -205,11 +199,12 @@ struct paneldb_entry *paneldb_get_panel_info(unsigned key, struct paneldb_entry 
  * Given a data structure, set the details of a database entry by copying the
  * contents of the structure into the database.
  *
- * \param *data			Pointer to the structure containing the data.
- * \return			TRUE if an entry was updated; else FALSE.
+ * \param key		The key of the entry to be updated.
+ * \param *data		Pointer to the structure containing the data.
+ * \return		TRUE if an entry was updated; else FALSE.
  */
 
-osbool paneldb_set_panel_info(struct paneldb_entry *data);
+osbool paneldb_set_panel_info(unsigned key, struct paneldb_entry *data);
 
 
 /**

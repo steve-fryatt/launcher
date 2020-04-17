@@ -65,6 +65,24 @@
 
 #define PANELDB_ALLOC_CHUNK 10
 
+/**
+ * The internal database entry container.
+ */
+
+struct paneldb_container {
+	/**
+	 * Primary key to index database entries.
+	 */
+
+	unsigned		key;
+
+	/**
+	 * The database entry.
+	 */
+
+	struct paneldb_entry	entry;	
+};
+
 /* Global Variables. */
 
 /**
@@ -79,7 +97,7 @@ static char *paneldb_position_names[] = { "Left", "Right", "Top", "Bottom" };
  * The flex array of panel data.
  */
 
-static struct paneldb_entry		*paneldb_list = NULL;
+static struct paneldb_container		*paneldb_list = NULL;
 
 /**
  * The number of panels stored in the database.
@@ -115,7 +133,7 @@ static void paneldb_delete(int index);
 void paneldb_initialise(void)
 {
 	if (flex_alloc((flex_ptr) &paneldb_list,
-			(paneldb_allocation + PANELDB_ALLOC_CHUNK) * sizeof(struct paneldb_entry)) == 1)
+			(paneldb_allocation + PANELDB_ALLOC_CHUNK) * sizeof(struct paneldb_container)) == 1)
 		paneldb_allocation += PANELDB_ALLOC_CHUNK;
 }
 
@@ -158,8 +176,8 @@ int paneldb_create_old_panel(void)
 	if (current == -1)
 		return -1;
 
-	paneldb_list[current].position = PANELDB_POSITION_LEFT;
-	string_copy(paneldb_list[current].name, "Default", PANELDB_NAME_LENGTH);
+	paneldb_list[current].entry.position = PANELDB_POSITION_LEFT;
+	string_copy(paneldb_list[current].entry.name, "Default", PANELDB_NAME_LENGTH);
 
 	return current;
 }
@@ -199,14 +217,14 @@ osbool paneldb_load_new_file(struct filing_block *in)
 				 return FALSE;
 			}
 
-			filing_get_text_value(in, paneldb_list[current].name, PANELDB_NAME_LENGTH);
-			debug_printf("Loading section '%s'", paneldb_list[current].name);
+			filing_get_text_value(in, paneldb_list[current].entry.name, PANELDB_NAME_LENGTH);
+			debug_printf("Loading section '%s'", paneldb_list[current].entry.name);
 		} else if ((current != -1) && filing_test_token(in, "Position"))
-			paneldb_list[current].position = paneldb_position_from_name(filing_get_text_value(in, NULL, 0));
+			paneldb_list[current].entry.position = paneldb_position_from_name(filing_get_text_value(in, NULL, 0));
 		else if ((current != -1) && filing_test_token(in, "Sort"))
-			paneldb_list[current].sort = filing_get_int_value(in);
+			paneldb_list[current].entry.sort = filing_get_int_value(in);
 		else if ((current != -1) && filing_test_token(in, "Width"))
-			paneldb_list[current].width = filing_get_int_value(in);
+			paneldb_list[current].entry.width = filing_get_int_value(in);
 		else
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
@@ -232,7 +250,7 @@ osbool paneldb_create_default(void)
 	if (index == -1)
 		return FALSE;
 
-	string_copy(paneldb_list[index].name, "Default", PANELDB_NAME_LENGTH);
+	string_copy(paneldb_list[index].entry.name, "Default", PANELDB_NAME_LENGTH);
 
 	return TRUE;
 }
@@ -247,7 +265,8 @@ osbool paneldb_create_default(void)
 
 osbool paneldb_save_file(FILE *file)
 {
-	int	current;
+	int			current;
+	struct paneldb_entry	*entry = NULL;
 
 	if (file == NULL)
 		return FALSE;
@@ -255,10 +274,12 @@ osbool paneldb_save_file(FILE *file)
 	fprintf(file, "\n[Panels]");
 
 	for (current = 0; current < paneldb_panels; current++) {
-		fprintf(file, "\n@: %s\n", paneldb_list[current].name);
-		fprintf(file, "Position: %s\n", paneldb_position_to_name(paneldb_list[current].position));
-		fprintf(file, "Sort: %d\n", paneldb_list[current].sort);
-		fprintf(file, "Width: %d\n", paneldb_list[current].width);
+		entry = &(paneldb_list[current].entry);
+
+		fprintf(file, "\n@: %s\n", entry->name);
+		fprintf(file, "Position: %s\n", paneldb_position_to_name(entry->position));
+		fprintf(file, "Sort: %d\n", entry->sort);
+		fprintf(file, "Width: %d\n", entry->width);
 	}
 
 	return TRUE;
@@ -345,7 +366,7 @@ char *paneldb_get_name(unsigned key)
 
 	/* Return a volatile pointer to the name in the flex heap. */
 
-	return paneldb_list[index].name;
+	return paneldb_list[index].entry.name;
 }
 
 
@@ -375,11 +396,11 @@ struct paneldb_entry *paneldb_get_panel_info(unsigned key, struct paneldb_entry 
 	/* If no buffer is supplied, just return a pointer into the flex heap. */
 
 	if (data == NULL)
-		return paneldb_list + index;
+		return &(paneldb_list[index].entry);
 
 	/* Copy the data into the supplied buffer. */
 
-	paneldb_copy(data, paneldb_list + index);
+	paneldb_copy(data, &(paneldb_list[index].entry));
 
 	return data;
 }
@@ -389,23 +410,24 @@ struct paneldb_entry *paneldb_get_panel_info(unsigned key, struct paneldb_entry 
  * Given a data structure, set the details of a database entry by copying the
  * contents of the structure into the database.
  *
+ * \param key		The key of the entry to be updated.
  * \param *data		Pointer to the structure containing the data.
  * \return		TRUE if an entry was updated; else FALSE.
  */
 
-osbool paneldb_set_panel_info(struct paneldb_entry *data)
+osbool paneldb_set_panel_info(unsigned key, struct paneldb_entry *data)
 {
 	int index;
 
 	if (data == NULL)
 		return FALSE;
 
-	index = paneldb_find(data->key);
+	index = paneldb_find(key);
 
 	if (index == -1)
 		return FALSE;
 
-	paneldb_copy(paneldb_list + index, data);
+	paneldb_copy(&(paneldb_list[index].entry), data);
 
 	return TRUE;
 }
@@ -440,7 +462,7 @@ int paneldb_lookup_name(char *name)
 	index = paneldb_new(FALSE);
 
 	if (index != -1)
-		string_copy(paneldb_list[index].name, name, PANELDB_NAME_LENGTH);
+		string_copy(paneldb_list[index].entry.name, name, PANELDB_NAME_LENGTH);
 
 	debug_printf("'%s' created from new: index=%d", name, index);
 
@@ -505,7 +527,7 @@ static int paneldb_find_name(char *name)
 	int index;
 
 	for (index = 0; index < paneldb_panels; index++) {
-		if (string_nocase_strcmp(name, paneldb_list[index].name) == 0)
+		if (string_nocase_strcmp(name, paneldb_list[index].entry.name) == 0)
 			return index;
 	}
 
@@ -559,19 +581,23 @@ static enum paneldb_position paneldb_position_from_name(char *name)
 
 static int paneldb_new(osbool allocate)
 {
+	struct paneldb_entry *entry = NULL;
+
 	if (paneldb_panels >= paneldb_allocation && flex_extend((flex_ptr) &paneldb_list,
-			(paneldb_allocation + PANELDB_ALLOC_CHUNK) * sizeof(struct paneldb_entry)) == 1)
+			(paneldb_allocation + PANELDB_ALLOC_CHUNK) * sizeof(struct paneldb_container)) == 1)
 		paneldb_allocation += PANELDB_ALLOC_CHUNK;
 
 	if (paneldb_panels >= paneldb_allocation)
 		return -1;
 
-	paneldb_list[paneldb_panels].key = paneldb_key++;
-	paneldb_list[paneldb_panels].position = PANELDB_POSITION_LEFT;
-	paneldb_list[paneldb_panels].width = 100;
-	paneldb_list[paneldb_panels].sort = 1;
+	entry = &(paneldb_list[paneldb_panels].entry);
 
-	*(paneldb_list[paneldb_panels].name) = '\0';
+	paneldb_list[paneldb_panels].key = paneldb_key++;
+	entry->position = PANELDB_POSITION_LEFT;
+	entry->width = 100;
+	entry->sort = 1;
+
+	*(entry->name) = '\0';
 
 	/* If we're not allocating a key, blank the entry out. We still
 	 * claim it, so that the next key number advances. Note that
@@ -601,8 +627,8 @@ static void paneldb_delete(int index)
 	if (index < 0 || index >= paneldb_panels)
 		return;
 
-	flex_midextend((flex_ptr) &paneldb_list, (index + 1) * sizeof(struct paneldb_entry),
-			-sizeof(struct paneldb_entry));
+	flex_midextend((flex_ptr) &paneldb_list, (index + 1) * sizeof(struct paneldb_container),
+			-sizeof(struct paneldb_container));
 }
 
 
