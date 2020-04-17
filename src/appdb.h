@@ -64,10 +64,10 @@ struct appdb_entry {
 	char		name[APPDB_NAME_LENGTH];
 
 	/**
-	 * X and Y positions of the button in the window.
+	 * The position of the button in the window.
 	 */
 
-	int		x, y;
+	os_coord	position;
 
 	/**
 	 * The sprite name.

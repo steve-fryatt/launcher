@@ -263,8 +263,8 @@ static void edit_fill_edit_window(struct appdb_entry *data)
 	icons_strncpy(edit_window, ICON_EDIT_SPRITE, data->sprite);
 	icons_strncpy(edit_window, ICON_EDIT_LOCATION, data->command);
 
-	icons_printf(edit_window, ICON_EDIT_XPOS, "%d", data->x);
-	icons_printf(edit_window, ICON_EDIT_YPOS, "%d", data->y);
+	icons_printf(edit_window, ICON_EDIT_XPOS, "%d", data->position.x);
+	icons_printf(edit_window, ICON_EDIT_YPOS, "%d", data->position.y);
 
 	icons_set_selected(edit_window, ICON_EDIT_KEEP_LOCAL, data->local_copy);
 	icons_set_selected(edit_window, ICON_EDIT_BOOT, data->filer_boot);
@@ -300,8 +300,8 @@ static osbool edit_read_edit_window(void)
 	if (edit_callback == NULL)
 		return TRUE;
 
-	entry.x = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_XPOS));
-	entry.y = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_YPOS));
+	entry.position.x = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_XPOS));
+	entry.position.y = atoi(icons_get_indirected_text_addr(edit_window, ICON_EDIT_YPOS));
 
 	entry.local_copy = icons_get_selected(edit_window, ICON_EDIT_KEEP_LOCAL);
 	entry.filer_boot = icons_get_selected(edit_window, ICON_EDIT_BOOT);

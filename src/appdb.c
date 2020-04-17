@@ -174,9 +174,9 @@ osbool appdb_load_old_file(struct filing_block *in, int panel)
 		do {
 			if (current != -1) {
 				if (filing_test_token(in, "XPos"))
-					appdb_list[current].x = filing_get_int_value(in);
+					appdb_list[current].position.x = filing_get_int_value(in);
 				else if (filing_test_token(in, "YPos"))
-					appdb_list[current].y = filing_get_int_value(in);
+					appdb_list[current].position.y = filing_get_int_value(in);
 				else if (filing_test_token(in, "Sprite"))
 					filing_get_text_value(in, appdb_list[current].sprite, APPDB_SPRITE_LENGTH);
 				else if (filing_test_token(in, "RunPath"))
@@ -226,9 +226,9 @@ osbool appdb_load_new_file(struct filing_block *in)
 			}
 			appdb_list[current].panel = panel;
 		} else if ((current != -1) && filing_test_token(in, "XPos"))
-			appdb_list[current].x = filing_get_int_value(in);
+			appdb_list[current].position.x = filing_get_int_value(in);
 		else if ((current != -1) && filing_test_token(in, "YPos"))
-			appdb_list[current].y = filing_get_int_value(in);
+			appdb_list[current].position.y = filing_get_int_value(in);
 		else if ((current != -1) && filing_test_token(in, "Sprite"))
 			filing_get_text_value(in, appdb_list[current].sprite, APPDB_SPRITE_LENGTH);
 		else if ((current != -1) && filing_test_token(in, "RunPath"))
@@ -286,8 +286,8 @@ osbool appdb_save_file(FILE *file)
 	for (current = 0; current < appdb_apps; current++) {
 		fprintf(file, "\n@: %s\n", appdb_list[current].name);
 		fprintf(file, "Panel: %s\n", paneldb_get_name(appdb_list[current].panel));
-		fprintf(file, "XPos: %d\n", appdb_list[current].x);
-		fprintf(file, "YPos: %d\n", appdb_list[current].y);
+		fprintf(file, "XPos: %d\n", appdb_list[current].position.x);
+		fprintf(file, "YPos: %d\n", appdb_list[current].position.y);
 		fprintf(file, "Sprite: %s\n", appdb_list[current].sprite);
 		fprintf(file, "RunPath: %s\n", appdb_list[current].command);
 		fprintf(file, "Boot: %s\n", config_return_opt_string(appdb_list[current].filer_boot));
@@ -507,8 +507,8 @@ static int appdb_new()
 
 	appdb_list[appdb_apps].key = appdb_key++;
 	appdb_list[appdb_apps].panel = APPDB_NULL_PANEL;
-	appdb_list[appdb_apps].x = 0;
-	appdb_list[appdb_apps].y = 0;
+	appdb_list[appdb_apps].position.x = 0;
+	appdb_list[appdb_apps].position.y = 0;
 	appdb_list[appdb_apps].local_copy = FALSE;
 	appdb_list[appdb_apps].filer_boot = TRUE;
 
@@ -546,8 +546,8 @@ static void appdb_delete(int index)
 void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
 {
 	to->panel = from->panel;
-	to->x = from->x;
-	to->y = from->y;
+	to->position.x = from->position.x;
+	to->position.y = from->position.y;
 	to->local_copy = from->local_copy;
 	to->filer_boot = from->filer_boot;
 

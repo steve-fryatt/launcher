@@ -1253,9 +1253,9 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 
 	panel_icon_def.w = windat->window;
 
-	panel_icon_def.icon.extent.x1 = windat->origin_x - entry->x * (panel_grid_square + panel_grid_spacing);
+	panel_icon_def.icon.extent.x1 = windat->origin_x - entry->position.x * (panel_grid_square + panel_grid_spacing);
 	panel_icon_def.icon.extent.x0 = panel_icon_def.icon.extent.x1 - panel_slab_width;
-	panel_icon_def.icon.extent.y1 = windat->origin_y - entry->y * (panel_grid_square + panel_grid_spacing);
+	panel_icon_def.icon.extent.y1 = windat->origin_y - entry->position.y * (panel_grid_square + panel_grid_spacing);
 	panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
 
 	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
@@ -1360,8 +1360,8 @@ static void panel_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button
 	/* Initialise deafults if button data can't be found. */
 
 	entry.panel = 0;
-	entry.x = 0;
-	entry.y = 0;
+	entry.position.x = 0;
+	entry.position.y = 0;
 	entry.local_copy = FALSE;
 	entry.filer_boot = TRUE;
 	*entry.name = '\0';
@@ -1372,8 +1372,8 @@ static void panel_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button
 		appdb_get_button_info(button->key, &entry);
 
 	if (grid != NULL) {
-		entry.x = grid->x;
-		entry.y = grid->y;
+		entry.position.x = grid->x;
+		entry.position.y = grid->y;
 	}
 
 	edit_open_dialogue(pointer, &entry, panel_process_edit_dialogue, button);
@@ -1404,7 +1404,7 @@ static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data)
 
 	/* Validate the button location. */
 
-	if (entry->x < 0 || entry->y < 0 || entry->x >= windat->grid_columns || entry->y >= windat->grid_rows) {
+	if (entry->position.x < 0 || entry->position.y < 0 || entry->position.x >= windat->grid_columns || entry->position.y >= windat->grid_rows) {
 		error_msgs_report_info("CoordRange");
 		return FALSE;
 	}
