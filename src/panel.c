@@ -281,7 +281,7 @@ static os_coord panel_menu_coordinate;
 
 /* Static Function Prototypes. */
 
-static void panel_create_instance(unsigned key);
+static struct panel_block *panel_create_instance(unsigned key);
 
 static void panel_click_handler(wimp_pointer *pointer);
 static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
@@ -298,6 +298,9 @@ static int compare_panels(const void *p, const void *q);
 static void panel_update_window_extent(struct panel_block *windat);
 
 static void panel_update_grid_info(struct panel_block *windat);
+
+static void panel_add_buttons_from_db(struct panel_block *windat);
+
 static void panel_rebuild_window(struct panel_block *windat);
 
 static void panel_create_icon(struct panel_block *windat, struct icondb_button *button);
@@ -360,21 +363,22 @@ void panel_terminate(void)
  * Create a new button bar instance, using a given database entry.
  *
  * \param key			The database key to use.
+ * \return			The new instance, or NULL.
  */
 
-static void panel_create_instance(unsigned key)
+static struct panel_block *panel_create_instance(unsigned key)
 {
 	struct paneldb_entry panel;
 	struct panel_block *new;
 
 	if (paneldb_get_panel_info(key, &panel) == NULL)
-		return;
+		return NULL;
 
 	new = heap_alloc(sizeof(struct panel_block));
 	if (new == NULL)
-		return;
+		return NULL;
 
-	debug_printf("\\GNew Buttons Instance Created: 0x%x", new);
+	debug_printf("\\GNew Panel Instance Created: 0x%x", new);
 
 	new->panel_id = key;
 	new->grid_columns = 0;
@@ -425,7 +429,8 @@ static void panel_create_instance(unsigned key)
 	/* Open the window. */
 
 	panel_update_grid_info(new);
-	panel_rebuild_window(new);
+
+	return new;
 }
 
 
@@ -448,6 +453,7 @@ void panel_refresh_choices(void)
 
 	while (windat != NULL) {
 		panel_update_grid_info(windat);
+		panel_update_window_extent(windat);
 		panel_rebuild_window(windat);
 
 		windat = windat->next;
@@ -965,6 +971,7 @@ static void panel_update_positions(void)
 		}
 
 		panel_update_window_extent(panels[i]);
+		panel_rebuild_window(panels[i]);
 		panel_reopen_window(panels[i]);
 	}
 
@@ -1007,7 +1014,6 @@ static void panel_update_grid_info(struct panel_block *windat)
 	if (windat == NULL)
 		return;
 
-
 	windat->grid_columns = config_int_read("WindowColumns");
 
 	if (panel_grid_square + panel_grid_spacing != 0)
@@ -1015,8 +1021,6 @@ static void panel_update_grid_info(struct panel_block *windat)
 				(panel_grid_square + panel_grid_spacing);
 	else
 		windat->grid_rows = 0;
-
-	panel_update_window_extent(windat);
 }
 
 /**
@@ -1154,9 +1158,8 @@ static void panel_update_window_extent(struct panel_block *windat)
 
 void panel_create_from_db(void)
 {
-	unsigned		key, panel;
-	struct icondb_button	*new;
-	struct panel_block	*windat;
+	unsigned		key;
+	struct panel_block	*windat = NULL;
 
 	/* Create the panels defined in the database. */
 
@@ -1165,11 +1168,40 @@ void panel_create_from_db(void)
 	do {
 		key = paneldb_get_next_key(key);
 
-		if (key != PANELDB_NULL_KEY)
-			panel_create_instance(key);
+		if (key == PANELDB_NULL_KEY)
+			continue;
+
+		windat = panel_create_instance(key);
+		if (windat == NULL)
+			continue;
+
+		panel_add_buttons_from_db(windat);
 	} while (key != PANELDB_NULL_KEY);
 
-	/* Add the buttons defined in the database. */
+
+	panel_update_positions();
+}
+
+/**
+ * Add the buttons to a panel's icon database from the main
+ * application database.
+ * 
+ * \param *windat		The panel to be updated.
+ */
+
+static void panel_add_buttons_from_db(struct panel_block *windat)
+{
+	unsigned		key, panel;
+	struct appdb_entry	*entry;
+	struct icondb_button	*new;
+
+	/* Remove any icons from the icon database. This could leave
+	 * orphaned icons in the window if we're not careful.
+	 */
+
+	icondb_reset_instance(windat->icondb);
+
+	/* Add the icons to the database one by one. */
 
 	key = APPDB_NULL_KEY;
 
@@ -1181,20 +1213,21 @@ void panel_create_from_db(void)
 			if (panel == APPDB_NULL_PANEL)
 				continue;
 
-			windat = panel_find_id(panel);
-			if (windat == NULL)
+			if (windat->panel_id != panel)
 				continue;
 
 			new = icondb_create_icon(windat->icondb, key);
+			if (new != NULL) {
+				entry = appdb_get_button_info(key, NULL);
+				if (entry == NULL)
+					continue;
 
-			if (new != NULL)
-				panel_create_icon(windat, new);
+				new->position.x = entry->position.x;
+				new->position.y = entry->position.y;
+			}
 		}
 	} while (key != APPDB_NULL_KEY);
-
-	panel_update_positions();
 }
-
 
 /**
  * Rebuild the contents of a buttons window.
@@ -1237,6 +1270,8 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 	os_error		*error = NULL;
 	struct appdb_entry	*entry = NULL;
 
+	debug_printf("Create icon: windat=0x%x, button=0x%x", windat, button);
+
 	if (windat == NULL || button == NULL)
 		return;
 
@@ -1248,15 +1283,20 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 	}
 
 	entry = appdb_get_button_info(button->key, NULL);
+	debug_printf("App details: entry=0x%x", entry);
 	if (entry == NULL)
 		return;
 
 	panel_icon_def.w = windat->window;
 
-	panel_icon_def.icon.extent.x1 = windat->origin_x - entry->position.x * (panel_grid_square + panel_grid_spacing);
+	panel_icon_def.icon.extent.x1 = windat->origin_x - button->position.x * (panel_grid_square + panel_grid_spacing);
 	panel_icon_def.icon.extent.x0 = panel_icon_def.icon.extent.x1 - panel_slab_width;
-	panel_icon_def.icon.extent.y1 = windat->origin_y - entry->position.y * (panel_grid_square + panel_grid_spacing);
+	panel_icon_def.icon.extent.y1 = windat->origin_y - button->position.y * (panel_grid_square + panel_grid_spacing);
 	panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
+
+	debug_printf("Creating icon: x0=%d, y0=%d, x1=%d, y1=%d",
+			panel_icon_def.icon.extent.x0, panel_icon_def.icon.extent.y0,
+			panel_icon_def.icon.extent.x1, panel_icon_def.icon.extent.y1);
 
 	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
 	panel_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
@@ -1264,7 +1304,7 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 	button->window = windat->window;
 	button->icon = wimp_create_icon(&panel_icon_def);
 
-	windows_redraw(windat->window);
+//	windows_redraw(windat->window);
 }
 
 
