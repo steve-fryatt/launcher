@@ -22,7 +22,7 @@
  */
 
 /**
- * \file: buttons.c
+ * \file: panel.c
  */
 
 /* ANSI C header files. */
@@ -50,7 +50,7 @@
 
 /* Application header files. */
 
-#include "buttons.h"
+#include "panel.h"
 
 #include "appdb.h"
 #include "choices.h"
@@ -63,44 +63,44 @@
 
 /* Button Window */
 
-#define BUTTONS_ICON_SIDEBAR 0
-#define BUTTONS_ICON_TEMPLATE 1
+#define PANEL_ICON_SIDEBAR 0
+#define PANEL_ICON_TEMPLATE 1
 
 /* Main Menu */
 
-#define BUTTONS_MENU_INFO 0
-#define BUTTONS_MENU_HELP 1
-#define BUTTONS_MENU_BUTTON 2
-#define BUTTONS_MENU_NEW_BUTTON 3
-#define BUTTONS_MENU_SAVE_BUTTONS 4
-#define BUTTONS_MENU_CHOICES 5
-#define BUTTONS_MENU_QUIT 6
+#define PANEL_MENU_INFO 0
+#define PANEL_MENU_HELP 1
+#define PANEL_MENU_BUTTON 2
+#define PANEL_MENU_NEW_BUTTON 3
+#define PANEL_MENU_SAVE_BUTTONS 4
+#define PANEL_MENU_CHOICES 5
+#define PANEL_MENU_QUIT 6
 
 /* Button Submenu */
 
-#define BUTTONS_MENU_BUTTON_EDIT 0
-#define BUTTONS_MENU_BUTTON_MOVE 1
-#define BUTTONS_MENU_BUTTON_DELETE 2
+#define PANEL_MENU_BUTTON_EDIT 0
+#define PANEL_MENU_BUTTON_MOVE 1
+#define PANEL_MENU_BUTTON_DELETE 2
 
 /**
  * The possible buttons window positions.
  */
 
-enum buttons_position {
-	BUTTONS_POSITION_NONE = 0,
-	BUTTONS_POSITION_LEFT = 1,
-	BUTTONS_POSITION_RIGHT = 2,
-	BUTTONS_POSITION_VERTICAL = 3,
-	BUTTONS_POSITION_TOP = 4,
-	BUTTONS_POSITION_BOTTOM = 8,
-	BUTTONS_POSITION_HORIZONTAL = 12
+enum panel_position {
+	PANEL_POSITION_NONE = 0,
+	PANEL_POSITION_LEFT = 1,
+	PANEL_POSITION_RIGHT = 2,
+	PANEL_POSITION_VERTICAL = 3,
+	PANEL_POSITION_TOP = 4,
+	PANEL_POSITION_BOTTOM = 8,
+	PANEL_POSITION_HORIZONTAL = 12
 };
 
 /**
  * The buttion instance data block.
  */
 
-struct buttons_block {
+struct panel_block {
 	/**
 	 * The panel ID, as used in the configuration.
 	 */
@@ -111,7 +111,7 @@ struct buttons_block {
 	 * The location of the panel.
 	 */
 
-	enum buttons_position location;
+	enum panel_position location;
 
 	/**
 	 * The icon database to use for the panel.
@@ -183,7 +183,7 @@ struct buttons_block {
 	 * The next instance in the list, or NULL.
 	 */
 
-	struct buttons_block *next;
+	struct panel_block *next;
 };
 
 /* Global Variables. */
@@ -192,148 +192,148 @@ struct buttons_block {
  * The list of buttons windows.
  */
 
-static struct buttons_block *buttons_list = NULL;
+static struct panel_block *panel_list = NULL;
 
 /**
  * The Wimp window definition for a button window.
  */
 
-static wimp_window *buttons_window_def;
+static wimp_window *panel_window_def;
 
 /**
  * The Wimp icon definition for a button icon.
  */
 
-static wimp_icon_create buttons_icon_def;
+static wimp_icon_create panel_icon_def;
 
 /**
  * The width of the current mode, in OS Units.
  */
 
-static int buttons_mode_width;
+static int panel_mode_width;
 
 /**
  * The height of the current mode, in OS Units.
  */
 
-static int buttons_mode_height;
+static int panel_mode_height;
 
 /**
  * The height of the iconbar, in OS Units.
  */
 
-static int buttons_iconbar_height;
+static int panel_iconbar_height;
 
 /**
  * The number of OS units per pixel horizontally in the current mode.
  */
 
-static int buttons_mode_x_units_per_pixel;
+static int panel_mode_x_units_per_pixel;
 
 /**
  * The number of OS units per pixel vertically in the current mode.
  */
 
-static int buttons_mode_y_units_per_pixel;
+static int panel_mode_y_units_per_pixel;
 
 /**
  * The size of a grid square (in OS units).
  */
 
-static int buttons_grid_square;
+static int panel_grid_square;
 
 /**
  * The spacing between grid squares (in OS units).
  */
 
-static int buttons_grid_spacing;
+static int panel_grid_spacing;
 
 
 /**
  * The width of one button slab (in OS units).
  */
 
-static int buttons_slab_width;
+static int panel_slab_width;
 
 /**
  * The height of one button slab (in OS units).
  */
 
-static int buttons_slab_height;
+static int panel_slab_height;
 
 /**
  * The handle of the main menu.
  */
 
-static wimp_menu *buttons_menu = NULL;
+static wimp_menu *panel_menu = NULL;
 
 /**
  * The block for the icon over which the main menu last opened.
  */
 
-static struct icondb_button *buttons_menu_icon = NULL;
+static struct icondb_button *panel_menu_icon = NULL;
 
 /**
  * The grid coordinates where the main menu last opened.
  */
 
-static os_coord buttons_menu_coordinate;
+static os_coord panel_menu_coordinate;
 
 /* Static Function Prototypes. */
 
-static void buttons_create_instance(unsigned key);
+static void panel_create_instance(unsigned key);
 
-static void buttons_click_handler(wimp_pointer *pointer);
-static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
-static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
-static osbool buttons_message_mode_change(wimp_message *message);
+static void panel_click_handler(wimp_pointer *pointer);
+static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
+static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static osbool panel_message_mode_change(wimp_message *message);
 
-static void buttons_update_mode_details(void);
+static void panel_update_mode_details(void);
 
-static void buttons_toggle_window(struct buttons_block *windat);
-static void buttons_reopen_window(struct buttons_block *windat);
-static void buttons_open_window(wimp_open *open);
-static void buttons_update_positions(void);
+static void panel_toggle_window(struct panel_block *windat);
+static void panel_reopen_window(struct panel_block *windat);
+static void panel_open_window(wimp_open *open);
+static void panel_update_positions(void);
 static int compare_panels(const void *p, const void *q);
-static void buttons_update_window_extent(struct buttons_block *windat);
+static void panel_update_window_extent(struct panel_block *windat);
 
-static void buttons_update_grid_info(struct buttons_block *windat);
-static void buttons_rebuild_window(struct buttons_block *windat);
+static void panel_update_grid_info(struct panel_block *windat);
+static void panel_rebuild_window(struct panel_block *windat);
 
-static void buttons_create_icon(struct buttons_block *windat, struct icondb_button *button);
-static void buttons_delete_icon(struct buttons_block *windat, struct icondb_button *button);
-static void buttons_press(struct buttons_block *windat, wimp_i icon);
+static void panel_create_icon(struct panel_block *windat, struct icondb_button *button);
+static void panel_delete_icon(struct panel_block *windat, struct icondb_button *button);
+static void panel_press(struct panel_block *windat, wimp_i icon);
 
-static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid);
-static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *data);
+static void panel_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid);
+static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data);
 
-static struct buttons_block *buttons_find_id(unsigned id);
+static struct panel_block *panel_find_id(unsigned id);
 
 
 /**
  * Initialise the buttons window.
  */
 
-void buttons_initialise(void)
+void panel_initialise(void)
 {
 	/* Initialise the menus used in the window. */
 
-	buttons_menu = templates_get_menu("MainMenu");
-	ihelp_add_menu(buttons_menu, "MainMenu");
+	panel_menu = templates_get_menu("MainMenu");
+	ihelp_add_menu(panel_menu, "MainMenu");
 
 	/* Initialise the main Buttons window template. */
 
-	buttons_window_def = templates_load_window("Launch");
-	if (buttons_window_def == NULL)
+	panel_window_def = templates_load_window("Launch");
+	if (panel_window_def == NULL)
 		error_msgs_report_fatal("BadTemplate");
 
-	buttons_window_def->icon_count = 1;
+	panel_window_def->icon_count = 1;
 
-	buttons_icon_def.icon = buttons_window_def->icons[BUTTONS_ICON_TEMPLATE];
+	panel_icon_def.icon = panel_window_def->icons[PANEL_ICON_TEMPLATE];
 
 	/* Watch out for Message_ModeChange. */
 
-	event_add_message_handler(message_MODE_CHANGE, EVENT_MESSAGE_INCOMING, buttons_message_mode_change);
+	event_add_message_handler(message_MODE_CHANGE, EVENT_MESSAGE_INCOMING, panel_message_mode_change);
 
 	/* Initialise the Edit dialogue. */
 
@@ -341,8 +341,8 @@ void buttons_initialise(void)
 
 	/* Correctly size the window for the current mode. */
 
-	buttons_update_mode_details();
-	buttons_refresh_choices();
+	panel_update_mode_details();
+	panel_refresh_choices();
 }
 
 
@@ -350,7 +350,7 @@ void buttons_initialise(void)
  * Terminate the buttons window.
  */
 
-void buttons_terminate(void)
+void panel_terminate(void)
 {
 	icondb_terminate();
 	edit_terminate();
@@ -362,15 +362,15 @@ void buttons_terminate(void)
  * \param key			The database key to use.
  */
 
-static void buttons_create_instance(unsigned key)
+static void panel_create_instance(unsigned key)
 {
 	struct paneldb_entry panel;
-	struct buttons_block *new;
+	struct panel_block *new;
 
 	if (paneldb_get_panel_info(key, &panel) == NULL)
 		return;
 
-	new = heap_alloc(sizeof(struct buttons_block));
+	new = heap_alloc(sizeof(struct panel_block));
 	if (new == NULL)
 		return;
 
@@ -387,19 +387,19 @@ static void buttons_create_instance(unsigned key)
 
 	switch (panel.position) {
 	case PANELDB_POSITION_LEFT:
-		new->location = BUTTONS_POSITION_LEFT;
+		new->location = PANEL_POSITION_LEFT;
 		break;
 	case PANELDB_POSITION_RIGHT:
-		new->location = BUTTONS_POSITION_RIGHT;
+		new->location = PANEL_POSITION_RIGHT;
 		break;
 	case PANELDB_POSITION_TOP:
-		new->location = BUTTONS_POSITION_TOP;
+		new->location = PANEL_POSITION_TOP;
 		break;
 	case PANELDB_POSITION_BOTTOM:
-		new->location = BUTTONS_POSITION_BOTTOM;
+		new->location = PANEL_POSITION_BOTTOM;
 		break;
 	default:
-		new->location = BUTTONS_POSITION_LEFT;
+		new->location = PANEL_POSITION_LEFT;
 		break;
 	}
 
@@ -408,24 +408,24 @@ static void buttons_create_instance(unsigned key)
 	new->longitude_weight = panel.width;
 	new->sort = panel.sort;
 
-	new->window = wimp_create_window(buttons_window_def);
+	new->window = wimp_create_window(panel_window_def);
 	ihelp_add_window(new->window, "Launch", NULL);
 	event_add_window_user_data(new->window, new);
-	event_add_window_open_event(new->window, buttons_open_window);
-	event_add_window_mouse_event(new->window, buttons_click_handler);
-	event_add_window_menu(new->window, buttons_menu);
-	event_add_window_menu_prepare(new->window, buttons_menu_prepare);
-	event_add_window_menu_selection(new->window, buttons_menu_selection);
+	event_add_window_open_event(new->window, panel_open_window);
+	event_add_window_mouse_event(new->window, panel_click_handler);
+	event_add_window_menu(new->window, panel_menu);
+	event_add_window_menu_prepare(new->window, panel_menu_prepare);
+	event_add_window_menu_selection(new->window, panel_menu_selection);
 
 	/* Link the window in to the data structure. */
 
-	new->next = buttons_list;
-	buttons_list = new;
+	new->next = panel_list;
+	panel_list = new;
 
 	/* Open the window. */
 
-	buttons_update_grid_info(new);
-	buttons_rebuild_window(new);
+	panel_update_grid_info(new);
+	panel_rebuild_window(new);
 }
 
 
@@ -434,21 +434,21 @@ static void buttons_create_instance(unsigned key)
  * and force an update of any relevant parameters.
  */
 
-void buttons_refresh_choices(void)
+void panel_refresh_choices(void)
 {
-	struct buttons_block *windat = buttons_list;
+	struct panel_block *windat = panel_list;
 
-	buttons_grid_square = config_int_read("GridSize");
-	buttons_grid_spacing = config_int_read("GridSpacing");
+	panel_grid_square = config_int_read("GridSize");
+	panel_grid_spacing = config_int_read("GridSpacing");
 
 	/* Buttons span two grid squares, and cover the spacing in between those. */
 
-	buttons_slab_width = 2 * buttons_grid_square + buttons_grid_spacing;
-	buttons_slab_height = 2 * buttons_grid_square + buttons_grid_spacing;
+	panel_slab_width = 2 * panel_grid_square + panel_grid_spacing;
+	panel_slab_height = 2 * panel_grid_square + panel_grid_spacing;
 
 	while (windat != NULL) {
-		buttons_update_grid_info(windat);
-		buttons_rebuild_window(windat);
+		panel_update_grid_info(windat);
+		panel_rebuild_window(windat);
 
 		windat = windat->next;
 	}
@@ -461,9 +461,9 @@ void buttons_refresh_choices(void)
  * \param *pointer		The mouse event block to handle.
  */
 
-static void buttons_click_handler(wimp_pointer *pointer)
+static void panel_click_handler(wimp_pointer *pointer)
 {
-	struct buttons_block *windat;
+	struct panel_block *windat;
 
 	if (pointer == NULL)
 		return;
@@ -475,13 +475,13 @@ static void buttons_click_handler(wimp_pointer *pointer)
 	switch ((int) pointer->buttons) {
 	case wimp_CLICK_SELECT:
 	case wimp_CLICK_ADJUST:
-		if (pointer->i == BUTTONS_ICON_SIDEBAR) {
-			buttons_toggle_window(windat);
+		if (pointer->i == PANEL_ICON_SIDEBAR) {
+			panel_toggle_window(windat);
 		} else {
-			buttons_press(windat, pointer->i);
+			panel_press(windat, pointer->i);
 
 			if (pointer->buttons == wimp_CLICK_SELECT)
-				buttons_toggle_window(windat);
+				panel_toggle_window(windat);
 		}
 		break;
 	}
@@ -496,10 +496,10 @@ static void buttons_click_handler(wimp_pointer *pointer)
  * \param  *pointer		Pointer to the Wimp Pointer event block.
  */
 
-static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
+static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
 	wimp_window_state	window;
-	struct buttons_block	*windat;
+	struct panel_block	*windat;
 
 
 	if (pointer == NULL)
@@ -509,22 +509,22 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
 	if (windat == NULL)
 		return;
 
-	if (pointer->i == wimp_ICON_WINDOW || pointer->i == BUTTONS_ICON_SIDEBAR)
-		buttons_menu_icon = NULL;
+	if (pointer->i == wimp_ICON_WINDOW || pointer->i == PANEL_ICON_SIDEBAR)
+		panel_menu_icon = NULL;
 	else
-		buttons_menu_icon = icondb_find_icon(windat->icondb, pointer->w, pointer->i);
+		panel_menu_icon = icondb_find_icon(windat->icondb, pointer->w, pointer->i);
 
-	menus_shade_entry(buttons_menu, BUTTONS_MENU_BUTTON, (buttons_menu_icon == NULL) ? TRUE : FALSE);
-	menus_shade_entry(buttons_menu, BUTTONS_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
+	menus_shade_entry(panel_menu, PANEL_MENU_BUTTON, (panel_menu_icon == NULL) ? TRUE : FALSE);
+	menus_shade_entry(panel_menu, PANEL_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
 
 	window.w = w;
 	wimp_get_window_state(&window);
 
-	buttons_menu_coordinate.x = (pointer->pos.x - window.visible.x0) + window.xscroll;
-	buttons_menu_coordinate.y = (window.visible.y1 - pointer->pos.y) - window.yscroll;
+	panel_menu_coordinate.x = (pointer->pos.x - window.visible.x0) + window.xscroll;
+	panel_menu_coordinate.y = (window.visible.y1 - pointer->pos.y) - window.yscroll;
 
-	buttons_menu_coordinate.x = (windat->origin_x - (buttons_menu_coordinate.x - (buttons_grid_spacing / 2))) / (buttons_grid_square + buttons_grid_spacing);
-	buttons_menu_coordinate.y = (windat->origin_y + (buttons_menu_coordinate.y + (buttons_grid_spacing / 2))) / (buttons_grid_square + buttons_grid_spacing);
+	panel_menu_coordinate.x = (windat->origin_x - (panel_menu_coordinate.x - (panel_grid_spacing / 2))) / (panel_grid_square + panel_grid_spacing);
+	panel_menu_coordinate.y = (windat->origin_y + (panel_menu_coordinate.y + (panel_grid_spacing / 2))) / (panel_grid_square + panel_grid_spacing);
 }
 
 
@@ -536,11 +536,11 @@ static void buttons_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointe
  * \param  *selection		Pointer to the Wimp menu selction block.
  */
 
-static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
+static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection)
 {
 	wimp_pointer		pointer;
 	os_error		*error;
-	struct buttons_block	*windat;
+	struct panel_block	*windat;
 
 	windat = event_get_window_user_data(w);
 	if (windat == NULL)
@@ -549,42 +549,42 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
 	wimp_get_pointer_info(&pointer);
 
 	switch (selection->items[0]) {
-	case BUTTONS_MENU_HELP:
+	case PANEL_MENU_HELP:
 		error = xos_cli("%Filer_Run <Launcher$Dir>.!Help");
 		if (error != NULL)
 			error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
 		break;
 
-	case BUTTONS_MENU_BUTTON:
-		if (buttons_menu_icon != NULL) {
+	case PANEL_MENU_BUTTON:
+		if (panel_menu_icon != NULL) {
 			switch (selection->items[1]) {
-			case BUTTONS_MENU_BUTTON_EDIT:
-				buttons_open_edit_dialogue(&pointer, buttons_menu_icon, NULL);
+			case PANEL_MENU_BUTTON_EDIT:
+				panel_open_edit_dialogue(&pointer, panel_menu_icon, NULL);
 				break;
 
-			case BUTTONS_MENU_BUTTON_DELETE:
+			case PANEL_MENU_BUTTON_DELETE:
 				if (!config_opt_read("ConfirmDelete") || (error_msgs_report_question("QDelete", "QDeleteB") == 3)) {
-					buttons_delete_icon(windat, buttons_menu_icon);
-					buttons_menu_icon = NULL;
+					panel_delete_icon(windat, panel_menu_icon);
+					panel_menu_icon = NULL;
 				}
 				break;
 			}
 		}
 		break;
 
-	case BUTTONS_MENU_NEW_BUTTON:
-		buttons_open_edit_dialogue(&pointer, buttons_menu_icon, &buttons_menu_coordinate);
+	case PANEL_MENU_NEW_BUTTON:
+		panel_open_edit_dialogue(&pointer, panel_menu_icon, &panel_menu_coordinate);
 		break;
 
-	case BUTTONS_MENU_SAVE_BUTTONS:
+	case PANEL_MENU_SAVE_BUTTONS:
 		filing_save("Buttons");
 		break;
 
-	case BUTTONS_MENU_CHOICES:
+	case PANEL_MENU_CHOICES:
 		choices_open_window(&pointer);
 		break;
 
-	case BUTTONS_MENU_QUIT:
+	case PANEL_MENU_QUIT:
 		main_quit_flag = TRUE;
 		break;
 	}
@@ -597,9 +597,9 @@ static void buttons_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *se
  * \param *message		The message data block from the Wimp.
  */
 
-static osbool buttons_message_mode_change(wimp_message *message)
+static osbool panel_message_mode_change(wimp_message *message)
 {
-	buttons_update_mode_details();
+	panel_update_mode_details();
 	return TRUE;
 }
 
@@ -608,7 +608,7 @@ static osbool buttons_message_mode_change(wimp_message *message)
  * Update the details of the current screen mode.
  */
 
-static void buttons_update_mode_details(void)
+static void panel_update_mode_details(void)
 {
 	wimp_window_state	state;
 	os_error		*error;
@@ -619,25 +619,25 @@ static void buttons_update_mode_details(void)
 	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_XWIND_LIMIT, &dimension);
 	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_XEIG_FACTOR, &shift);
 
-	buttons_mode_width = ((dimension + 1) << shift);
-	buttons_mode_x_units_per_pixel = 1 << shift;
+	panel_mode_width = ((dimension + 1) << shift);
+	panel_mode_x_units_per_pixel = 1 << shift;
 
 	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_YWIND_LIMIT, &dimension);
 	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_YEIG_FACTOR, &shift);
 
-	buttons_mode_height = ((dimension + 1) << shift);
-	buttons_mode_y_units_per_pixel = 1 << shift;
+	panel_mode_height = ((dimension + 1) << shift);
+	panel_mode_y_units_per_pixel = 1 << shift;
 
 	/* Get the iconbar height. */
 
 	state.w = wimp_ICON_BAR;
 	error = xwimp_get_window_state(&state);
 
-	buttons_iconbar_height = (error == NULL) ? state.visible.y1 : sf_ICONBAR_HEIGHT;
+	panel_iconbar_height = (error == NULL) ? state.visible.y1 : sf_ICONBAR_HEIGHT;
 
 	/* Update the bars. */
 
-	buttons_update_positions();
+	panel_update_positions();
 }
 
 
@@ -647,14 +647,14 @@ static void buttons_update_mode_details(void)
  * \param *windat		The window to be updated.
  */
 
-static void buttons_toggle_window(struct buttons_block *windat)
+static void panel_toggle_window(struct panel_block *windat)
 {
 	if (windat == NULL)
 		return;
 
 	windat->panel_is_open = !windat->panel_is_open;
 
-	buttons_reopen_window(windat);
+	panel_reopen_window(windat);
 }
 
 
@@ -665,7 +665,7 @@ static void buttons_toggle_window(struct buttons_block *windat)
  * \param *windat		The window to be reopened.
  */
 
-static void buttons_reopen_window(struct buttons_block *windat)
+static void panel_reopen_window(struct panel_block *windat)
 {
 	wimp_window_state	state;
 	os_error		*error;
@@ -678,7 +678,7 @@ static void buttons_reopen_window(struct buttons_block *windat)
 	if (error != NULL)
 		return;
 
-	buttons_open_window((wimp_open *) &state);
+	panel_open_window((wimp_open *) &state);
 }
 
 /**
@@ -688,9 +688,9 @@ static void buttons_reopen_window(struct buttons_block *windat)
  * \param *open			The Wimp_Open data for the window.
  */
 
-static void buttons_open_window(wimp_open *open)
+static void panel_open_window(wimp_open *open)
 {
-	struct buttons_block	*windat;
+	struct panel_block	*windat;
 	int			sidebar_size, grid_size;
 	wimp_icon_state		state;
 	os_error		*error;
@@ -704,7 +704,7 @@ static void buttons_open_window(wimp_open *open)
 		return;
 
 	state.w = windat->window;
-	state.i = BUTTONS_ICON_SIDEBAR;
+	state.i = PANEL_ICON_SIDEBAR;
 	error = xwimp_get_icon_state(&state);
 	if (error != NULL)
 		return;
@@ -714,10 +714,10 @@ static void buttons_open_window(wimp_open *open)
 	if (error != NULL)
 		return;
 
-	grid_size = buttons_grid_spacing + (windat->grid_columns * (buttons_grid_spacing + buttons_grid_square));
+	grid_size = panel_grid_spacing + (windat->grid_columns * (panel_grid_spacing + panel_grid_square));
 
 	switch (windat->location) {
-	case BUTTONS_POSITION_LEFT:
+	case PANEL_POSITION_LEFT:
 		sidebar_size = state.icon.extent.x1 - state.icon.extent.x0;
 
 		open->visible.x0 = 0;
@@ -729,11 +729,11 @@ static void buttons_open_window(wimp_open *open)
 		open->yscroll = 0;
 		break;
 
-	case BUTTONS_POSITION_RIGHT:
+	case PANEL_POSITION_RIGHT:
 		sidebar_size = state.icon.extent.x1 - state.icon.extent.x0;
 
-		open->visible.x0 = buttons_mode_width - (((windat->panel_is_open) ? grid_size : 0) + sidebar_size);
-		open->visible.x1 = buttons_mode_width;
+		open->visible.x0 = panel_mode_width - (((windat->panel_is_open) ? grid_size : 0) + sidebar_size);
+		open->visible.x1 = panel_mode_width;
 		open->visible.y0 = windat->min_longitude;
 		open->visible.y1 = windat->max_longitude;
 
@@ -741,33 +741,33 @@ static void buttons_open_window(wimp_open *open)
 		open->yscroll = 0;
 		break;
 
-	case BUTTONS_POSITION_TOP:
+	case PANEL_POSITION_TOP:
 		sidebar_size = state.icon.extent.y1 - state.icon.extent.y0;
 
 		open->visible.x0 = windat->min_longitude;
 		open->visible.x1 = windat->max_longitude;
-		open->visible.y0 = buttons_mode_height - (((windat->panel_is_open) ? grid_size : 0) + sidebar_size);
-		open->visible.y1 = buttons_mode_height;
+		open->visible.y0 = panel_mode_height - (((windat->panel_is_open) ? grid_size : 0) + sidebar_size);
+		open->visible.y1 = panel_mode_height;
 
 		open->xscroll = 0;
 		open->yscroll = (windat->panel_is_open) ? 0 : -grid_size;
 		break;
 
-	case BUTTONS_POSITION_BOTTOM:
+	case PANEL_POSITION_BOTTOM:
 		sidebar_size = state.icon.extent.y1 - state.icon.extent.y0;
 
 		open->visible.x0 = windat->min_longitude;
 		open->visible.x1 = windat->max_longitude;
-		open->visible.y0 = buttons_iconbar_height;
-		open->visible.y1 = buttons_iconbar_height + (((windat->panel_is_open) ? grid_size : 0) + sidebar_size);
+		open->visible.y0 = panel_iconbar_height;
+		open->visible.y1 = panel_iconbar_height + (((windat->panel_is_open) ? grid_size : 0) + sidebar_size);
 
 		open->xscroll = 0;
 		open->yscroll = 0;
 		break;
 
-	case BUTTONS_POSITION_HORIZONTAL:
-	case BUTTONS_POSITION_VERTICAL:
-	case BUTTONS_POSITION_NONE:
+	case PANEL_POSITION_HORIZONTAL:
+	case PANEL_POSITION_VERTICAL:
+	case PANEL_POSITION_NONE:
 		break;
 	}
 
@@ -780,10 +780,10 @@ static void buttons_open_window(wimp_open *open)
  * Update the positions of all of the bars on the screen.
  */
 
-static void buttons_update_positions(void)
+static void panel_update_positions(void)
 {
-	struct buttons_block	*windat = NULL;
-	struct buttons_block	**panels;
+	struct panel_block	*windat = NULL;
+	struct panel_block	**panels;
 	size_t			panel_count = 0;
 	os_box			locations, start_pos, next_pos, max_width, units, count;
 	int			i, sidebar_width, sidebar_height;
@@ -808,29 +808,29 @@ static void buttons_update_positions(void)
 
 	panel_count = 0;
 
-	windat = buttons_list;
+	windat = panel_list;
 
 	while (windat != NULL) {
 		switch (windat->location) {
-		case BUTTONS_POSITION_LEFT:
+		case PANEL_POSITION_LEFT:
 			locations.x0++;
 			units.x0 += windat->longitude_weight;
 			break;
-		case BUTTONS_POSITION_RIGHT:
+		case PANEL_POSITION_RIGHT:
 			locations.x1++;
 			units.x1 += windat->longitude_weight;
 			break;
-		case BUTTONS_POSITION_TOP:
+		case PANEL_POSITION_TOP:
 			locations.y1++;
 			units.y1 += windat->longitude_weight;
 			break;
-		case BUTTONS_POSITION_BOTTOM:
+		case PANEL_POSITION_BOTTOM:
 			locations.y0++;
 			units.y0 += windat->longitude_weight;
 			break;
-		case BUTTONS_POSITION_VERTICAL:
-		case BUTTONS_POSITION_HORIZONTAL:
-		case BUTTONS_POSITION_NONE:
+		case PANEL_POSITION_VERTICAL:
+		case PANEL_POSITION_HORIZONTAL:
+		case PANEL_POSITION_NONE:
 			break;
 		}
 
@@ -841,11 +841,11 @@ static void buttons_update_positions(void)
 
 	/* Create a sorted array of panels. */
 
-	panels = heap_alloc(sizeof(struct buttons_block *) * panel_count);
+	panels = heap_alloc(sizeof(struct panel_block *) * panel_count);
 	if (panels == NULL)
 		return;
 
-	windat = buttons_list;
+	windat = panel_list;
 	i = 0;
 
 	while ((windat != NULL) && (i < panel_count)) {
@@ -854,29 +854,29 @@ static void buttons_update_positions(void)
 		windat = windat->next;
 	}
 
-	qsort(panels, panel_count, sizeof(struct buttons_block *), &compare_panels);
+	qsort(panels, panel_count, sizeof(struct panel_block *), &compare_panels);
 
 	/* Work out the size of the sidebar icon. */
 
-	sidebar_width = buttons_window_def->icons[BUTTONS_ICON_SIDEBAR].extent.x1 -
-			buttons_window_def->icons[BUTTONS_ICON_SIDEBAR].extent.x0;
+	sidebar_width = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x1 -
+			panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x0;
 
-	sidebar_height = buttons_window_def->icons[BUTTONS_ICON_SIDEBAR].extent.y1 -
-			buttons_window_def->icons[BUTTONS_ICON_SIDEBAR].extent.y0;
+	sidebar_height = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y1 -
+			panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y0;
 
 	/* The lowest position of the first bar on each side of the screen. */
 
-	start_pos.x0 = buttons_iconbar_height;
-	start_pos.x1 = buttons_iconbar_height;
+	start_pos.x0 = panel_iconbar_height;
+	start_pos.x1 = panel_iconbar_height;
 	start_pos.y0 = 0;
 	start_pos.y1 = 0;
 
 	/* The end-to-end distance for all the bars on each side of the screen. */
 
-	max_width.x0 = buttons_mode_height - buttons_iconbar_height;
-	max_width.x1 = buttons_mode_height - buttons_iconbar_height;
-	max_width.y0 = buttons_mode_width;
-	max_width.y1 = buttons_mode_width;
+	max_width.x0 = panel_mode_height - panel_iconbar_height;
+	max_width.x1 = panel_mode_height - panel_iconbar_height;
+	max_width.y0 = panel_mode_width;
+	max_width.y1 = panel_mode_width;
 
 	/* If there's a bar on the left, push the top and bottom bars in. */
 
@@ -930,42 +930,42 @@ static void buttons_update_positions(void)
 
 	for (i = 0; i < panel_count; i++) {
 		switch (panels[i]->location) {
-		case BUTTONS_POSITION_LEFT:
+		case PANEL_POSITION_LEFT:
 			count.x0 += panels[i]->longitude_weight;
 			panels[i]->min_longitude = next_pos.x0;
 
 			panels[i]->max_longitude = ((count.x0 * max_width.x0) / units.x0) + start_pos.x0;
-			next_pos.x0 = panels[i]->max_longitude + buttons_mode_y_units_per_pixel;
+			next_pos.x0 = panels[i]->max_longitude + panel_mode_y_units_per_pixel;
 			break;
-		case BUTTONS_POSITION_RIGHT:
+		case PANEL_POSITION_RIGHT:
 			count.x1 += panels[i]->longitude_weight;
 			panels[i]->min_longitude = next_pos.x1;
 
 			panels[i]->max_longitude = ((count.x1 * max_width.x1) / units.x1) + start_pos.x1;
-			next_pos.x1 = panels[i]->max_longitude + buttons_mode_y_units_per_pixel;
+			next_pos.x1 = panels[i]->max_longitude + panel_mode_y_units_per_pixel;
 			break;
-		case BUTTONS_POSITION_TOP:
+		case PANEL_POSITION_TOP:
 			count.y1 += panels[i]->longitude_weight;
 			panels[i]->min_longitude = next_pos.y1;
 
 			panels[i]->max_longitude = ((count.y1 * max_width.y1) / units.y1) + start_pos.y1;
-			next_pos.y1 = panels[i]->max_longitude + buttons_mode_x_units_per_pixel;
+			next_pos.y1 = panels[i]->max_longitude + panel_mode_x_units_per_pixel;
 			break;
-		case BUTTONS_POSITION_BOTTOM:
+		case PANEL_POSITION_BOTTOM:
 			count.y0 += panels[i]->longitude_weight;
 			panels[i]->min_longitude = next_pos.y0;
 
 			panels[i]->max_longitude = ((count.y0 * max_width.y0) / units.y0) + start_pos.y0;
-			next_pos.y0 = panels[i]->max_longitude + buttons_mode_x_units_per_pixel;
+			next_pos.y0 = panels[i]->max_longitude + panel_mode_x_units_per_pixel;
 			break;
-		case BUTTONS_POSITION_VERTICAL:
-		case BUTTONS_POSITION_HORIZONTAL:
-		case BUTTONS_POSITION_NONE:
+		case PANEL_POSITION_VERTICAL:
+		case PANEL_POSITION_HORIZONTAL:
+		case PANEL_POSITION_NONE:
 			break;
 		}
 
-		buttons_update_window_extent(panels[i]);
-		buttons_reopen_window(panels[i]);
+		panel_update_window_extent(panels[i]);
+		panel_reopen_window(panels[i]);
 	}
 
 	/* Free the memory allocation. */
@@ -985,8 +985,8 @@ static void buttons_update_positions(void)
 
 static int compare_panels(const void *p, const void *q)
 {
-	const struct buttons_block * const *a = p;
-	const struct buttons_block * const *b = q;
+	const struct panel_block * const *a = p;
+	const struct panel_block * const *b = q;
 
 	if (a == NULL || *a == NULL || b == NULL || *b == NULL)
 		return 0;
@@ -1002,7 +1002,7 @@ static int compare_panels(const void *p, const void *q)
  * \param *windat		The window to be updated.
   */
 
-static void buttons_update_grid_info(struct buttons_block *windat)
+static void panel_update_grid_info(struct panel_block *windat)
 {
 	if (windat == NULL)
 		return;
@@ -1010,13 +1010,13 @@ static void buttons_update_grid_info(struct buttons_block *windat)
 
 	windat->grid_columns = config_int_read("WindowColumns");
 
-	if (buttons_grid_square + buttons_grid_spacing != 0)
+	if (panel_grid_square + panel_grid_spacing != 0)
 		windat->grid_rows = (windat->max_longitude - windat->min_longitude) /
-				(buttons_grid_square + buttons_grid_spacing);
+				(panel_grid_square + panel_grid_spacing);
 	else
 		windat->grid_rows = 0;
 
-	buttons_update_window_extent(windat);
+	panel_update_window_extent(windat);
 }
 
 /**
@@ -1026,7 +1026,7 @@ static void buttons_update_grid_info(struct buttons_block *windat)
  * \param *windat		The window to be reopened.
  */
 
-static void buttons_update_window_extent(struct buttons_block *windat)
+static void panel_update_window_extent(struct panel_block *windat)
 {
 	int			old_window_size = 0, new_window_size, sidebar_width = 0;
 	wimp_window_info	info;
@@ -1044,7 +1044,7 @@ static void buttons_update_window_extent(struct buttons_block *windat)
 		return;
 
 	state.w = windat->window;
-	state.i = BUTTONS_ICON_SIDEBAR;
+	state.i = PANEL_ICON_SIDEBAR;
 	error = xwimp_get_icon_state(&state);
 	if (error != NULL)
 		return;
@@ -1053,7 +1053,7 @@ static void buttons_update_window_extent(struct buttons_block *windat)
 
 	new_window_size = windat->max_longitude - windat->min_longitude;
 
-	if (windat->location & BUTTONS_POSITION_VERTICAL) {
+	if (windat->location & PANEL_POSITION_VERTICAL) {
 		old_window_size = info.extent.y1 - info.extent.y0;
 
 		/* Calculate the new vertical size of the window. */
@@ -1068,8 +1068,8 @@ static void buttons_update_window_extent(struct buttons_block *windat)
 		/* Calculate the new horizontal size of the window. */
 
 		info.extent.x0 = 0;
-		info.extent.x1 = info.extent.x0 + sidebar_width + buttons_grid_spacing +
-				windat->grid_columns * (buttons_grid_spacing + buttons_grid_square);
+		info.extent.x1 = info.extent.x0 + sidebar_width + panel_grid_spacing +
+				windat->grid_columns * (panel_grid_spacing + panel_grid_square);
 
 		/* Extend the extent if required, but never bother to shrink it. */
 
@@ -1078,7 +1078,7 @@ static void buttons_update_window_extent(struct buttons_block *windat)
 			if (error != NULL)
 				return;
 		}
-	} else if (windat->location & BUTTONS_POSITION_HORIZONTAL) {
+	} else if (windat->location & PANEL_POSITION_HORIZONTAL) {
 		old_window_size = info.extent.x1 - info.extent.x0;
 
 		/* Calculate the new horizontal size of the window. */
@@ -1093,8 +1093,8 @@ static void buttons_update_window_extent(struct buttons_block *windat)
 		/* Calculate the new vertical size of the window. */
 
 		info.extent.y1 = 0;
-		info.extent.y0 = info.extent.y1 - sidebar_width - buttons_grid_spacing -
-				windat->grid_columns * (buttons_grid_spacing + buttons_grid_square);
+		info.extent.y0 = info.extent.y1 - sidebar_width - panel_grid_spacing -
+				windat->grid_columns * (panel_grid_spacing + panel_grid_square);
 
 		/* Extend the extent if required, but never bother to shrink it. */
 
@@ -1108,41 +1108,41 @@ static void buttons_update_window_extent(struct buttons_block *windat)
 	/* Move the sidebar icon into its new location. */
 
 	switch (windat->location) {
-	case BUTTONS_POSITION_LEFT:
-		windat->origin_x = info.extent.x0 + windat->grid_columns * (buttons_grid_square + buttons_grid_spacing);
-		windat->origin_y = info.extent.y1 - buttons_grid_spacing;
+	case PANEL_POSITION_LEFT:
+		windat->origin_x = info.extent.x0 + windat->grid_columns * (panel_grid_square + panel_grid_spacing);
+		windat->origin_y = info.extent.y1 - panel_grid_spacing;
 
-		xwimp_resize_icon(windat->window, BUTTONS_ICON_SIDEBAR,
+		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x1 - sidebar_width, info.extent.y0, info.extent.x1, info.extent.y1);
 		break;
 
-	case BUTTONS_POSITION_RIGHT:
-		windat->origin_x = info.extent.x0 + windat->grid_columns * (buttons_grid_square + buttons_grid_spacing) + sidebar_width;
-		windat->origin_y = info.extent.y1 - buttons_grid_spacing;
+	case PANEL_POSITION_RIGHT:
+		windat->origin_x = info.extent.x0 + windat->grid_columns * (panel_grid_square + panel_grid_spacing) + sidebar_width;
+		windat->origin_y = info.extent.y1 - panel_grid_spacing;
 
-		xwimp_resize_icon(windat->window, BUTTONS_ICON_SIDEBAR,
+		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x0, info.extent.y0, info.extent.x0 + sidebar_width, info.extent.y1);
 		break;
 
-	case BUTTONS_POSITION_TOP:
-		windat->origin_x = info.extent.x0 + windat->grid_columns * (buttons_grid_square + buttons_grid_spacing);
-		windat->origin_y = info.extent.y1 - buttons_grid_spacing;
+	case PANEL_POSITION_TOP:
+		windat->origin_x = info.extent.x0 + windat->grid_columns * (panel_grid_square + panel_grid_spacing);
+		windat->origin_y = info.extent.y1 - panel_grid_spacing;
 
-		xwimp_resize_icon(windat->window, BUTTONS_ICON_SIDEBAR,
+		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x0, info.extent.y0, info.extent.x1, info.extent.y0 + sidebar_width);
 		break;
 
-	case BUTTONS_POSITION_BOTTOM:
-		windat->origin_x = info.extent.x0 + windat->grid_columns * (buttons_grid_square + buttons_grid_spacing);
-		windat->origin_y = info.extent.y1 - buttons_grid_spacing;
+	case PANEL_POSITION_BOTTOM:
+		windat->origin_x = info.extent.x0 + windat->grid_columns * (panel_grid_square + panel_grid_spacing);
+		windat->origin_y = info.extent.y1 - panel_grid_spacing;
 
-		xwimp_resize_icon(windat->window, BUTTONS_ICON_SIDEBAR,
+		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x0, info.extent.y1 - sidebar_width, info.extent.x1, info.extent.y1);
 		break;
 
-	case BUTTONS_POSITION_HORIZONTAL:
-	case BUTTONS_POSITION_VERTICAL:
-	case BUTTONS_POSITION_NONE:
+	case PANEL_POSITION_HORIZONTAL:
+	case PANEL_POSITION_VERTICAL:
+	case PANEL_POSITION_NONE:
 		break;
 	}
 }
@@ -1152,11 +1152,11 @@ static void buttons_update_window_extent(struct buttons_block *windat)
  * Create a full set of buttons from the contents of the application database.
  */
 
-void buttons_create_from_db(void)
+void panel_create_from_db(void)
 {
 	unsigned		key, panel;
 	struct icondb_button	*new;
-	struct buttons_block	*windat;
+	struct panel_block	*windat;
 
 	/* Create the panels defined in the database. */
 
@@ -1166,7 +1166,7 @@ void buttons_create_from_db(void)
 		key = paneldb_get_next_key(key);
 
 		if (key != PANELDB_NULL_KEY)
-			buttons_create_instance(key);
+			panel_create_instance(key);
 	} while (key != PANELDB_NULL_KEY);
 
 	/* Add the buttons defined in the database. */
@@ -1181,18 +1181,18 @@ void buttons_create_from_db(void)
 			if (panel == APPDB_NULL_PANEL)
 				continue;
 
-			windat = buttons_find_id(panel);
+			windat = panel_find_id(panel);
 			if (windat == NULL)
 				continue;
 
 			new = icondb_create_icon(windat->icondb, key);
 
 			if (new != NULL)
-				buttons_create_icon(windat, new);
+				panel_create_icon(windat, new);
 		}
 	} while (key != APPDB_NULL_KEY);
 
-	buttons_update_positions();
+	panel_update_positions();
 }
 
 
@@ -1202,7 +1202,7 @@ void buttons_create_from_db(void)
  * \param *windat		The window to be rebuilt.
  */
 
-static void buttons_rebuild_window(struct buttons_block *windat)
+static void panel_rebuild_window(struct panel_block *windat)
 {
 	struct icondb_button *button = NULL;
 	
@@ -1215,12 +1215,12 @@ static void buttons_rebuild_window(struct buttons_block *windat)
 
 	while (button != NULL) {
 		debug_printf("Recreating icon key=%u, window=0x%x, icon=%d", button->key, button->window, button->icon);
-		buttons_create_icon(windat, button);
+		panel_create_icon(windat, button);
 
 		button = button->next;
 	}
 
-	buttons_reopen_window(windat);
+	panel_reopen_window(windat);
 }
 
 
@@ -1232,7 +1232,7 @@ static void buttons_rebuild_window(struct buttons_block *windat)
  * \param *button		The definition to create an icon for.
  */
 
-static void buttons_create_icon(struct buttons_block *windat, struct icondb_button *button)
+static void panel_create_icon(struct panel_block *windat, struct icondb_button *button)
 {
 	os_error		*error = NULL;
 	struct appdb_entry	*entry = NULL;
@@ -1251,18 +1251,18 @@ static void buttons_create_icon(struct buttons_block *windat, struct icondb_butt
 	if (entry == NULL)
 		return;
 
-	buttons_icon_def.w = windat->window;
+	panel_icon_def.w = windat->window;
 
-	buttons_icon_def.icon.extent.x1 = windat->origin_x - entry->x * (buttons_grid_square + buttons_grid_spacing);
-	buttons_icon_def.icon.extent.x0 = buttons_icon_def.icon.extent.x1 - buttons_slab_width;
-	buttons_icon_def.icon.extent.y1 = windat->origin_y - entry->y * (buttons_grid_square + buttons_grid_spacing);
-	buttons_icon_def.icon.extent.y0 = buttons_icon_def.icon.extent.y1 - buttons_slab_height;
+	panel_icon_def.icon.extent.x1 = windat->origin_x - entry->x * (panel_grid_square + panel_grid_spacing);
+	panel_icon_def.icon.extent.x0 = panel_icon_def.icon.extent.x1 - panel_slab_width;
+	panel_icon_def.icon.extent.y1 = windat->origin_y - entry->y * (panel_grid_square + panel_grid_spacing);
+	panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
 
 	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
-	buttons_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
+	panel_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
 	button->window = windat->window;
-	button->icon = wimp_create_icon(&buttons_icon_def);
+	button->icon = wimp_create_icon(&panel_icon_def);
 
 	windows_redraw(windat->window);
 }
@@ -1275,7 +1275,7 @@ static void buttons_create_icon(struct buttons_block *windat, struct icondb_butt
  * \param *button		The button to be deleted.
  */
 
-static void buttons_delete_icon(struct buttons_block *windat, struct icondb_button *button)
+static void panel_delete_icon(struct panel_block *windat, struct icondb_button *button)
 {
 	os_error	*error;
 
@@ -1307,7 +1307,7 @@ static void buttons_delete_icon(struct buttons_block *windat, struct icondb_butt
  * \param icon			The handle of the icon being pressed.
  */
 
-static void buttons_press(struct buttons_block *windat, wimp_i icon)
+static void panel_press(struct panel_block *windat, wimp_i icon)
 {
 	struct appdb_entry	entry;
 	char			*buffer;
@@ -1353,7 +1353,7 @@ static void buttons_press(struct buttons_block *windat, wimp_i icon)
  * \param *grid		The coordinates for a blank dialogue.
  */
 
-static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid)
+static void panel_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid)
 {
 	struct appdb_entry entry;
 
@@ -1376,7 +1376,7 @@ static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_butt
 		entry.y = grid->y;
 	}
 
-	edit_open_dialogue(pointer, &entry, buttons_process_edit_dialogue, button);
+	edit_open_dialogue(pointer, &entry, panel_process_edit_dialogue, button);
 }
 
 
@@ -1388,15 +1388,15 @@ static void buttons_open_edit_dialogue(wimp_pointer *pointer, struct icondb_butt
  * \return		TRUE if the data is OK; FALSE to reject it.
  */
 
-static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *data)
+static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data)
 {
 	struct icondb_button *button = data;
-	struct buttons_block *windat = NULL;
+	struct panel_block *windat = NULL;
 
 	if (entry == NULL)
 		return FALSE;
 
-	windat = buttons_find_id(entry->panel);
+	windat = panel_find_id(entry->panel);
 	if (windat == NULL) {
 		error_msgs_report_error("BadPanel");
 		return FALSE;
@@ -1433,7 +1433,7 @@ static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *dat
 	entry->key = button->key;
 	appdb_set_button_info(entry);
 
-	buttons_create_icon(windat, button);
+	panel_create_icon(windat, button);
 
 	return TRUE;
 }
@@ -1446,9 +1446,9 @@ static osbool buttons_process_edit_dialogue(struct appdb_entry *entry, void *dat
  * \return		Pointer to the associated block, or NULL.
  */
 
-static struct buttons_block *buttons_find_id(unsigned id)
+static struct panel_block *panel_find_id(unsigned id)
 {
-	struct buttons_block *windat = buttons_list;
+	struct panel_block *windat = panel_list;
 
 	while (windat != NULL && windat->panel_id != id)
 		windat = windat->next;

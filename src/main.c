@@ -55,7 +55,7 @@
 #include "main.h"
 
 #include "appdb.h"
-#include "buttons.h"
+#include "panel.h"
 #include "choices.h"
 #include "filing.h"
 #include "paneldb.h"
@@ -107,7 +107,7 @@ int main(void)
 	main_poll_loop();
 
 	msgs_terminate();
-	buttons_terminate();
+	panel_terminate();
 	appdb_terminate();
 	paneldb_terminate();
 
@@ -216,7 +216,7 @@ static void main_initialise(void)
 	proginfo_initialise();
 	paneldb_initialise();
 	appdb_initialise();
-	buttons_initialise();
+	panel_initialise();
 	choices_initialise();
 
 	templates_close();
@@ -225,7 +225,7 @@ static void main_initialise(void)
 
 	filing_load("Buttons");
 	appdb_boot_all();
-	buttons_create_from_db();
+	panel_create_from_db();
 
 	/* Tidy up and finish initialisation. */
 

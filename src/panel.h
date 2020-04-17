@@ -22,32 +22,32 @@
  */
 
 /**
- * \file: buttons.h
+ * \file: panel.h
  */
 
-#ifndef LAUNCHER_BUTTONS
-#define LAUNCHER_BUTTONS
+#ifndef LAUNCHER_PANEL
+#define LAUNCHER_PANEL
 
 
 /**
  * Initialise the buttons window.
  */
 
-void buttons_initialise(void);
+void panel_initialise(void);
 
 
 /**
  * Terminate the buttons window.
  */
 
-void buttons_terminate(void);
+void panel_terminate(void);
 
 
 /**
  * Create a full set of buttons from the contents of the application database.
  */
 
-void buttons_create_from_db(void);
+void panel_create_from_db(void);
 
 
 /**
@@ -55,7 +55,7 @@ void buttons_create_from_db(void);
  * and force an update of any relevant parameters.
  */
 
-void buttons_refresh_choices(void);
+void panel_refresh_choices(void);
 
 #endif
 

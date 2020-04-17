@@ -56,7 +56,7 @@
 
 #include "choices.h"
 
-#include "buttons.h"
+#include "panel.h"
 
 
 /* Choices window icons. */
@@ -214,7 +214,7 @@ static void choices_click_handler(wimp_pointer *pointer)
 			if (pointer->i == CHOICE_ICON_SAVE)
 				config_save();
 
-			buttons_refresh_choices();
+			panel_refresh_choices();
 
 			if (pointer->buttons == wimp_CLICK_SELECT)
 				choices_close_window();
@@ -248,7 +248,7 @@ static osbool choices_keypress_handler(wimp_key *key)
 	switch (key->c) {
 	case wimp_KEY_RETURN:
 		choices_read_window();
-		buttons_refresh_choices();
+		panel_refresh_choices();
 		choices_close_window();
 		break;
 

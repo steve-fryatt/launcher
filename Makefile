@@ -1,4 +1,4 @@
-# Copyright 2012-2019, Stephen Fryatt
+# Copyright 2012-2020, Stephen Fryatt
 #
 # This file is part of Launcher:
 #
@@ -29,12 +29,12 @@ ARCHIVE := launcher
 APP := !Launcher
 
 OBJS =  appdb.o		\
-	buttons.o	\
 	choices.o	\
 	edit.o		\
 	filing.o	\
 	icondb.o	\
 	main.o		\
+	panel.o		\
 	paneldb.o	\
 	proginfo.o
 
