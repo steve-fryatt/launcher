@@ -360,7 +360,8 @@ void panel_terminate(void)
 }
 
 /**
- * Create a new button bar instance, using a given database entry.
+ * Create a new panel instance, using a given database entry.
+ * This does not open the panel.
  *
  * \param key			The database key to use.
  * \return			The new instance, or NULL.
@@ -425,10 +426,6 @@ static struct panel_block *panel_create_instance(unsigned key)
 
 	new->next = panel_list;
 	panel_list = new;
-
-	/* Open the window. */
-
-	panel_update_grid_info(new);
 
 	return new;
 }
@@ -970,6 +967,7 @@ static void panel_update_positions(void)
 			break;
 		}
 
+		panel_update_grid_info(panels[i]);
 		panel_update_window_extent(panels[i]);
 		panel_rebuild_window(panels[i]);
 		panel_reopen_window(panels[i]);
@@ -1224,7 +1222,8 @@ static void panel_add_buttons_from_db(struct panel_block *windat)
 }
 
 /**
- * Rebuild the contents of a buttons window.
+ * Rebuild the contents of a panel. This should be done after updating the
+ * panel's extent, so that icon origins are correct.
  *
  * \param *windat		The window to be rebuilt.
  */
