@@ -130,10 +130,11 @@ void icondb_reset_instance(struct icondb_block *instance);
  *
  * \param *instance	The instance to add the button to.
  * \param key		The key to assign to the new entry.
+ * \param *position	The position to assign to the new entry.
  * \return		Pointer to the new entry, or NULL on failure.
  */
 
-struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned key);
+struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned key, os_coord *position);
 
 
 /**

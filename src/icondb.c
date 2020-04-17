@@ -150,16 +150,18 @@ void icondb_reset_instance(struct icondb_block *instance)
 }
 
 /**
- * Create a new button entry in an icon database instance.
+ * Create a new button entry in an icon database instance, and
+ * link it in according to position in the panel.
  *
  * \param *instance	The instance to add the button to.
  * \param key		The key to assign to the new entry.
+ * \param *position	The position to assign to the new entry.
  * \return		Pointer to the new entry, or NULL on failure.
  */
 
-struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned key)
+struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned key, os_coord *position)
 {
-	struct icondb_button *button = NULL;
+	struct icondb_button *button = NULL, **current = NULL;
 
 	if (instance == NULL || key == APPDB_NULL_KEY)
 		return NULL;
@@ -169,15 +171,25 @@ struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned
 	if (button == NULL)
 		return NULL;
 
+	/* Fill in the default values. */
+
 	button->key = key;
 	button->window = NULL;
 	button->icon = -1;
 	button->validation[0] = '\0';
-	button->position.x = 0;
-	button->position.y = 0;
+	button->position.x = position->x;
+	button->position.y = position->y;
 
-	button->next = instance->buttons;
-	instance->buttons = button;
+	/* Link the icon into the database, in descending position order. */
+
+	current = &(instance->buttons);
+
+	while ((*current != NULL) && (((*current)->position.y < position->y) ||
+			(((*current)->position.y == position->y) && ((*current)->position.x < position->x))))
+		current = &((*current)->next);
+
+	button->next = *current;
+	*current = button;
 
 	return button;
 }

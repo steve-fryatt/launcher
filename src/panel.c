@@ -1192,8 +1192,7 @@ void panel_create_from_db(void)
 static void panel_add_buttons_from_db(struct panel_block *windat)
 {
 	unsigned		key, panel;
-	struct appdb_entry	*entry;
-	struct icondb_button	*new;
+	struct appdb_entry	entry;
 
 	/* Remove any icons from the icon database. This could leave
 	 * orphaned icons in the window if we're not careful.
@@ -1216,15 +1215,10 @@ static void panel_add_buttons_from_db(struct panel_block *windat)
 			if (windat->panel_id != panel)
 				continue;
 
-			new = icondb_create_icon(windat->icondb, key);
-			if (new != NULL) {
-				entry = appdb_get_button_info(key, NULL);
-				if (entry == NULL)
-					continue;
+			if (appdb_get_button_info(key, &entry) == NULL)
+				continue;
 
-				new->position.x = entry->position.x;
-				new->position.y = entry->position.y;
-			}
+			icondb_create_icon(windat->icondb, key, &(entry.position));
 		}
 	} while (key != APPDB_NULL_KEY);
 }
@@ -1283,9 +1277,10 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 	}
 
 	entry = appdb_get_button_info(button->key, NULL);
-	debug_printf("App details: entry=0x%x", entry);
 	if (entry == NULL)
 		return;
+
+	debug_printf("App details: entry=0x%x, name=%s", entry, entry->name);
 
 	panel_icon_def.w = windat->window;
 
@@ -1461,7 +1456,7 @@ static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data)
 	 */
 
 	if (button == NULL)
-		button = icondb_create_icon(windat->icondb, appdb_create_key());
+		button = icondb_create_icon(windat->icondb, appdb_create_key(), &(entry->position));
 
 	if (button == NULL) {
 		error_msgs_report_error("NoMemNewButton");
