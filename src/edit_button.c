@@ -74,12 +74,12 @@
 /* Static Function Prototypes. */
 
 static void		edit_button_close_window(void);
-static void		edit_button_fill_edit_window(struct appdb_entry *data);
-static void		edit_button_redraw_edit_window(void);
-static osbool		edit_button_read_edit_window(void);
+static void		edit_button_fill_window(struct appdb_entry *data);
+static void		edit_button_redraw_window(void);
+static osbool		edit_button_read_window(void);
 static osbool		edit_button_message_data_load(wimp_message *message);
-static osbool		edit_button_edit_keypress_handler(wimp_key *key);
-static void		edit_button_edit_click_handler(wimp_pointer *pointer);
+static osbool		edit_button_keypress_handler(wimp_key *key);
+static void		edit_button_click_handler(wimp_pointer *pointer);
 
 /* ================================================================================================================== */
 
@@ -118,8 +118,8 @@ void edit_button_initialise(void)
 
 	edit_button_window = templates_create_window("EditButton");
 	ihelp_add_window(edit_button_window, "EditButton", NULL);
-	event_add_window_mouse_event(edit_button_window, edit_button_edit_click_handler);
-	event_add_window_key_event(edit_button_window, edit_button_edit_keypress_handler);
+	event_add_window_mouse_event(edit_button_window, edit_button_click_handler);
+	event_add_window_key_event(edit_button_window, edit_button_keypress_handler);
 
 	/* Watch out for Message_ModeChange. */
 
@@ -163,7 +163,7 @@ void edit_button_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, 
 	edit_button_callback = callback;
 	edit_button_target_icon = target;
 
-	edit_button_fill_edit_window(edit_button_default_data);
+	edit_button_fill_window(edit_button_default_data);
 	windows_open_centred_at_pointer(edit_button_window, pointer);
 	icons_put_caret_at_end(edit_button_window, EDIT_BUTTON_ICON_NAME);
 }
@@ -175,14 +175,14 @@ void edit_button_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, 
  * \param *pointer	The mouse event block to handle.
  */
 
-static void edit_button_edit_click_handler(wimp_pointer *pointer)
+static void edit_button_click_handler(wimp_pointer *pointer)
 {
 	if (pointer == NULL)
 		return;
 
 	switch (pointer->i) {
 	case EDIT_BUTTON_ICON_OK:
-		if (edit_button_read_edit_window() && (pointer->buttons == wimp_CLICK_SELECT))
+		if (edit_button_read_window() && (pointer->buttons == wimp_CLICK_SELECT))
 			edit_button_close_window();
 		break;
 
@@ -190,8 +190,8 @@ static void edit_button_edit_click_handler(wimp_pointer *pointer)
 		if (pointer->buttons == wimp_CLICK_SELECT) {
 			edit_button_close_window();
 		} else if (pointer->buttons == wimp_CLICK_ADJUST) {
-			edit_button_fill_edit_window(edit_button_default_data);
-			edit_button_redraw_edit_window();
+			edit_button_fill_window(edit_button_default_data);
+			edit_button_redraw_window();
 		}
 		break;
 	}
@@ -205,14 +205,14 @@ static void edit_button_edit_click_handler(wimp_pointer *pointer)
  * \return		TRUE if the event was handled; else FALSE.
  */
 
-static osbool edit_button_edit_keypress_handler(wimp_key *key)
+static osbool edit_button_keypress_handler(wimp_key *key)
 {
 	if (key == NULL)
 		return FALSE;
 
 	switch (key->c) {
 	case wimp_KEY_RETURN:
-		if (edit_button_read_edit_window())
+		if (edit_button_read_window())
 			edit_button_close_window();
 		break;
 
@@ -254,7 +254,7 @@ static void edit_button_close_window(void)
  * \param *data		The data to write into the dialogue.
  */
 
-static void edit_button_fill_edit_window(struct appdb_entry *data)
+static void edit_button_fill_window(struct appdb_entry *data)
 {
 	if (data == NULL)
 		return;
@@ -275,7 +275,7 @@ static void edit_button_fill_edit_window(struct appdb_entry *data)
  * Redraw the contents of the button edit window.
  */
 
-static void edit_button_redraw_edit_window(void)
+static void edit_button_redraw_window(void)
 {
 	wimp_set_icon_state(edit_button_window, EDIT_BUTTON_ICON_NAME, 0, 0);
 	wimp_set_icon_state(edit_button_window, EDIT_BUTTON_ICON_SPRITE, 0, 0);
@@ -293,7 +293,7 @@ static void edit_button_redraw_edit_window(void)
  * \return		TRUE if the client accepted the date; otherwise FALSE.
  */
 
-static osbool edit_button_read_edit_window(void)
+static osbool edit_button_read_window(void)
 {
 	struct appdb_entry	entry;
 
@@ -352,7 +352,7 @@ static osbool edit_button_message_data_load(wimp_message *message)
 	icons_strncpy(edit_button_window, EDIT_BUTTON_ICON_SPRITE, spritename);
 	icons_strncpy(edit_button_window, EDIT_BUTTON_ICON_LOCATION, data_load->file_name);
 
-	edit_button_redraw_edit_window();
+	edit_button_redraw_window();
 
 	return TRUE;
 }
