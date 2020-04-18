@@ -30,7 +30,7 @@ APP := !Launcher
 
 OBJS =  appdb.o		\
 	choices.o	\
-	edit.o		\
+	edit_button.o	\
 	filing.o	\
 	icondb.o	\
 	main.o		\

@@ -54,16 +54,21 @@ Help.Launch:\TLauncher \w.|M\Slaunch applications and files.
 Help.Launch.Siebar:\TLauncher \w.|M\Sexpand or contract the display.
 Help.Launch.Button:\Sluanch this file or aplication.
 
-Help.Edit:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
-Help.Edit.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
-Help.Edit.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
-Help.Edit.Name:\Tname of the button.
-Help.Edit.XPos:\Thorizontal position of the button on the grid.
-Help.Edit.YPos:\Tvertical position of the button on the grid.
-Help.Edit.Sprite:\Tname of the sprite used on the button.
-Help.Edit.Location:\Tlocation of the file or application which will be run when the button is clicked.
-Help.Edit.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
-Help.Edit.Boot:\Stoggle whether the application will be filer-booted when Launcher starts.
+Help.EditPanel:\Tpane editing \w.
+Help.EditPanel.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
+Help.EditPanel.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
+Help.EditPanel.Name:\Tname of the panel.
+
+Help.EditButton:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
+Help.EditButton.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
+Help.EditButton.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
+Help.EditButton.Name:\Tname of the button.
+Help.EditButton.XPos:\Thorizontal position of the button on the grid.
+Help.EditButton.YPos:\Tvertical position of the button on the grid.
+Help.EditButton.Sprite:\Tname of the sprite used on the button.
+Help.EditButton.Location:\Tlocation of the file or application which will be run when the button is clicked.
+Help.EditButton.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
+Help.EditButton.Boot:\Stoggle whether the application will be filer-booted when Launcher starts.
 
 Help.Choices:\Tchoices window for Launcher.
 Help.Choices.Apply:\Sclose the choices \w and use the changes|M\Ause the changes.

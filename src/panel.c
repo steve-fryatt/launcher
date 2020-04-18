@@ -54,7 +54,7 @@
 
 #include "appdb.h"
 #include "choices.h"
-#include "edit.h"
+#include "edit_button.h"
 #include "filing.h"
 #include "icondb.h"
 #include "main.h"
@@ -333,7 +333,7 @@ void panel_initialise(void)
 
 	/* Initialise the Edit dialogue. */
 
-	edit_initialise();
+	edit_button_initialise();
 
 	/* Correctly size the window for the current mode. */
 
@@ -349,7 +349,7 @@ void panel_initialise(void)
 void panel_terminate(void)
 {
 	icondb_terminate();
-	edit_terminate();
+	edit_button_terminate();
 }
 
 /**
@@ -1590,7 +1590,7 @@ static void panel_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button
 		app.position.y = grid->y;
 	}
 
-	edit_open_dialogue(pointer, &app, panel_process_edit_dialogue, button);
+	edit_button_open_dialogue(pointer, &app, panel_process_edit_dialogue, button);
 }
 
 
