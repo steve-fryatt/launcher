@@ -31,6 +31,7 @@ APP := !Launcher
 OBJS =  appdb.o		\
 	choices.o	\
 	edit_button.o	\
+	edit_panel.o	\
 	filing.o	\
 	icondb.o	\
 	main.o		\
