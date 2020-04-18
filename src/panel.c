@@ -242,7 +242,6 @@ static int panel_grid_square;
 
 static int panel_grid_spacing;
 
-
 /**
  * The width of one button slab (in OS units).
  */
@@ -521,6 +520,8 @@ static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	panel_menu_coordinate.x = (pointer->pos.x - window.visible.x0) + window.xscroll;
 	panel_menu_coordinate.y = (window.visible.y1 - pointer->pos.y) - window.yscroll;
+
+	// TODO -- this will be broken by the changes in icon positioning!
 
 	panel_menu_coordinate.x = (windat->origin.x - (panel_menu_coordinate.x - (panel_grid_spacing / 2))) / (panel_grid_square + panel_grid_spacing);
 	panel_menu_coordinate.y = (windat->origin.y + (panel_menu_coordinate.y + (panel_grid_spacing / 2))) / (panel_grid_square + panel_grid_spacing);
@@ -1108,7 +1109,7 @@ static void panel_update_window_extent(struct panel_block *windat)
 
 	switch (windat->location) {
 	case PANEL_POSITION_LEFT:
-		windat->origin.x = info.extent.x0 + windat->grid_columns * (panel_grid_square + panel_grid_spacing);
+		windat->origin.x = info.extent.x1 - panel_grid_spacing - sidebar_width;
 		windat->origin.y = info.extent.y1 - panel_grid_spacing;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
@@ -1116,7 +1117,7 @@ static void panel_update_window_extent(struct panel_block *windat)
 		break;
 
 	case PANEL_POSITION_RIGHT:
-		windat->origin.x = info.extent.x0 + windat->grid_columns * (panel_grid_square + panel_grid_spacing) + sidebar_width;
+		windat->origin.x = info.extent.x0 + panel_grid_spacing + sidebar_width;
 		windat->origin.y = info.extent.y1 - panel_grid_spacing;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
@@ -1124,16 +1125,16 @@ static void panel_update_window_extent(struct panel_block *windat)
 		break;
 
 	case PANEL_POSITION_TOP:
-		windat->origin.x = info.extent.x0 + windat->grid_columns * (panel_grid_square + panel_grid_spacing);
-		windat->origin.y = info.extent.y1 - panel_grid_spacing;
+		windat->origin.x = info.extent.x0 + panel_grid_spacing;
+		windat->origin.y = info.extent.y0 + panel_grid_spacing + sidebar_width;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x0, info.extent.y0, info.extent.x1, info.extent.y0 + sidebar_width);
 		break;
 
 	case PANEL_POSITION_BOTTOM:
-		windat->origin.x = info.extent.x0 + windat->grid_columns * (panel_grid_square + panel_grid_spacing);
-		windat->origin.y = info.extent.y1 - panel_grid_spacing;
+		windat->origin.x = info.extent.x0 + panel_grid_spacing;
+		windat->origin.y = info.extent.y1 - panel_grid_spacing - sidebar_width;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x0, info.extent.y1 - sidebar_width, info.extent.x1, info.extent.y1);
@@ -1341,10 +1342,40 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 
 	panel_icon_def.w = windat->window;
 
-	panel_icon_def.icon.extent.x1 = windat->origin.x - button->position.x * (panel_grid_square + panel_grid_spacing);
-	panel_icon_def.icon.extent.x0 = panel_icon_def.icon.extent.x1 - panel_slab_width;
-	panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (panel_grid_square + panel_grid_spacing);
-	panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
+	switch (windat->location) {
+	case PANEL_POSITION_LEFT:
+		panel_icon_def.icon.extent.x1 = windat->origin.x - button->position.x * (panel_grid_square + panel_grid_spacing);
+		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (panel_grid_square + panel_grid_spacing);
+		panel_icon_def.icon.extent.x0 = panel_icon_def.icon.extent.x1 - panel_slab_width;
+		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
+		break;
+
+	case PANEL_POSITION_RIGHT:
+		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.x * (panel_grid_square + panel_grid_spacing);
+		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (panel_grid_square + panel_grid_spacing);
+		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + panel_slab_width;
+		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
+		break;
+
+	case PANEL_POSITION_TOP:
+		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (panel_grid_square + panel_grid_spacing);
+		panel_icon_def.icon.extent.y0 = windat->origin.y + button->position.x * (panel_grid_square + panel_grid_spacing);
+		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + panel_slab_width;
+		panel_icon_def.icon.extent.y1 = panel_icon_def.icon.extent.y0 + panel_slab_height;
+		break;
+
+	case PANEL_POSITION_BOTTOM:
+		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (panel_grid_square + panel_grid_spacing);
+		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.x * (panel_grid_square + panel_grid_spacing);
+		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + panel_slab_width;
+		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
+		break;
+
+	case PANEL_POSITION_HORIZONTAL:
+	case PANEL_POSITION_VERTICAL:
+	case PANEL_POSITION_NONE:
+		break;
+	}
 
 	debug_printf("Creating button icon: name=%s, x0=%d, y0=%d, x1=%d, y1=%d",
 			app->name,
