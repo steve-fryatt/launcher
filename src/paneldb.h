@@ -208,9 +208,22 @@ osbool paneldb_set_panel_info(unsigned key, struct paneldb_entry *data);
 
 
 /**
+ * Given a panel name, return its key.
+ * 
+ * \param *name		The name to look up.
+ * \return		The panel key, or PANELDB_NULL_KEY if not found.
+ */
+
+osbool paneldb_key_from_name(char *name);
+
+/**
  * Given a panel name, look it up in the database. If a match is found,
  * return the index. Otherwise, create a new phantom entry with a
  * key of PANELDB_NULL_KEY, fill in the name, and return that index.
+ *
+ * This is ONLY for use during file loading, when we create all of the
+ * linkages based on database index, then fill in the keys later to allow
+ * the file to arrive in any order.
  *
  * \param *name		The name to look up.
  * \return		The index of the entry.

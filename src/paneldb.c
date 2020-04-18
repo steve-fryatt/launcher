@@ -434,9 +434,32 @@ osbool paneldb_set_panel_info(unsigned key, struct paneldb_entry *data)
 
 
 /**
+ * Given a panel name, return its key.
+ * 
+ * \param *name		The name to look up.
+ * \return		The panel key, or PANELDB_NULL_KEY if not found.
+ */
+
+osbool paneldb_key_from_name(char *name)
+{
+	int index = -1;
+
+	index = paneldb_find_name(name);
+	if (index == -1)
+		return PANELDB_NULL_KEY;
+
+	return paneldb_list[index].key;
+}
+
+
+/**
  * Given a panel name, look it up in the database. If a match is found,
  * return the index. Otherwise, create a new phantom entry with a
  * key of PANELDB_NULL_KEY, fill in the name, and return that index.
+ *
+ * This is ONLY for use during file loading, when we create all of the
+ * linkages based on database index, then fill in the keys later to allow
+ * the file to arrive in any order.
  *
  * \param *name		The name to look up.
  * \return		The index of the entry.
@@ -445,6 +468,9 @@ osbool paneldb_set_panel_info(unsigned key, struct paneldb_entry *data)
 int paneldb_lookup_name(char *name)
 {
 	int index;
+
+	if (name == NULL)
+		return -1;
 
 	/* Attempt to find the name. */
 
@@ -574,6 +600,9 @@ static enum paneldb_position paneldb_position_from_name(char *name)
 /**
  * Claim a block for a new panel, fill in the unique key and set
  * default values for the data.
+ * 
+ * Use with allocate set FALSE is ONLY for use during the initial
+ * file load.
  *
  * \param allocate	TRUE to allocate a key; FALSE to set to PANELBD_NULL_KEY.
  * \return		The new block number, or -1 on failure.

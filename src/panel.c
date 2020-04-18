@@ -1626,7 +1626,8 @@ static void panel_open_panel_dialogue(wimp_pointer *pointer, struct panel_block 
 
 static osbool panel_process_panel_dialogue(struct paneldb_entry *panel, void *data)
 {
-	struct panel_block *windat = data;
+	struct panel_block	*windat = data;
+	unsigned		key;
 
 
 	/* Validate the panel name. */
@@ -1634,6 +1635,14 @@ static osbool panel_process_panel_dialogue(struct paneldb_entry *panel, void *da
 	if (*(panel->name) == '\0') {
 		error_msgs_report_info("MissingName");
 		return FALSE;
+	}
+
+	key = paneldb_key_from_name(panel->name);
+
+	if (key != windat->panel_id && key != PANELDB_NULL_KEY) {
+		error_msgs_param_report_info("DuplicateName", panel->name, NULL, NULL, NULL);
+		return FALSE;
+
 	}
 
 	if (panel->sort < 1 || panel->sort > 9999) {
