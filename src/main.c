@@ -195,6 +195,8 @@ static void main_initialise(void)
 	config_int_init("WindowColumns", 8);					/**< The number of columns to display on expanding the window.		*/
 	config_int_init("GridSize", 44);					/**< The number of OS units to a grid square.				*/
 	config_int_init("GridSpacing", 4);					/**< The number of OS units between grid squares.			*/
+	config_int_init("SlabXSize", 2);					/**< The X size of a button slab, in grid quares.			*/
+	config_int_init("SlabYSize", 2);					/**< The Y size of a button slab, in grid quares.			*/
 	config_opt_init("ConfirmDelete", TRUE);					/**< TRUE to confirm button deletion; FALSE to delete immediately.	*/
 
 	config_load();

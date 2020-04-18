@@ -141,7 +141,7 @@ struct panel_block {
 	 * The number of rows in the visible grid.
 	 */
 
-	int grid_rows;
+	os_coord grid_dimensions;
 
 	/**
 	 * The origin of the button grid (in OS units).
@@ -172,6 +172,29 @@ struct panel_block {
 	 */
 
 	int max_longitude;
+
+	/**
+	 * The size of a grid square (in OS units).
+	 */
+
+	int grid_square;
+
+	/**
+	 * The spacing between grid squares (in OS units).
+	 */
+	int grid_spacing;
+
+	/**
+	 * The dimensions of one button slab (in grid squares).
+	 */
+
+	os_coord slab_grid_dimensions;
+
+	/**
+	 * The dimensions of one button slab (in OS units).
+	 */
+
+	os_coord slab_os_dimensions;
 
 	/**
 	 * The next instance in the list, or NULL.
@@ -229,30 +252,6 @@ static int panel_mode_x_units_per_pixel;
  */
 
 static int panel_mode_y_units_per_pixel;
-
-/**
- * The size of a grid square (in OS units).
- */
-
-static int panel_grid_square;
-
-/**
- * The spacing between grid squares (in OS units).
- */
-
-static int panel_grid_spacing;
-
-/**
- * The width of one button slab (in OS units).
- */
-
-static int panel_slab_width;
-
-/**
- * The height of one button slab (in OS units).
- */
-
-static int panel_slab_height;
 
 /**
  * The handle of the main menu.
@@ -377,7 +376,8 @@ static struct panel_block *panel_create_instance(unsigned key)
 
 	new->panel_id = key;
 	new->grid_columns = 0;
-	new->grid_rows = 0;
+	new->grid_dimensions.x = 0;
+	new->grid_dimensions.y = 0;
 	new->origin.x = 0;
 	new->origin.y = 0;
 	new->panel_is_open = FALSE;
@@ -434,18 +434,10 @@ void panel_refresh_choices(void)
 {
 	struct panel_block *windat = panel_list;
 
-	panel_grid_square = config_int_read("GridSize");
-	panel_grid_spacing = config_int_read("GridSpacing");
-
-	/* Buttons span two grid squares, and cover the spacing in between those. */
-
-	panel_slab_width = 2 * panel_grid_square + panel_grid_spacing;
-	panel_slab_height = 2 * panel_grid_square + panel_grid_spacing;
-
 	while (windat != NULL) {
 		panel_update_grid_info(windat);
-		panel_update_window_extent(windat);
 		panel_reflow_buttons(windat);
+		panel_update_window_extent(windat);
 		panel_rebuild_window(windat);
 
 		windat = windat->next;
@@ -523,8 +515,8 @@ static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	// TODO -- this will be broken by the changes in icon positioning!
 
-	panel_menu_coordinate.x = (windat->origin.x - (panel_menu_coordinate.x - (panel_grid_spacing / 2))) / (panel_grid_square + panel_grid_spacing);
-	panel_menu_coordinate.y = (windat->origin.y + (panel_menu_coordinate.y + (panel_grid_spacing / 2))) / (panel_grid_square + panel_grid_spacing);
+	panel_menu_coordinate.x = (windat->origin.x - (panel_menu_coordinate.x - (windat->grid_spacing / 2))) / (windat->grid_square + windat->grid_spacing);
+	panel_menu_coordinate.y = (windat->origin.y + (panel_menu_coordinate.y + (windat->grid_spacing / 2))) / (windat->grid_square + windat->grid_spacing);
 }
 
 
@@ -714,7 +706,7 @@ static void panel_open_window(wimp_open *open)
 	if (error != NULL)
 		return;
 
-	grid_size = panel_grid_spacing + (windat->grid_columns * (panel_grid_spacing + panel_grid_square));
+	grid_size = windat->grid_spacing + (windat->grid_dimensions.x * (windat->grid_spacing + windat->grid_square));
 
 	switch (windat->location) {
 	case PANEL_POSITION_LEFT:
@@ -965,8 +957,8 @@ static void panel_update_positions(void)
 		}
 
 		panel_update_grid_info(panels[i]);
-		panel_update_window_extent(panels[i]);
 		panel_reflow_buttons(panels[i]);
+		panel_update_window_extent(panels[i]);
 		panel_rebuild_window(panels[i]);
 		panel_reopen_window(panels[i]);
 	}
@@ -1010,13 +1002,28 @@ static void panel_update_grid_info(struct panel_block *windat)
 	if (windat == NULL)
 		return;
 
-	windat->grid_columns = config_int_read("WindowColumns");
+	/* Update the user choices. */
 
-	if (panel_grid_square + panel_grid_spacing != 0)
-		windat->grid_rows = (windat->max_longitude - windat->min_longitude) /
-				(panel_grid_square + panel_grid_spacing);
+	windat->grid_square = config_int_read("GridSize");
+	windat->grid_spacing = config_int_read("GridSpacing");
+	windat->grid_columns = config_int_read("WindowColumns");
+	windat->slab_grid_dimensions.x = config_int_read("SlabXSize");
+	windat->slab_grid_dimensions.y = config_int_read("SlabYSize");
+
+	/* Update the slab size in OS units. */
+
+	windat->slab_os_dimensions.x = (windat->slab_grid_dimensions.x * windat->grid_square) + windat->grid_spacing;
+	windat->slab_os_dimensions.y = (windat->slab_grid_dimensions.y * windat->grid_square) + windat->grid_spacing;
+
+	/* Calculate the number of rows in the panel at the current slab size. */
+
+	windat->grid_dimensions.x = windat->grid_columns;
+
+	if (windat->grid_square + windat->grid_spacing != 0)
+		windat->grid_dimensions.y = (windat->max_longitude - windat->min_longitude) /
+				(windat->grid_square + windat->grid_spacing);
 	else
-		windat->grid_rows = 0;
+		windat->grid_dimensions.y = 0;
 }
 
 /**
@@ -1068,8 +1075,8 @@ static void panel_update_window_extent(struct panel_block *windat)
 		/* Calculate the new horizontal size of the window. */
 
 		info.extent.x0 = 0;
-		info.extent.x1 = info.extent.x0 + sidebar_width + panel_grid_spacing +
-				windat->grid_columns * (panel_grid_spacing + panel_grid_square);
+		info.extent.x1 = info.extent.x0 + sidebar_width + windat->grid_spacing +
+				windat->grid_dimensions.x * (windat->grid_spacing + windat->grid_square);
 
 		/* Extend the extent if required, but never bother to shrink it. */
 
@@ -1093,8 +1100,8 @@ static void panel_update_window_extent(struct panel_block *windat)
 		/* Calculate the new vertical size of the window. */
 
 		info.extent.y1 = 0;
-		info.extent.y0 = info.extent.y1 - sidebar_width - panel_grid_spacing -
-				windat->grid_columns * (panel_grid_spacing + panel_grid_square);
+		info.extent.y0 = info.extent.y1 - sidebar_width - windat->grid_spacing -
+				windat->grid_dimensions.x * (windat->grid_spacing + windat->grid_square);
 
 		/* Extend the extent if required, but never bother to shrink it. */
 
@@ -1109,32 +1116,32 @@ static void panel_update_window_extent(struct panel_block *windat)
 
 	switch (windat->location) {
 	case PANEL_POSITION_LEFT:
-		windat->origin.x = info.extent.x1 - panel_grid_spacing - sidebar_width;
-		windat->origin.y = info.extent.y1 - panel_grid_spacing;
+		windat->origin.x = info.extent.x1 - windat->grid_spacing - sidebar_width;
+		windat->origin.y = info.extent.y1 - windat->grid_spacing;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x1 - sidebar_width, info.extent.y0, info.extent.x1, info.extent.y1);
 		break;
 
 	case PANEL_POSITION_RIGHT:
-		windat->origin.x = info.extent.x0 + panel_grid_spacing + sidebar_width;
-		windat->origin.y = info.extent.y1 - panel_grid_spacing;
+		windat->origin.x = info.extent.x0 + windat->grid_spacing + sidebar_width;
+		windat->origin.y = info.extent.y1 - windat->grid_spacing;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x0, info.extent.y0, info.extent.x0 + sidebar_width, info.extent.y1);
 		break;
 
 	case PANEL_POSITION_TOP:
-		windat->origin.x = info.extent.x0 + panel_grid_spacing;
-		windat->origin.y = info.extent.y0 + panel_grid_spacing + sidebar_width;
+		windat->origin.x = info.extent.x0 + windat->grid_spacing;
+		windat->origin.y = info.extent.y0 + windat->grid_spacing + sidebar_width;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x0, info.extent.y0, info.extent.x1, info.extent.y0 + sidebar_width);
 		break;
 
 	case PANEL_POSITION_BOTTOM:
-		windat->origin.x = info.extent.x0 + panel_grid_spacing;
-		windat->origin.y = info.extent.y1 - panel_grid_spacing - sidebar_width;
+		windat->origin.x = info.extent.x0 + windat->grid_spacing;
+		windat->origin.y = info.extent.y1 - windat->grid_spacing - sidebar_width;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
 			info.extent.x0, info.extent.y1 - sidebar_width, info.extent.x1, info.extent.y1);
@@ -1232,11 +1239,18 @@ static void panel_add_buttons_from_db(struct panel_block *windat)
 
 static void panel_reflow_buttons(struct panel_block *windat)
 {
-	struct icondb_button	*button = NULL;
+	struct icondb_button	*button = NULL, *previous = NULL;
 	struct appdb_entry	*app = NULL;
 	
 	if (windat == NULL)
 		return;
+
+
+	/* Start the grid at the configured width. */
+
+	windat->grid_dimensions.x = windat->grid_columns;
+
+	/* Process the icons. */
 
 	button = icondb_get_list(windat->icondb);
 
@@ -1244,15 +1258,46 @@ static void panel_reflow_buttons(struct panel_block *windat)
 
 	while (button != NULL) {
 		app = appdb_get_button_info(button->key, NULL);
-		if (app == NULL)
-			continue;
+		if (app != NULL) {
+			button->position.x = app->position.x;
+			button->position.y = app->position.y;
 
-		button->position.x = app->position.x;
-		button->position.y = app->position.y;
+			debug_printf("\\fButton for %s at x=%d, y=%d in %d columns", app->name, button->position.x, button->position.y, windat->grid_columns);
+
+			/* Do a bounds check on all the buttons above and to the left. */
+
+			previous = icondb_get_list(windat->icondb);
+
+			while (previous != NULL && previous != button) {
+				if ((button->position.x > previous->position.x) &&
+						(button->position.x < (previous->position.x + windat->slab_grid_dimensions.x)) &&
+						(button->position.y >= previous->position.y) &&
+						(button->position.y < (previous->position.y + windat->slab_grid_dimensions.y))) {
+					button->position.x = previous->position.x + windat->slab_grid_dimensions.x;
+					debug_printf("Horizontal clash, moving to x=%d, y=%d", button->position.x, button->position.y);
+				}
+
+				if ((button->position.y >= previous->position.y) &&
+						(button->position.y < (previous->position.y + windat->slab_grid_dimensions.y)) &&
+						(button->position.x > (previous->position.x - windat->slab_grid_dimensions.x)) &&
+						(button->position.x <= previous->position.x)) {
+					button->position.y = previous->position.y + windat->slab_grid_dimensions.y;
+					debug_printf("Vertical clash, moving to x=%d, y=%d", button->position.x, button->position.y);
+				}
+
+				previous = previous->next;
+			}
+
+			/* Does the button fall outside the colfigured columns? */
+
+			if ((button->position.x + windat->slab_grid_dimensions.x) > windat->grid_columns) {
+				windat->grid_dimensions.x = button->position.x + windat->slab_grid_dimensions.x;
+				debug_printf("Button falls outside range; expanding to %d columns", windat->grid_dimensions.x);
+			}
+		}
 
 		button = button->next;
 	}
-
 }
 
 /**
@@ -1344,31 +1389,31 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 
 	switch (windat->location) {
 	case PANEL_POSITION_LEFT:
-		panel_icon_def.icon.extent.x1 = windat->origin.x - button->position.x * (panel_grid_square + panel_grid_spacing);
-		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (panel_grid_square + panel_grid_spacing);
-		panel_icon_def.icon.extent.x0 = panel_icon_def.icon.extent.x1 - panel_slab_width;
-		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
+		panel_icon_def.icon.extent.x1 = windat->origin.x - button->position.x * (windat->grid_square + windat->grid_spacing);
+		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (windat->grid_square + windat->grid_spacing);
+		panel_icon_def.icon.extent.x0 = panel_icon_def.icon.extent.x1 - windat->slab_os_dimensions.x;
+		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - windat->slab_os_dimensions.y;
 		break;
 
 	case PANEL_POSITION_RIGHT:
-		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.x * (panel_grid_square + panel_grid_spacing);
-		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (panel_grid_square + panel_grid_spacing);
-		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + panel_slab_width;
-		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
+		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.x * (windat->grid_square + windat->grid_spacing);
+		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (windat->grid_square + windat->grid_spacing);
+		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.x;
+		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - windat->slab_os_dimensions.y;
 		break;
 
 	case PANEL_POSITION_TOP:
-		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (panel_grid_square + panel_grid_spacing);
-		panel_icon_def.icon.extent.y0 = windat->origin.y + button->position.x * (panel_grid_square + panel_grid_spacing);
-		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + panel_slab_width;
-		panel_icon_def.icon.extent.y1 = panel_icon_def.icon.extent.y0 + panel_slab_height;
+		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (windat->grid_square + windat->grid_spacing);
+		panel_icon_def.icon.extent.y0 = windat->origin.y + button->position.x * (windat->grid_square + windat->grid_spacing);
+		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.x;
+		panel_icon_def.icon.extent.y1 = panel_icon_def.icon.extent.y0 + windat->slab_os_dimensions.y;
 		break;
 
 	case PANEL_POSITION_BOTTOM:
-		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (panel_grid_square + panel_grid_spacing);
-		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.x * (panel_grid_square + panel_grid_spacing);
-		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + panel_slab_width;
-		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
+		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (windat->grid_square + windat->grid_spacing);
+		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.x * (windat->grid_square + windat->grid_spacing);
+		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.x;
+		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - windat->slab_os_dimensions.y;
 		break;
 
 	case PANEL_POSITION_HORIZONTAL:
@@ -1528,7 +1573,7 @@ static osbool panel_process_edit_dialogue(struct appdb_entry *app, void *data)
 
 	/* Validate the button location. */
 
-	if (app->position.x < 0 || app->position.y < 0 || app->position.x >= windat->grid_columns || app->position.y >= windat->grid_rows) {
+	if (app->position.x < 0 || app->position.y < 0 || app->position.x >= windat->grid_columns || app->position.y >= windat->grid_dimensions.y) {
 		error_msgs_report_info("CoordRange");
 		return FALSE;
 	}
