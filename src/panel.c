@@ -300,8 +300,9 @@ static void panel_update_window_extent(struct panel_block *windat);
 static void panel_update_grid_info(struct panel_block *windat);
 
 static void panel_add_buttons_from_db(struct panel_block *windat);
-
+static void panel_reflow_buttons(struct panel_block *windat);
 static void panel_rebuild_window(struct panel_block *windat);
+static void panel_empty_window(struct panel_block *windat);
 
 static void panel_create_icon(struct panel_block *windat, struct icondb_button *button);
 static void panel_delete_icon(struct panel_block *windat, struct icondb_button *button);
@@ -451,6 +452,7 @@ void panel_refresh_choices(void)
 	while (windat != NULL) {
 		panel_update_grid_info(windat);
 		panel_update_window_extent(windat);
+		panel_reflow_buttons(windat);
 		panel_rebuild_window(windat);
 
 		windat = windat->next;
@@ -791,7 +793,7 @@ static void panel_update_positions(void)
 	os_box			locations, start_pos, next_pos, max_width, units, count;
 	int			i, sidebar_width, sidebar_height;
 
-	debug_printf("\\YUpdating the panel positions...");
+	debug_printf("\\LUpdating the panel positions...");
 
 	/* Count the number of panels on each side of the screen.*/
 
@@ -969,6 +971,7 @@ static void panel_update_positions(void)
 
 		panel_update_grid_info(panels[i]);
 		panel_update_window_extent(panels[i]);
+		panel_reflow_buttons(panels[i]);
 		panel_rebuild_window(panels[i]);
 		panel_reopen_window(panels[i]);
 	}
@@ -1038,7 +1041,7 @@ static void panel_update_window_extent(struct panel_block *windat)
 	if (windat == NULL)
 		return;
 
-	debug_printf("Updating extent for 0x%x", windat);
+	debug_printf("\\CUpdating extent for 0x%x", windat);
 
 	info.w = windat->window;
 	error = xwimp_get_window_info_header_only(&info);
@@ -1169,6 +1172,8 @@ void panel_create_from_db(void)
 		if (key == PANELDB_NULL_KEY)
 			continue;
 
+		debug_printf("\\FGreating new panel %u from database.", key);
+
 		windat = panel_create_instance(key);
 		if (windat == NULL)
 			continue;
@@ -1190,15 +1195,14 @@ void panel_create_from_db(void)
 static void panel_add_buttons_from_db(struct panel_block *windat)
 {
 	unsigned		key, panel;
-	struct appdb_entry	entry;
+	struct appdb_entry	app;
 
-	/* Remove any icons from the icon database. This could leave
-	 * orphaned icons in the window if we're not careful.
-	 */
-
+	panel_empty_window(windat);
 	icondb_reset_instance(windat->icondb);
 
 	/* Add the icons to the database one by one. */
+
+	debug_printf("\\AAdding buttons from database to panel 0x%x", windat);
 
 	key = APPDB_NULL_KEY;
 
@@ -1213,12 +1217,47 @@ static void panel_add_buttons_from_db(struct panel_block *windat)
 			if (windat->panel_id != panel)
 				continue;
 
-			if (appdb_get_button_info(key, &entry) == NULL)
+			if (appdb_get_button_info(key, &app) == NULL)
 				continue;
 
-			icondb_create_icon(windat->icondb, key, &(entry.position));
+			debug_printf("Adding button %s at %d, %d", app.name, app.position.x, app.position.y);
+
+			icondb_create_icon(windat->icondb, key, &(app.position));
 		}
 	} while (key != APPDB_NULL_KEY);
+}
+
+
+/**
+ * Reflow the buttons in a panel, to reflect the available space
+ * on the grid.
+ * 
+ * \param *windat		The panel to be reflowed.
+ */
+
+static void panel_reflow_buttons(struct panel_block *windat)
+{
+	struct icondb_button	*button = NULL;
+	struct appdb_entry	*app = NULL;
+	
+	if (windat == NULL)
+		return;
+
+	button = icondb_get_list(windat->icondb);
+
+	debug_printf("\\KReflowing panel contents 0x%x", windat);
+
+	while (button != NULL) {
+		app = appdb_get_button_info(button->key, NULL);
+		if (app == NULL)
+			continue;
+
+		button->position.x = app->position.x;
+		button->position.y = app->position.y;
+
+		button = button->next;
+	}
+
 }
 
 /**
@@ -1237,10 +1276,9 @@ static void panel_rebuild_window(struct panel_block *windat)
 
 	button = icondb_get_list(windat->icondb);
 
-	debug_printf("\\RRebuilding panel 0x%x", windat);
+	debug_printf("\\ORebuilding panel 0x%x", windat);
 
 	while (button != NULL) {
-		debug_printf("Recreating icon key=%u, window=0x%x, icon=%d", button->key, button->window, button->icon);
 		panel_create_icon(windat, button);
 
 		button = button->next;
@@ -1249,6 +1287,36 @@ static void panel_rebuild_window(struct panel_block *windat)
 	panel_reopen_window(windat);
 }
 
+/**
+ * Remove the buttons from within a panel.
+ * 
+ * \param *windat		The panel to be emptied.
+ */
+
+static void panel_empty_window(struct panel_block *windat)
+{
+	struct icondb_button	*button = NULL;
+	os_error		*error = NULL;
+	
+	if (windat == NULL)
+		return;
+
+	button = icondb_get_list(windat->icondb);
+
+	debug_printf("\\RWiping panel contents 0x%x", windat);
+
+	while (button != NULL) {
+		if (button->icon != wimp_ICON_WINDOW) {
+			debug_printf("Deleting icon %d", button->icon);
+
+			error = xwimp_delete_icon(windat->window, button->icon);
+			if (error != NULL)
+				error_report_program(error);
+		}
+
+		button = button->next;
+	}
+}
 
 /**
  * Create (or recreate) an icon for a button, based on that icon's definition
@@ -1261,9 +1329,7 @@ static void panel_rebuild_window(struct panel_block *windat)
 static void panel_create_icon(struct panel_block *windat, struct icondb_button *button)
 {
 	os_error		*error = NULL;
-	struct appdb_entry	*entry = NULL;
-
-	debug_printf("Create icon: windat=0x%x, button=0x%x", windat, button);
+	struct appdb_entry	*app = NULL;
 
 	if (windat == NULL || button == NULL)
 		return;
@@ -1275,11 +1341,9 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 		button->icon = -1;
 	}
 
-	entry = appdb_get_button_info(button->key, NULL);
-	if (entry == NULL)
+	app = appdb_get_button_info(button->key, NULL);
+	if (app == NULL)
 		return;
-
-	debug_printf("App details: entry=0x%x, name=%s", entry, entry->name);
 
 	panel_icon_def.w = windat->window;
 
@@ -1288,11 +1352,12 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 	panel_icon_def.icon.extent.y1 = windat->origin_y - button->position.y * (panel_grid_square + panel_grid_spacing);
 	panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - panel_slab_height;
 
-	debug_printf("Creating icon: x0=%d, y0=%d, x1=%d, y1=%d",
+	debug_printf("Creating button icon: name=%s, x0=%d, y0=%d, x1=%d, y1=%d",
+			app->name,
 			panel_icon_def.icon.extent.x0, panel_icon_def.icon.extent.y0,
 			panel_icon_def.icon.extent.x1, panel_icon_def.icon.extent.y1);
 
-	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", entry->sprite);
+	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", app->sprite);
 	panel_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
 
 	button->window = windat->window;
@@ -1343,7 +1408,7 @@ static void panel_delete_icon(struct panel_block *windat, struct icondb_button *
 
 static void panel_press(struct panel_block *windat, wimp_i icon)
 {
-	struct appdb_entry	entry;
+	struct appdb_entry	app;
 	char			*buffer;
 	int			length;
 	os_error		*error;
@@ -1357,17 +1422,17 @@ static void panel_press(struct panel_block *windat, wimp_i icon)
 	if (button == NULL)
 		return;
 
-	if (appdb_get_button_info(button->key, &entry) == NULL)
+	if (appdb_get_button_info(button->key, &app) == NULL)
 		return;
 
-	length = strlen(entry.command) + 19;
+	length = strlen(app.command) + 19;
 
 	buffer = heap_alloc(length);
 
 	if (buffer == NULL)
 		return;
 
-	string_printf(buffer, length, "%%StartDesktopTask %s", entry.command);
+	string_printf(buffer, length, "%%StartDesktopTask %s", app.command);
 	error = xos_cli(buffer);
 	if (error != NULL)
 		error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
@@ -1389,48 +1454,48 @@ static void panel_press(struct panel_block *windat, wimp_i icon)
 
 static void panel_open_edit_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid)
 {
-	struct appdb_entry entry;
+	struct appdb_entry app;
 
 	/* Initialise deafults if button data can't be found. */
 
-	entry.panel = 0;
-	entry.position.x = 0;
-	entry.position.y = 0;
-	entry.local_copy = FALSE;
-	entry.filer_boot = TRUE;
-	*entry.name = '\0';
-	*entry.sprite = '\0';
-	*entry.command = '\0';
+	app.panel = 0;
+	app.position.x = 0;
+	app.position.y = 0;
+	app.local_copy = FALSE;
+	app.filer_boot = TRUE;
+	*app.name = '\0';
+	*app.sprite = '\0';
+	*app.command = '\0';
 
 	if (button != NULL)
-		appdb_get_button_info(button->key, &entry);
+		appdb_get_button_info(button->key, &app);
 
 	if (grid != NULL) {
-		entry.position.x = grid->x;
-		entry.position.y = grid->y;
+		app.position.x = grid->x;
+		app.position.y = grid->y;
 	}
 
-	edit_open_dialogue(pointer, &entry, panel_process_edit_dialogue, button);
+	edit_open_dialogue(pointer, &app, panel_process_edit_dialogue, button);
 }
 
 
 /**
  * Handle the data returned from an Edit dialogue instance.
  *
- * \param *entry	Pointer to the data from the dialogue.
+ * \param *app		Pointer to the data from the dialogue.
  * \param *data		Pointer to the button owning the dialogue, or NULL.
  * \return		TRUE if the data is OK; FALSE to reject it.
  */
 
-static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data)
+static osbool panel_process_edit_dialogue(struct appdb_entry *app, void *data)
 {
 	struct icondb_button *button = data;
 	struct panel_block *windat = NULL;
 
-	if (entry == NULL)
+	if (app == NULL)
 		return FALSE;
 
-	windat = panel_find_id(entry->panel);
+	windat = panel_find_id(app->panel);
 	if (windat == NULL) {
 		error_msgs_report_error("BadPanel");
 		return FALSE;
@@ -1438,13 +1503,13 @@ static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data)
 
 	/* Validate the button location. */
 
-	if (entry->position.x < 0 || entry->position.y < 0 || entry->position.x >= windat->grid_columns || entry->position.y >= windat->grid_rows) {
+	if (app->position.x < 0 || app->position.y < 0 || app->position.x >= windat->grid_columns || app->position.y >= windat->grid_rows) {
 		error_msgs_report_info("CoordRange");
 		return FALSE;
 	}
 
 
-	if (*(entry->name) == '\0' || *(entry->sprite) == '\0' || *(entry->command) == '\0') {
+	if (*(app->name) == '\0' || *(app->sprite) == '\0' || *(app->command) == '\0') {
 		error_msgs_report_info("MissingText");
 		return FALSE;
 	}
@@ -1455,7 +1520,7 @@ static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data)
 	 */
 
 	if (button == NULL)
-		button = icondb_create_icon(windat->icondb, appdb_create_key(), &(entry->position));
+		button = icondb_create_icon(windat->icondb, appdb_create_key(), &(app->position));
 
 	if (button == NULL) {
 		error_msgs_report_error("NoMemNewButton");
@@ -1464,7 +1529,7 @@ static osbool panel_process_edit_dialogue(struct appdb_entry *entry, void *data)
 
 	/* Store the application in the database. */
 
-	appdb_set_button_info(button->key, entry);
+	appdb_set_button_info(button->key, app);
 
 	panel_create_icon(windat, button);
 
