@@ -1241,14 +1241,20 @@ static void panel_reflow_buttons(struct panel_block *windat)
 {
 	struct icondb_button	*button = NULL, *previous = NULL;
 	struct appdb_entry	*app = NULL;
+	os_coord		overflow;
+	osbool			clash;
 	
 	if (windat == NULL)
 		return;
 
-
 	/* Start the grid at the configured width. */
 
 	windat->grid_dimensions.x = windat->grid_columns;
+
+	/* Start to place overflow buttons top-left. */
+
+	overflow.x = 0;
+	overflow.y = 0;
 
 	/* Process the icons. */
 
@@ -1288,9 +1294,48 @@ static void panel_reflow_buttons(struct panel_block *windat)
 				previous = previous->next;
 			}
 
+			/* Does the button fall outside the configured rows?
+			 *
+			 * We know by now that we've reached the bottom of the grid in all
+			 * columns, due to the sort order, so we're just looking for spaces
+			 * in the layout working right in columns from top to bottom.
+			 */
+
+			if ((button->position.y + windat->slab_grid_dimensions.y) > windat->grid_dimensions.y) {
+				do {
+					debug_printf("Overflowing: try at x=%d, y=%d", overflow.x, overflow.y);
+
+					clash = FALSE;
+
+					previous = icondb_get_list(windat->icondb);
+
+					while (previous != NULL && previous != button) {
+						if ((overflow.x > (previous->position.x - windat->slab_grid_dimensions.x)) &&
+								(overflow.x < (previous->position.x + windat->slab_grid_dimensions.x)) &&
+								(overflow.y > (previous->position.y - windat->slab_grid_dimensions.y)) &&
+								(overflow.y < (previous->position.y + windat->slab_grid_dimensions.y)))
+							clash = TRUE;	
+
+						previous = previous->next;
+					}
+
+					if (clash) {
+						overflow.y++;
+
+						if ((overflow.y + windat->slab_grid_dimensions.y) > windat->grid_dimensions.y) {
+							overflow.x++;
+							overflow.y = 0;
+						}
+					}
+				} while (clash);
+	
+				button->position.x = overflow.x;
+				button->position.y = overflow.y;
+			}
+
 			/* Does the button fall outside the colfigured columns? */
 
-			if ((button->position.x + windat->slab_grid_dimensions.x) > windat->grid_columns) {
+			if ((button->position.x + windat->slab_grid_dimensions.x) > windat->grid_dimensions.x) {
 				windat->grid_dimensions.x = button->position.x + windat->slab_grid_dimensions.x;
 				debug_printf("Button falls outside range; expanding to %d columns", windat->grid_dimensions.x);
 			}
