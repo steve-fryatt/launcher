@@ -1764,7 +1764,10 @@ static osbool panel_process_button_dialogue(struct appdb_entry *app, void *data)
 
 	appdb_set_button_info(button->key, app);
 
-	panel_create_icon(windat, button);
+	panel_add_buttons_from_db(windat);
+	panel_reflow_buttons(windat);
+	panel_update_window_extent(windat);
+	panel_rebuild_window(windat);
 
 	return TRUE;
 }
