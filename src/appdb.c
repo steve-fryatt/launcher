@@ -557,8 +557,9 @@ static void appdb_delete(int index)
 	if (index < 0 || index >= appdb_apps)
 		return;
 
-	flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct appdb_container),
-			-sizeof(struct appdb_container));
+	if (flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct appdb_container),
+			-sizeof(struct appdb_container)))
+		appdb_allocation -= sizeof(struct appdb_container);
 }
 
 
