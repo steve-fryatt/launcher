@@ -517,6 +517,7 @@ static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 {
 	wimp_window_state	window;
 	struct panel_block	*windat;
+	os_coord		click;
 
 
 	if (pointer == NULL)
@@ -537,13 +538,44 @@ static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 	window.w = w;
 	wimp_get_window_state(&window);
 
-	panel_menu_coordinate.x = (pointer->pos.x - window.visible.x0) + window.xscroll;
-	panel_menu_coordinate.y = (window.visible.y1 - pointer->pos.y) - window.yscroll;
+	/* Find the click position in work area coordinates. */
 
-	// TODO -- this will be broken by the changes in icon positioning!
+	click.x = (pointer->pos.x - window.visible.x0) + window.xscroll;
+	click.y = (pointer->pos.y - window.visible.y1) + window.yscroll;
 
-	panel_menu_coordinate.x = (windat->origin.x - (panel_menu_coordinate.x - (windat->grid_spacing / 2))) / (windat->grid_square + windat->grid_spacing);
-	panel_menu_coordinate.y = (windat->origin.y + (panel_menu_coordinate.y + (windat->grid_spacing / 2))) / (windat->grid_square + windat->grid_spacing);
+	/* Adjust to OS units in the grid orientation. */
+
+	switch(windat->location) {
+	case PANEL_POSITION_LEFT:
+		panel_menu_coordinate.x = windat->origin.x - click.x;
+		panel_menu_coordinate.y = windat->origin.y - click.y;
+		break;
+
+	case PANEL_POSITION_RIGHT:
+		panel_menu_coordinate.x = click.x - windat->origin.x;
+		panel_menu_coordinate.y = windat->origin.y - click.y;
+		break;
+
+	case PANEL_POSITION_TOP:
+		panel_menu_coordinate.x = click.y - windat->origin.y;
+		panel_menu_coordinate.y = click.x - windat->origin.x;
+		break;
+
+	case PANEL_POSITION_BOTTOM:
+		panel_menu_coordinate.x = windat->origin.y - click.y;
+		panel_menu_coordinate.y = click.x - windat->origin.x;
+		break;
+
+	case PANEL_POSITION_HORIZONTAL:
+	case PANEL_POSITION_VERTICAL:
+	case PANEL_POSITION_NONE:
+		break;
+	}
+
+	/* Convert to grid squares. */
+
+	panel_menu_coordinate.x = panel_menu_coordinate.x / (windat->grid_square + windat->grid_spacing);
+	panel_menu_coordinate.y = panel_menu_coordinate.y / (windat->grid_square + windat->grid_spacing);
 }
 
 
