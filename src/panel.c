@@ -73,17 +73,21 @@
 #define PANEL_MENU_HELP 1
 #define PANEL_MENU_BUTTON 2
 #define PANEL_MENU_NEW_BUTTON 3
-#define PANEL_MENU_EDIT_PANEL 4
+#define PANEL_MENU_PANEL 4
 #define PANEL_MENY_NEW_PANEL 5
-#define PANEL_MENU_SAVE_BUTTONS 6
+#define PANEL_MENU_SAVE_LAYOUT 6
 #define PANEL_MENU_CHOICES 7
 #define PANEL_MENU_QUIT 8
 
 /* Button Submenu */
 
 #define PANEL_MENU_BUTTON_EDIT 0
-#define PANEL_MENU_BUTTON_MOVE 1
-#define PANEL_MENU_BUTTON_DELETE 2
+#define PANEL_MENU_BUTTON_DELETE 1
+
+/* Panel Submenu */
+
+#define PANEL_MENU_PANEL_EDIT 0
+#define PANEL_MENU_PANEL_DELETE 1
 
 /**
  * The possible buttons window positions.
@@ -301,14 +305,15 @@ static void panel_rebuild_window(struct panel_block *windat);
 static void panel_empty_window(struct panel_block *windat);
 
 static void panel_create_icon(struct panel_block *windat, struct icondb_button *button);
-static void panel_delete_icon(struct panel_block *windat, struct icondb_button *button);
 static void panel_press(struct panel_block *windat, wimp_i icon);
 
 static void panel_open_panel_dialogue(wimp_pointer *pointer, struct panel_block *windat);
 static osbool panel_process_panel_dialogue(struct paneldb_entry *app, void *data);
+static osbool panel_delete_panel(struct panel_block *windat);
 
 static void panel_open_button_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid);
 static osbool panel_process_button_dialogue(struct appdb_entry *entry, void *data);
+static osbool panel_delete_button(struct panel_block *windat, struct icondb_button *button);
 
 static struct panel_block *panel_find_id(unsigned id);
 
@@ -577,10 +582,8 @@ static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *sele
 				break;
 
 			case PANEL_MENU_BUTTON_DELETE:
-				if (!config_opt_read("ConfirmDelete") || (error_msgs_report_question("QDelete", "QDeleteB") == 3)) {
-					panel_delete_icon(windat, panel_menu_icon);
+				if (panel_delete_button(windat, panel_menu_icon))
 					panel_menu_icon = NULL;
-				}
 				break;
 			}
 		}
@@ -590,11 +593,19 @@ static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *sele
 		panel_open_button_dialogue(&pointer, panel_menu_icon, &panel_menu_coordinate);
 		break;
 
-	case PANEL_MENU_EDIT_PANEL:
-		panel_open_panel_dialogue(&pointer, windat);
+	case PANEL_MENU_PANEL:
+		switch (selection->items[1]) {
+		case PANEL_MENU_PANEL_EDIT:
+			panel_open_panel_dialogue(&pointer, windat);
+			break;
+
+		case PANEL_MENU_PANEL_DELETE:
+			panel_delete_panel(windat);
+			break;
+		}
 		break;
 
-	case PANEL_MENU_SAVE_BUTTONS:
+	case PANEL_MENU_SAVE_LAYOUT:
 		filing_save("Buttons");
 		break;
 
@@ -1506,38 +1517,6 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 
 
 /**
- * Delete a button and all its associated information.
- *
- * \param *windat		The window to delete the icon from.
- * \param *button		The button to be deleted.
- */
-
-static void panel_delete_icon(struct panel_block *windat, struct icondb_button *button)
-{
-	os_error	*error;
-
-	if (windat == NULL || button == NULL)
-		return;
-
-	/* Delete the button's icon. */
-
-	if (button->icon != -1) {
-		error = xwimp_delete_icon(windat->window, button->icon);
-		if (error != NULL)
-			error_report_program(error);
-		button->icon = -1;
-
-		windows_redraw(windat->window);
-	}
-
-	/* Delete the application and button details from the databases. */
-
-	appdb_delete_key(button->key);
-	icondb_delete_icon(windat->icondb, button);
-}
-
-
-/**
  * Press a button in the window.
  *
  * \param *windat		The window containing the icon.
@@ -1664,6 +1643,20 @@ static osbool panel_process_panel_dialogue(struct paneldb_entry *panel, void *da
 	return TRUE;
 }
 
+
+/**
+ * Handle a request to delete a panel.
+ *
+ * \param *windat	The panel instance to be deleted.
+ * \return		TRUE if the panel was deleted; else FALSE.
+ */
+
+static osbool panel_delete_panel(struct panel_block *windat)
+{
+	return FALSE;
+}
+
+
 /*
  * Open an edit dialogue box for a button.
  *
@@ -1760,6 +1753,32 @@ static osbool panel_process_button_dialogue(struct appdb_entry *app, void *data)
 	return TRUE;
 }
 
+
+/**
+ * Handle a request to delete a button from a panel.
+ *
+ * \param *windat	The panel instance holding the button.
+ * \param *button	The button to be deleted.
+ * \return		TRUE if the button was deleted; else FALSE.
+ */
+
+static osbool panel_delete_button(struct panel_block *windat, struct icondb_button *button)
+{
+	if (button == NULL)
+		return FALSE;
+
+	if (config_opt_read("ConfirmDelete") && (error_msgs_report_question("QDelete", "QDeleteB") != 3))
+		return FALSE;
+
+	appdb_delete_key(button->key);
+
+	panel_add_buttons_from_db(windat);
+	panel_reflow_buttons(windat);
+	panel_update_window_extent(windat);
+	panel_rebuild_window(windat);
+
+	return TRUE;
+}
 
 /**
  * Given a panel id number, return the associated panel data block.
