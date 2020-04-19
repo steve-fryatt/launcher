@@ -74,7 +74,7 @@
 #define PANEL_MENU_BUTTON 2
 #define PANEL_MENU_NEW_BUTTON 3
 #define PANEL_MENU_PANEL 4
-#define PANEL_MENY_NEW_PANEL 5
+#define PANEL_MENU_NEW_PANEL 5
 #define PANEL_MENU_SAVE_LAYOUT 6
 #define PANEL_MENU_CHOICES 7
 #define PANEL_MENU_QUIT 8
@@ -311,7 +311,7 @@ static void panel_open_panel_dialogue(wimp_pointer *pointer, struct panel_block 
 static osbool panel_process_panel_dialogue(struct paneldb_entry *app, void *data);
 static osbool panel_delete_panel(struct panel_block *windat);
 
-static void panel_open_button_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid);
+static void panel_open_button_dialogue(wimp_pointer *pointer, struct panel_block *windat, struct icondb_button *button, os_coord *grid);
 static osbool panel_process_button_dialogue(struct appdb_entry *entry, void *data);
 static osbool panel_delete_button(struct panel_block *windat, struct icondb_button *button);
 
@@ -578,7 +578,7 @@ static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *sele
 		if (panel_menu_icon != NULL) {
 			switch (selection->items[1]) {
 			case PANEL_MENU_BUTTON_EDIT:
-				panel_open_button_dialogue(&pointer, panel_menu_icon, NULL);
+				panel_open_button_dialogue(&pointer, windat, panel_menu_icon, NULL);
 				break;
 
 			case PANEL_MENU_BUTTON_DELETE:
@@ -590,7 +590,7 @@ static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *sele
 		break;
 
 	case PANEL_MENU_NEW_BUTTON:
-		panel_open_button_dialogue(&pointer, panel_menu_icon, &panel_menu_coordinate);
+		panel_open_button_dialogue(&pointer, windat, panel_menu_icon, &panel_menu_coordinate);
 		break;
 
 	case PANEL_MENU_PANEL:
@@ -603,6 +603,10 @@ static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *sele
 			panel_delete_panel(windat);
 			break;
 		}
+		break;
+
+	case PANEL_MENU_NEW_PANEL:
+		panel_open_panel_dialogue(&pointer, NULL);
 		break;
 
 	case PANEL_MENU_SAVE_LAYOUT:
@@ -1566,10 +1570,7 @@ static void panel_open_panel_dialogue(wimp_pointer *pointer, struct panel_block 
 {
 	struct paneldb_entry panel;
 
-	*panel.name = '\0';
-	panel.position = PANELDB_POSITION_LEFT;
-	panel.width = 100;
-	panel.sort = 1;
+	paneldb_set_defaults(&panel);
 
 	if (windat != NULL)
 		paneldb_get_panel_info(windat->panel_id, &panel);
@@ -1589,7 +1590,7 @@ static void panel_open_panel_dialogue(wimp_pointer *pointer, struct panel_block 
 static osbool panel_process_panel_dialogue(struct paneldb_entry *panel, void *data)
 {
 	struct panel_block	*windat = data;
-	unsigned		key;
+	unsigned		key = PANELDB_NULL_KEY;
 
 
 	/* Validate the panel name. */
@@ -1601,7 +1602,7 @@ static osbool panel_process_panel_dialogue(struct paneldb_entry *panel, void *da
 
 	key = paneldb_key_from_name(panel->name);
 
-	if (key != windat->panel_id && key != PANELDB_NULL_KEY) {
+	if (((windat == NULL) || (key != windat->panel_id)) && (key != PANELDB_NULL_KEY)) {
 		error_msgs_param_report_info("DuplicateName", panel->name, NULL, NULL, NULL);
 		return FALSE;
 
@@ -1617,21 +1618,22 @@ static osbool panel_process_panel_dialogue(struct paneldb_entry *panel, void *da
 		return FALSE;
 	}
 
-	/* If this is a new button, create its entry and get a database
-	 * key for the application details.
+	/* If this is a new panel, create its entry and get a database key.
 	 */
 
-//	if (button == NULL)
-//		button = icondb_create_icon(windat->icondb, appdb_create_key(), &(app->position));
-
-//	if (button == NULL) {
-//		error_msgs_report_error("NoMemNewButton");
-//		return FALSE;
-//	}
+	if (windat == NULL) {
+		key = paneldb_create_key();
+		if (key == PANELDB_NULL_KEY) {
+			error_msgs_report_error("NoMemNewPanel");
+			return FALSE;
+		}
+	} else {
+		key = windat->panel_id;
+	}
 
 	/* Store the panel in the database. */
 
-	paneldb_set_panel_info(windat->panel_id, panel);
+	paneldb_set_panel_info(key, panel);
 
 	panel_create_from_db();
 
@@ -1656,25 +1658,21 @@ static osbool panel_delete_panel(struct panel_block *windat)
  * Open an edit dialogue box for a button.
  *
  * \param *pointer	The pointer coordinates at which to open the dialogue.
+ * \param *windat	The panel to open the dialogue for.
  * \param *button	The button to open the dialogue for, or NULL to
  *			open a blank dialogue.
  * \param *grid		The coordinates for a blank dialogue.
  */
 
-static void panel_open_button_dialogue(wimp_pointer *pointer, struct icondb_button *button, os_coord *grid)
+static void panel_open_button_dialogue(wimp_pointer *pointer, struct panel_block *windat, struct icondb_button *button, os_coord *grid)
 {
 	struct appdb_entry app;
 
+	appdb_set_defaults(&app);
+
 	/* Initialise deafults if button data can't be found. */
 
-	app.panel = 0;
-	app.position.x = 0;
-	app.position.y = 0;
-	app.local_copy = FALSE;
-	app.filer_boot = TRUE;
-	*app.name = '\0';
-	*app.sprite = '\0';
-	*app.command = '\0';
+	app.panel = windat->panel_id;
 
 	if (button != NULL)
 		appdb_get_button_info(button->key, &app);
@@ -1698,8 +1696,9 @@ static void panel_open_button_dialogue(wimp_pointer *pointer, struct icondb_butt
 
 static osbool panel_process_button_dialogue(struct appdb_entry *app, void *data)
 {
-	struct icondb_button *button = data;
-	struct panel_block *windat = NULL;
+	struct icondb_button	*button = data;
+	struct panel_block	*windat = NULL;
+	unsigned		key = APPDB_NULL_KEY;
 
 	if (app == NULL)
 		return FALSE;
@@ -1728,17 +1727,19 @@ static osbool panel_process_button_dialogue(struct appdb_entry *app, void *data)
 	 * key for the application details.
 	 */
 
-	if (button == NULL)
-		button = icondb_create_icon(windat->icondb, appdb_create_key(), &(app->position));
-
 	if (button == NULL) {
-		error_msgs_report_error("NoMemNewButton");
-		return FALSE;
+		key = appdb_create_key();
+		if (key == APPDB_NULL_KEY) {
+			error_msgs_report_error("NoMemNewButton");
+			return FALSE;
+		}
+	} else {
+		key = button->key;
 	}
 
 	/* Store the application in the database. */
 
-	appdb_set_button_info(button->key, app);
+	appdb_set_button_info(key, app);
 
 	panel_add_buttons_from_db(windat);
 	panel_reflow_buttons(windat);

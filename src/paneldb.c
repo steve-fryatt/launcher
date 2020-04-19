@@ -610,8 +610,6 @@ static enum paneldb_position paneldb_position_from_name(char *name)
 
 static int paneldb_new(osbool allocate)
 {
-	struct paneldb_entry *entry = NULL;
-
 	if (paneldb_panels >= paneldb_allocation && flex_extend((flex_ptr) &paneldb_list,
 			(paneldb_allocation + PANELDB_ALLOC_CHUNK) * sizeof(struct paneldb_container)) == 1)
 		paneldb_allocation += PANELDB_ALLOC_CHUNK;
@@ -619,14 +617,8 @@ static int paneldb_new(osbool allocate)
 	if (paneldb_panels >= paneldb_allocation)
 		return -1;
 
-	entry = &(paneldb_list[paneldb_panels].entry);
-
 	paneldb_list[paneldb_panels].key = paneldb_key++;
-	entry->position = PANELDB_POSITION_LEFT;
-	entry->width = 100;
-	entry->sort = 1;
-
-	*(entry->name) = '\0';
+	paneldb_set_defaults(&(paneldb_list[paneldb_panels].entry));
 
 	/* If we're not allocating a key, blank the entry out. We still
 	 * claim it, so that the next key number advances. Note that
@@ -679,3 +671,20 @@ void paneldb_copy(struct paneldb_entry *to, struct paneldb_entry *from)
 	string_copy(to->name, from->name, PANELDB_NAME_LENGTH);
 }
 
+
+/**
+ * Set some default values for a PanelDB entry.
+ *
+ * \param *entry	The entry to set.
+ */
+
+void paneldb_set_defaults(struct paneldb_entry *entry)
+{
+	if (entry == NULL)
+		return;
+
+	entry->position = PANELDB_POSITION_LEFT;
+	entry->width = 100;
+	entry->sort = 1;
+	*(entry->name) = '\0';
+}

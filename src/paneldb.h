@@ -251,5 +251,14 @@ unsigned paneldb_lookup_key(int index);
 
 void paneldb_copy(struct paneldb_entry *to, struct paneldb_entry *from);
 
+
+/**
+ * Set some default values for a PanelDB entry.
+ *
+ * \param *entry	The entry to set.
+ */
+
+void paneldb_set_defaults(struct paneldb_entry *entry);
+
 #endif
 

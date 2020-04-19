@@ -236,5 +236,13 @@ osbool appdb_set_button_info(unsigned key, struct appdb_entry *data);
 
 void appdb_copy(struct appdb_entry *to, struct appdb_entry *from);
 
-#endif
 
+/**
+ * Set some default values for an AppDB entry.
+ *
+ * \param *entry	The entry to set.
+ */
+
+void appdb_set_defaults(struct appdb_entry *entry);
+
+#endif

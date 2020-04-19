@@ -520,8 +520,6 @@ static int appdb_find(unsigned key)
 
 static int appdb_new()
 {
-	struct appdb_entry *entry = NULL;
-
 	if (appdb_apps >= appdb_allocation && flex_extend((flex_ptr) &appdb_list,
 			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct appdb_container)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
@@ -529,18 +527,8 @@ static int appdb_new()
 	if (appdb_apps >= appdb_allocation)
 		return -1;
 
-	entry = &(appdb_list[appdb_apps].entry);
-
 	appdb_list[appdb_apps].key = appdb_key++;
-	entry->panel = APPDB_NULL_PANEL;
-	entry->position.x = 0;
-	entry->position.y = 0;
-	entry->local_copy = FALSE;
-	entry->filer_boot = TRUE;
-
-	*(entry->name) = '\0';
-	*(entry->sprite) = '\0';
-	*(entry->command) = '\0';
+	appdb_set_defaults(&(appdb_list[appdb_apps].entry));
 
 	return appdb_apps++;
 }
@@ -585,3 +573,25 @@ void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
 	string_copy(to->command, from->command, APPDB_COMMAND_LENGTH);
 }
 
+
+/**
+ * Set some default values for an AppDB entry.
+ *
+ * \param *entry	The entry to set.
+ */
+
+void appdb_set_defaults(struct appdb_entry *entry)
+{
+	if (entry == NULL)
+		return;
+
+	entry->panel = APPDB_NULL_PANEL;
+	entry->position.x = 0;
+	entry->position.y = 0;
+	entry->local_copy = FALSE;
+	entry->filer_boot = TRUE;
+
+	*(entry->name) = '\0';
+	*(entry->sprite) = '\0';
+	*(entry->command) = '\0';
+}
