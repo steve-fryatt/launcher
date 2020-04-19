@@ -300,6 +300,8 @@ static osbool edit_button_read_window(void)
 	if (edit_button_callback == NULL)
 		return TRUE;
 
+	entry.panel = edit_button_default_data->panel;
+
 	entry.position.x = atoi(icons_get_indirected_text_addr(edit_button_window, EDIT_BUTTON_ICON_XPOS));
 	entry.position.y = atoi(icons_get_indirected_text_addr(edit_button_window, EDIT_BUTTON_ICON_YPOS));
 
