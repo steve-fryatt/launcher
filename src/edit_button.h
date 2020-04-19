@@ -1,4 +1,4 @@
-/* Copyright 2003-2019, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of Launcher:
  *
@@ -22,11 +22,11 @@
  */
 
 /**
- * \file: edit.h
+ * \file: edit_button.h
  */
 
-#ifndef LAUNCHER_EDIT
-#define LAUNCHER_EDIT
+#ifndef LAUNCHER_EDIT_BUTTON
+#define LAUNCHER_EDIT_BUTTON
 
 #include "appdb.h"
 
@@ -34,14 +34,14 @@
  * Initialise the Edit dialogue.
  */
 
-void edit_initialise(void);
+void edit_button_initialise(void);
 
 
 /**
  * Terminate the Edit dialogue.
  */
 
-void edit_terminate(void);
+void edit_button_terminate(void);
 
 
 /**
@@ -53,7 +53,7 @@ void edit_terminate(void);
  * \param *target	A client-specified target for the callback.
  */
 
-void edit_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, osbool (*callback)(struct appdb_entry *entry, void *data), void *target);
+void edit_button_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, osbool (*callback)(struct appdb_entry *entry, void *data), void *target);
 
 #endif
 

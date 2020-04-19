@@ -29,10 +29,14 @@
 #define LAUNCHER_APPDB
 
 #define APPDB_NULL_KEY 0xffffffffu
+#define APPDB_NULL_PANEL 0xffffffffu
 
 #define APPDB_NAME_LENGTH 64
 #define APPDB_SPRITE_LENGTH 20
 #define APPDB_COMMAND_LENGTH 1024
+
+#include <stdio.h>
+#include "filing.h"
 
 
 /**
@@ -40,12 +44,11 @@
  */
 
 struct appdb_entry {
-
 	/**
-	 * Primary key to index database entries.
+	 * The target panel key.
 	 */
 
-	unsigned	key;
+	unsigned	panel;
 
 	/**
 	 * Button name.
@@ -54,10 +57,10 @@ struct appdb_entry {
 	char		name[APPDB_NAME_LENGTH];
 
 	/**
-	 * X and Y positions of the button in the window.
+	 * The position of the button in the window.
 	 */
 
-	int		x, y;
+	os_coord	position;
 
 	/**
 	 * The sprite name.
@@ -88,7 +91,7 @@ struct appdb_entry {
 
 
 /**
- * Initialise the buttons window.
+ * Initialise the application database.
  */
 
 void appdb_initialise(void);
@@ -102,23 +105,53 @@ void appdb_terminate(void);
 
 
 /**
- * Load the contents of a button file into the buttons database.
- *
- * \param *leaf_name		The file leafname to load.
- * \return			TRUE on success; else FALSE.
+ * Reset the application database.
  */
 
-osbool appdb_load_file(char *leaf_name);
+void appdb_reset(void);
+
+
+/**
+ * Load the contents of an old format button file into the buttons
+ * database.
+ *
+ * \param *in		The filing operation to load from.
+ * \param panel		The index of the panel to add the entries to.
+ * \return		TRUE on success; else FALSE.
+ */
+
+osbool appdb_load_old_file(struct filing_block *in, int panel);
+
+
+/**
+ * Load the contents of a new format button file into the buttons
+ * database.
+ *
+ * \param *in		The filing operation to load from.
+ * \return		TRUE on success; else FALSE.
+ */
+
+osbool appdb_load_new_file(struct filing_block *in);
+
+
+/**
+ * Once panels and buttons are loaded, scan the buttons replacing the
+ * panel indexes with the associated panel keys.
+ *
+ * \return		TRUE if successful; FALSE if errors occurred.
+ */
+
+osbool appdb_complete_file_load(void);
 
 
 /**
  * Save the contents of the buttons database into a buttons file.
  *
- * \param *leaf_name		The file leafname to save to.
- * \return			TRUE on success; else FALSE.
+ * \param *file		The file handle to save to.
+ * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_save_file(char *leaf_name);
+osbool appdb_save_file(FILE *file);
 
 
 /**
@@ -141,7 +174,7 @@ unsigned appdb_create_key(void);
 /**
  * Delete an entry from the database.
  *
- * \param key			The key of the enrty to delete.
+ * \param key			The key of the entry to delete.
  */
 
 void appdb_delete_key(unsigned key);
@@ -158,13 +191,23 @@ unsigned appdb_get_next_key(unsigned key);
 
 
 /**
+ * Given a database key, return the associated button panel ID.
+ *
+ * \param key		The database key to query.
+ * \return		The associated panel ID, or APPDB_NULL_PANEL.
+ */
+
+unsigned appdb_get_panel(unsigned key);
+
+
+/**
  * Given a key, return details of the button associated with the application.
  * If a structure is provided, the data is copied into it; otherwise, a pointer
- * to a structure to the flex heap is returned which will remain valid only
+ * to a structure in the flex heap is returned which will remain valid only
  * the heap contents are changed.
  * 
  *
- * \param key			The key of the netry to be returned.
+ * \param key			The key of the entry to be returned.
  * \param *data			Pointer to structure to return the data, or NULL.
  * \return			Pointer to the returned data, or NULL on failure.
  */
@@ -176,11 +219,12 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
  * Given a data structure, set the details of a database entry by copying the
  * contents of the structure into the database.
  *
- * \param *data			Pointer to the structure containing the data.
- * \return			TRUE if an entry was updated; else FALSE.
+ * \param key		The key of the entry to update.
+ * \param *data		Pointer to the structure containing the data.
+ * \return		TRUE if an entry was updated; else FALSE.
  */
 
-osbool appdb_set_button_info(struct appdb_entry *data);
+osbool appdb_set_button_info(unsigned key, struct appdb_entry *data);
 
 
 /**
@@ -192,5 +236,13 @@ osbool appdb_set_button_info(struct appdb_entry *data);
 
 void appdb_copy(struct appdb_entry *to, struct appdb_entry *from);
 
-#endif
 
+/**
+ * Set some default values for an AppDB entry.
+ *
+ * \param *entry	The entry to set.
+ */
+
+void appdb_set_defaults(struct appdb_entry *entry);
+
+#endif

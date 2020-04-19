@@ -1,4 +1,4 @@
-/* Copyright 2003-2019, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of Launcher:
  *
@@ -22,45 +22,32 @@
  */
 
 /**
- * \file: buttons.h
+ * \file: panel.h
  */
 
-#ifndef LAUNCHER_BUTTONS
-#define LAUNCHER_BUTTONS
-
-/**
- * The possible buttons window positions.
- */
-
-enum buttons_position {
-	BUTTONS_POSITION_VERTICAL = 4,
-	BUTTONS_POSITION_LEFT = 6,
-	BUTTONS_POSITION_RIGHT = 7,
-	BUTTONS_POSITION_HORIZONTAL = 8,
-	BUTTONS_POSITION_TOP = 8,
-	BUTTONS_POSITION_BOTTOM = 9
-};
+#ifndef LAUNCHER_PANEL
+#define LAUNCHER_PANEL
 
 
 /**
  * Initialise the buttons window.
  */
 
-void buttons_initialise(void);
+void panel_initialise(void);
 
 
 /**
  * Terminate the buttons window.
  */
 
-void buttons_terminate(void);
+void panel_terminate(void);
 
 
 /**
  * Create a full set of buttons from the contents of the application database.
  */
 
-void buttons_create_from_db(void);
+void panel_create_from_db(void);
 
 
 /**
@@ -68,7 +55,7 @@ void buttons_create_from_db(void);
  * and force an update of any relevant parameters.
  */
 
-void buttons_refresh_choices(void);
+void panel_refresh_choices(void);
 
 #endif
 

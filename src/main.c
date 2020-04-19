@@ -55,8 +55,10 @@
 #include "main.h"
 
 #include "appdb.h"
-#include "buttons.h"
+#include "panel.h"
 #include "choices.h"
+#include "filing.h"
+#include "paneldb.h"
 #include "proginfo.h"
 
 /**
@@ -105,8 +107,9 @@ int main(void)
 	main_poll_loop();
 
 	msgs_terminate();
-	buttons_terminate();
+	panel_terminate();
 	appdb_terminate();
+	paneldb_terminate();
 
 	wimp_close_down(main_task_handle);
 
@@ -192,6 +195,8 @@ static void main_initialise(void)
 	config_int_init("WindowColumns", 8);					/**< The number of columns to display on expanding the window.		*/
 	config_int_init("GridSize", 44);					/**< The number of OS units to a grid square.				*/
 	config_int_init("GridSpacing", 4);					/**< The number of OS units between grid squares.			*/
+	config_int_init("SlabXSize", 2);					/**< The X size of a button slab, in grid quares.			*/
+	config_int_init("SlabYSize", 2);					/**< The Y size of a button slab, in grid quares.			*/
 	config_opt_init("ConfirmDelete", TRUE);					/**< TRUE to confirm button deletion; FALSE to delete immediately.	*/
 
 	config_load();
@@ -211,17 +216,18 @@ static void main_initialise(void)
 	ihelp_initialise();
 	url_initialise();
 	proginfo_initialise();
+	paneldb_initialise();
 	appdb_initialise();
-	buttons_initialise();
+	panel_initialise();
 	choices_initialise();
 
 	templates_close();
 
 	/* Load the button definitions. */
 
-	appdb_load_file("Buttons");
+	filing_load("Buttons");
 	appdb_boot_all();
-	buttons_create_from_db();
+	panel_create_from_db();
 
 	/* Tidy up and finish initialisation. */
 

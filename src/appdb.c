@@ -57,6 +57,9 @@
 
 #include "appdb.h"
 
+#include "filing.h"
+#include "paneldb.h"
+
 /**
  * The number of new blocks to allocate when more space is required.
  */
@@ -64,16 +67,28 @@
 #define APPDB_ALLOC_CHUNK 10
 
 /**
- * The maximum length of a settings filename.
- */
-
-#define APPDB_MAX_FILENAME_LENGTH 1024
-
-/**
  * The length of the *Filer_Boot command string.
  */
 
 #define APPDB_FILER_BOOT_LENGTH 15
+
+/**
+ * The internal database entry container.
+ */
+
+struct appdb_container {
+	/**
+	 * Primary key to index database entries.
+	 */
+
+	unsigned		key;
+
+	/**
+	 * The database entry.
+	 */
+
+	struct appdb_entry	entry;	
+};
 
 /* Global Variables. */
 
@@ -81,7 +96,7 @@
  * The flex array of application data.
  */
 
-static struct appdb_entry		*appdb_list = NULL;
+static struct appdb_container		*appdb_list = NULL;
 
 /**
  * The number of applications stored in the database.
@@ -114,7 +129,7 @@ static void	appdb_delete(int index);
 void appdb_initialise(void)
 {
 	if (flex_alloc((flex_ptr) &appdb_list,
-			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct appdb_entry)) == 1)
+			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct appdb_container)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
 }
 
@@ -131,106 +146,173 @@ void appdb_terminate(void)
 
 
 /**
- * Load the contents of a button file into the buttons database.
+ * Reset the application database.
+ */
+
+void appdb_reset(void)
+{
+	appdb_apps = 0;
+	appdb_key = 0;
+}
+
+
+/**
+ * Load the contents of an old format button file into the buttons
+ * database.
  *
- * \param *leaf_name	The file leafname to load.
+ * \param *in		The filing operation to load from.
+ * \param panel		The index of the panel to add the entries to.
  * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_load_file(char *leaf_name)
+osbool appdb_load_old_file(struct filing_block *in, int panel)
 {
-	enum config_read_status	result;
-	int			current = -1;
-	char			token[1024], contents[1024], section[1024], filename[APPDB_MAX_FILENAME_LENGTH];
-	FILE			*file;
+	int current = -1;
 
-	/* Find a buttons file somewhere in the usual config locations. */
+	debug_printf("Loading an old file...");
 
-	config_find_load_file(filename, APPDB_MAX_FILENAME_LENGTH, leaf_name);
-
-	if (*filename == '\0')
-		return FALSE;
-
-	/* Open the file and work through it using the config file handling library. */
-
-	file = fopen(filename, "r");
-
-	if (file == NULL)
-		return FALSE;
-
-	while ((result = config_read_token_pair(file, token, contents, section)) != sf_CONFIG_READ_EOF) {
-
-		/* A new section of the file, so create, initialise and link in a new button object. */
-
-		if (result == sf_CONFIG_READ_NEW_SECTION) {
-			current = appdb_new();
-
-			if (current != -1)
-				strncpy(appdb_list[current].name, section, APPDB_NAME_LENGTH);
-		}
-
-		/* If there is a current button object, add the current piece of data to it. */
-
-		if (current != -1) {
-			if (strcmp(token, "XPos") == 0)
-				appdb_list[current].x = atoi(contents);
-			else if (strcmp(token, "YPos") == 0)
-				appdb_list[current].y = atoi(contents);
-			else if (strcmp(token, "Sprite") == 0)
-				strncpy(appdb_list[current].sprite, contents, APPDB_SPRITE_LENGTH);
-			else if (strcmp(token, "RunPath") == 0)
-				strncpy(appdb_list[current].command, contents, APPDB_COMMAND_LENGTH);
-			else if (strcmp(token, "Boot") == 0)
-				appdb_list[current].filer_boot = config_read_opt_string(contents);
-		}
+	if (panel == -1) {
+		 filing_set_status(in, FILING_STATUS_MEMORY);
+		 return FALSE;
 	}
 
-	fclose(file);
+	while (filing_get_next_section(in)) {
+		current = appdb_new();
+
+		if (current == -1) {
+			 filing_set_status(in, FILING_STATUS_MEMORY);
+			 return FALSE;
+		}
+
+		filing_get_section_name(in, appdb_list[current].entry.name, APPDB_NAME_LENGTH);
+		appdb_list[current].entry.panel = panel;
+
+		debug_printf("Loading section '%s'", appdb_list[current].entry.name);
+
+		do {
+			if (current != -1) {
+				if (filing_test_token(in, "XPos"))
+					appdb_list[current].entry.position.x = filing_get_int_value(in);
+				else if (filing_test_token(in, "YPos"))
+					appdb_list[current].entry.position.y = filing_get_int_value(in);
+				else if (filing_test_token(in, "Sprite"))
+					filing_get_text_value(in, appdb_list[current].entry.sprite, APPDB_SPRITE_LENGTH);
+				else if (filing_test_token(in, "RunPath"))
+					filing_get_text_value(in, appdb_list[current].entry.command, APPDB_COMMAND_LENGTH);
+				else if (filing_test_token(in, "Boot"))
+					appdb_list[current].entry.filer_boot = filing_get_opt_value(in);
+				else
+					filing_set_status(in, FILING_STATUS_UNEXPECTED);
+			}
+		} while (filing_get_next_token(in));
+	}
 
 	return TRUE;
 }
 
 
 /**
- * Save the contents of the buttons database into a buttons file.
+ * Load the contents of a new format button file into the buttons
+ * database.
  *
- * \param *leaf_name	The file leafname to save to.
+ * \param *in		The filing operation to load from.
  * \return		TRUE on success; else FALSE.
  */
 
-osbool appdb_save_file(char *leaf_name)
+osbool appdb_load_new_file(struct filing_block *in)
 {
-	char	filename[APPDB_MAX_FILENAME_LENGTH];
-	int	current;
-	FILE	*file;
+	int current = -1, panel = -1;
+
+	debug_printf("Loading a new file...");
+
+	do {
+		if (filing_test_token(in, "@")) {
+			current = appdb_new();
+
+			if (current == -1) {
+				 filing_set_status(in, FILING_STATUS_MEMORY);
+				 return FALSE;
+			}
+
+			filing_get_text_value(in, appdb_list[current].entry.name, APPDB_NAME_LENGTH);
+			debug_printf("Loading section '%s'", appdb_list[current].entry.name);
+		} else if ((current != -1) && filing_test_token(in, "Panel")) {
+			panel = paneldb_lookup_name(filing_get_text_value(in, NULL, 0));
+			if (panel == -1) {
+				 filing_set_status(in, FILING_STATUS_MEMORY);
+				 return FALSE;
+			}
+			appdb_list[current].entry.panel = panel;
+		} else if ((current != -1) && filing_test_token(in, "XPos"))
+			appdb_list[current].entry.position.x = filing_get_int_value(in);
+		else if ((current != -1) && filing_test_token(in, "YPos"))
+			appdb_list[current].entry.position.y = filing_get_int_value(in);
+		else if ((current != -1) && filing_test_token(in, "Sprite"))
+			filing_get_text_value(in, appdb_list[current].entry.sprite, APPDB_SPRITE_LENGTH);
+		else if ((current != -1) && filing_test_token(in, "RunPath"))
+			filing_get_text_value(in, appdb_list[current].entry.command, APPDB_COMMAND_LENGTH);
+		else if ((current != -1) && filing_test_token(in, "Boot"))
+			appdb_list[current].entry.filer_boot = filing_get_opt_value(in);
+		else
+			filing_set_status(in, FILING_STATUS_UNEXPECTED);
+	} while (filing_get_next_token(in));
+
+	return TRUE;
+}
 
 
-	/* Find a buttons file to write somewhere in the usual config locations. */
+/**
+ * Once panels and buttons are loaded, scan the buttons replacing the
+ * panel indexes with the associated panel keys.
+ *
+ * \return		TRUE if successful; FALSE if errors occurred.
+ */
 
-	config_find_save_file(filename, APPDB_MAX_FILENAME_LENGTH, leaf_name);
+osbool appdb_complete_file_load(void)
+{
+	int		i;
+	unsigned	key;
 
-	if (*filename == '\0')
-		return FALSE;
+	for (i = 0; i < appdb_apps; i++) {
+		key = paneldb_lookup_key(appdb_list[i].entry.panel);
+		if (key == PANELDB_NULL_KEY) {
+			debug_printf("Unexpected panel for button '%s'", appdb_list[i].entry.name);
+			return FALSE;
+		}
+		appdb_list[i].entry.panel = key;
+	}
 
-	/* Open the file and work through it using the config file handling library. */
+	return TRUE;
+}
 
-	file = fopen(filename, "w");
+/**
+ * Save the contents of the buttons database into a buttons file.
+ *
+ * \param *file		The file handle to save to.
+ * \return		TRUE on success; else FALSE.
+ */
+
+osbool appdb_save_file(FILE *file)
+{
+	int			current;
+	struct appdb_entry	*entry = NULL;
 
 	if (file == NULL)
 		return FALSE;
 
-	fprintf(file, "# >Buttons\n#\n# Saved by Launcher.\n");
+	fprintf(file, "\n[Buttons]");
 
 	for (current = 0; current < appdb_apps; current++) {
-		fprintf(file, "\n[%s]\n", appdb_list[current].name);
-		fprintf(file, "XPos: %d\n", appdb_list[current].x);
-		fprintf(file, "YPos: %d\n", appdb_list[current].y);
-		fprintf(file, "Sprite: %s\n", appdb_list[current].sprite);
-		fprintf(file, "RunPath: %s\n", appdb_list[current].command);
-		fprintf(file, "Boot: %s\n", config_return_opt_string(appdb_list[current].filer_boot));
-	}
+		entry = &(appdb_list[current].entry);
 
-	fclose(file);
+		fprintf(file, "\n@: %s\n", entry->name);
+		fprintf(file, "Panel: %s\n", paneldb_get_name(entry->panel));
+		fprintf(file, "XPos: %d\n", entry->position.x);
+		fprintf(file, "YPos: %d\n", entry->position.y);
+		fprintf(file, "Sprite: %s\n", entry->sprite);
+		fprintf(file, "RunPath: %s\n", entry->command);
+		fprintf(file, "Boot: %s\n", config_return_opt_string(entry->filer_boot));
+	}
 
 	return TRUE;
 }
@@ -248,12 +330,12 @@ void appdb_boot_all(void)
 	os_error	*error;
 
 	for (current = 0; current < appdb_apps; current++) {
-		if (appdb_list[current].filer_boot) {
-			string_printf(command, APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH, "Filer_Boot %s", appdb_list[current].command);
+		if (appdb_list[current].entry.filer_boot) {
+			string_printf(command, APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH, "Filer_Boot %s", appdb_list[current].entry.command);
 			error = xos_cli(command);
 
 			if ((error != NULL) &&
-					(error_msgs_param_report_error("BootFail", appdb_list[current].name, error->errmess, NULL, NULL) == wimp_ERROR_BOX_SELECTED_CANCEL))
+					(error_msgs_param_report_error("BootFail", appdb_list[current].entry.name, error->errmess, NULL, NULL) == wimp_ERROR_BOX_SELECTED_CANCEL))
 				break;
 		}
 	}
@@ -279,9 +361,9 @@ unsigned appdb_create_key(void)
 
 
 /**
- * Delete an enrty from the database.
+ * Delete an entry from the database.
  *
- * \param key		The key of the enrty to delete.
+ * \param key		The key of the entry to delete.
  */
 
 void appdb_delete_key(unsigned key)
@@ -319,13 +401,33 @@ unsigned appdb_get_next_key(unsigned key)
 
 
 /**
+ * Given a database key, return the associated button panel ID.
+ *
+ * \param key		The database key to query.
+ * \return		The associated panel ID, or APPDB_NULL_PANEL.
+ */
+
+unsigned appdb_get_panel(unsigned key)
+{
+	int index;
+
+	index = appdb_find(key);
+
+	if (index == APPDB_NULL_PANEL)
+		return APPDB_NULL_PANEL;
+
+	return appdb_list[index].entry.panel;
+}
+
+
+/**
  * Given a key, return details of the button associated with the application.
  * If a structure is provided, the data is copied into it; otherwise, a pointer
- * to a structure to the flex heap is returned which will remain valid only
+ * to a structure in the flex heap is returned which will remain valid only
  * the heap contents are changed.
  * 
  *
- * \param key		The key of the netry to be returned.
+ * \param key		The key of the entry to be returned.
  * \param *data		Pointer to structure to return the data, or NULL.
  * \return		Pointer to the returned data, or NULL on failure.
  */
@@ -344,11 +446,11 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
 	/* If no buffer is supplied, just return a pointer into the flex heap. */
 
 	if (data == NULL)
-		return appdb_list + index;
+		return &(appdb_list[index].entry);
 
 	/* Copy the data into the supplied buffer. */
 
-	appdb_copy(data, appdb_list + index);
+	appdb_copy(data, &(appdb_list[index].entry));
 
 	return data;
 }
@@ -358,23 +460,24 @@ struct appdb_entry *appdb_get_button_info(unsigned key, struct appdb_entry *data
  * Given a data structure, set the details of a database entry by copying the
  * contents of the structure into the database.
  *
+ * \param key		The key of the entry to update.
  * \param *data		Pointer to the structure containing the data.
  * \return		TRUE if an entry was updated; else FALSE.
  */
 
-osbool appdb_set_button_info(struct appdb_entry *data)
+osbool appdb_set_button_info(unsigned key, struct appdb_entry *data)
 {
 	int index;
 
 	if (data == NULL)
 		return FALSE;
 
-	index = appdb_find(data->key);
+	index = appdb_find(key);
 
 	if (index == -1)
 		return FALSE;
 
-	appdb_copy(appdb_list + index, data);
+	appdb_copy(&(appdb_list[index].entry), data);
 
 	return TRUE;
 }
@@ -418,21 +521,14 @@ static int appdb_find(unsigned key)
 static int appdb_new()
 {
 	if (appdb_apps >= appdb_allocation && flex_extend((flex_ptr) &appdb_list,
-			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct appdb_entry)) == 1)
+			(appdb_allocation + APPDB_ALLOC_CHUNK) * sizeof(struct appdb_container)) == 1)
 		appdb_allocation += APPDB_ALLOC_CHUNK;
 
 	if (appdb_apps >= appdb_allocation)
 		return -1;
 
 	appdb_list[appdb_apps].key = appdb_key++;
-	appdb_list[appdb_apps].x = 0;
-	appdb_list[appdb_apps].y = 0;
-	appdb_list[appdb_apps].local_copy = FALSE;
-	appdb_list[appdb_apps].filer_boot = TRUE;
-
-	*(appdb_list[appdb_apps].name) = '\0';
-	*(appdb_list[appdb_apps].sprite) = '\0';
-	*(appdb_list[appdb_apps].command) = '\0';
+	appdb_set_defaults(&(appdb_list[appdb_apps].entry));
 
 	return appdb_apps++;
 }
@@ -449,8 +545,11 @@ static void appdb_delete(int index)
 	if (index < 0 || index >= appdb_apps)
 		return;
 
-	flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct appdb_entry),
-			-sizeof(struct appdb_entry));
+	if (flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct appdb_container),
+			-sizeof(struct appdb_container))) {
+		appdb_allocation--;
+		appdb_apps--;
+	}
 }
 
 
@@ -463,8 +562,9 @@ static void appdb_delete(int index)
 
 void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
 {
-	to->x = from->x;
-	to->y = from->y;
+	to->panel = from->panel;
+	to->position.x = from->position.x;
+	to->position.y = from->position.y;
 	to->local_copy = from->local_copy;
 	to->filer_boot = from->filer_boot;
 
@@ -473,3 +573,25 @@ void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
 	string_copy(to->command, from->command, APPDB_COMMAND_LENGTH);
 }
 
+
+/**
+ * Set some default values for an AppDB entry.
+ *
+ * \param *entry	The entry to set.
+ */
+
+void appdb_set_defaults(struct appdb_entry *entry)
+{
+	if (entry == NULL)
+		return;
+
+	entry->panel = APPDB_NULL_PANEL;
+	entry->position.x = 0;
+	entry->position.y = 0;
+	entry->local_copy = FALSE;
+	entry->filer_boot = TRUE;
+
+	*(entry->name) = '\0';
+	*(entry->sprite) = '\0';
+	*(entry->command) = '\0';
+}

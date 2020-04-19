@@ -36,24 +36,46 @@ QDeleteB:Delete,Cancel
 
 BootFail:Error booting %0: '%1'.
 
+UnknownFileData:The bar or button definitions contained tokens which this version of Launcher did not understand. These have been discarded, and saving the settings will cause that information to be lost.
+UnknownFileFormat:The bar or button definitions are in a format newer than that understood by this version of Launcher. Try loading it into a newer version of the application.
+CorruptFile:The file contents appear to be corrupt, and it can not be loaded.
+NoMemLoadFile:There was not enough memory to load the bar or button definitions.
+BadMemory:There was an error with the memory block sizes.
+
+NoMemNewPanel:There was not enough memory to create a new panel.
+NoMemNewButton:There was not enough memory to create a new button.
+
+LastPanelDelete:This is the last panel, and so can not be deleted.
+
 CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
+MissingName:The Name field must be completed.
+DuplicateName: The panel name '%0' is already in use.
+SortRange: The order must be between 1 and 9999.
+WidthRange: The width must be between 1 and 9999.
 BadTemplate:Window template '%0' not found.
+
+BadPanel:Panel ID does not match database.
 
 Help.Launch:\TLauncher \w.|M\Slaunch applications and files.
 Help.Launch.Siebar:\TLauncher \w.|M\Sexpand or contract the display.
 Help.Launch.Button:\Sluanch this file or aplication.
 
-Help.Edit:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
-Help.Edit.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
-Help.Edit.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
-Help.Edit.Name:\Tname of the button.
-Help.Edit.XPos:\Thorizontal position of the button on the grid.
-Help.Edit.YPos:\Tvertical position of the button on the grid.
-Help.Edit.Sprite:\Tname of the sprite used on the button.
-Help.Edit.Location:\Tlocation of the file or application which will be run when the button is clicked.
-Help.Edit.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
-Help.Edit.Boot:\Stoggle whether the application will be filer-booted when Launcher starts.
+Help.EditPanel:\Tpane editing \w.
+Help.EditPanel.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
+Help.EditPanel.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
+Help.EditPanel.Name:\Tname of the panel.
+
+Help.EditButton:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
+Help.EditButton.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
+Help.EditButton.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
+Help.EditButton.Name:\Tname of the button.
+Help.EditButton.XPos:\Thorizontal position of the button on the grid.
+Help.EditButton.YPos:\Tvertical position of the button on the grid.
+Help.EditButton.Sprite:\Tname of the sprite used on the button.
+Help.EditButton.Location:\Tlocation of the file or application which will be run when the button is clicked.
+Help.EditButton.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
+Help.EditButton.Boot:\Stoggle whether the application will be filer-booted when Launcher starts.
 
 Help.Choices:\Tchoices window for Launcher.
 Help.Choices.Apply:\Sclose the choices \w and use the changes|M\Ause the changes.

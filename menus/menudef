@@ -1,4 +1,4 @@
-/* Copyright 2003-2019, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of Launcher:
  *
@@ -21,6 +21,8 @@
  * permissions and limitations under the Licence.
  */
 
+/* The main panel window menu. */
+
 menu(MainMenu, "Launcher") {
 	item("Info") {
 		d_box(ProgInfo);
@@ -34,7 +36,13 @@ menu(MainMenu, "Launcher") {
 	item("New button...") {
 		dotted;
 	}
-	item("Save buttons");
+	item("Panel") {
+		submenu(PanelMenu);
+	}
+	item("New panel...") {
+		dotted;
+	}
+	item("Save layout");
 	item("Choices...") {
 		dotted;
 	}
@@ -45,8 +53,21 @@ menu(MainMenu, "Launcher") {
 menu(button_menu, "Button")
 {
 	item("Edit...");
-	item("Move") {
-		dotted;
-	}
 	item("Delete");
+}
+
+menu(PanelMenu, "Panel")
+{
+	item("Edit...");
+	item("Delete");
+}
+
+/* The panel location menu. */
+
+menu(PanelLocationMenu, "Location")
+{
+	item("Left");
+	item("Right");
+	item("Top");
+	item("Bottom");
 }
