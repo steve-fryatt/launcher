@@ -266,6 +266,8 @@ static int panel_mode_y_units_per_pixel;
 
 static wimp_menu *panel_menu = NULL;
 
+static wimp_menu *panel_sub_menu = NULL;
+
 /**
  * The block for the icon over which the main menu last opened.
  */
@@ -281,6 +283,7 @@ static os_coord panel_menu_coordinate;
 /* Static Function Prototypes. */
 
 static struct panel_block *panel_create_instance(unsigned key);
+static void panel_delete_instance(struct panel_block *windat);
 static void panel_update_instance_from_db(struct panel_block *windat);
 
 static void panel_click_handler(wimp_pointer *pointer);
@@ -329,6 +332,8 @@ void panel_initialise(void)
 	panel_menu = templates_get_menu("MainMenu");
 	ihelp_add_menu(panel_menu, "MainMenu");
 
+	panel_sub_menu = templates_get_menu("PanelMenu");
+
 	/* Initialise the main Buttons window template. */
 
 	panel_window_def = templates_load_window("Launch");
@@ -361,7 +366,11 @@ void panel_initialise(void)
 
 void panel_terminate(void)
 {
+	while (panel_list != NULL)
+		panel_delete_instance(panel_list);
+
 	icondb_terminate();
+	edit_panel_terminate();
 	edit_button_terminate();
 }
 
@@ -411,6 +420,68 @@ static struct panel_block *panel_create_instance(unsigned key)
 
 	return new;
 }
+
+
+/**
+ * Delete a panel instance.
+ * 
+ * \param *windat		The panel instance to delete.
+ */
+
+static void panel_delete_instance(struct panel_block *windat)
+{
+	unsigned		key, last_key;
+	struct panel_block	*parent;
+	struct appdb_entry	*app;
+
+	if (windat == NULL)
+		return;
+
+	debug_printf("\\RDeleting panel!");
+
+	event_delete_window(windat->window);
+	wimp_delete_window(windat->window);
+
+	/* Delete the applications from the database. */
+
+	key = appdb_get_next_key(APPDB_NULL_KEY);
+
+	while (key != APPDB_NULL_KEY) {
+		last_key = key;
+
+		key = appdb_get_next_key(key);
+
+		app = appdb_get_button_info(last_key, NULL);
+		if (app != NULL && app->panel == windat->panel_id) {
+			debug_printf("Deleting '%s' button", app->name);
+			appdb_delete_key(last_key);
+		}
+	}
+
+	/* Delete the panel from the database. */
+
+	paneldb_delete_key(windat->panel_id);
+
+	/* Delete the icon databse instance. */
+
+	icondb_destroy_instance(windat->icondb);
+
+	/* Delink the panel from the list. */
+
+	if (panel_list == windat) {
+		panel_list = windat->next;
+	} else {
+		for (parent = panel_list; parent != NULL && parent->next != windat; parent = parent->next);
+
+		if (parent != NULL && parent->next == windat)
+			parent->next = windat->next;
+	}
+
+	/* Free the memory. */
+
+	heap_free(windat);
+}
+
 
 /**
  * Update a panel instance from the panel database.
@@ -534,6 +605,7 @@ static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	menus_shade_entry(panel_menu, PANEL_MENU_BUTTON, (panel_menu_icon == NULL) ? TRUE : FALSE);
 	menus_shade_entry(panel_menu, PANEL_MENU_NEW_BUTTON, (pointer->i == wimp_ICON_WINDOW) ? FALSE : TRUE);
+	menus_shade_entry(panel_sub_menu, PANEL_MENU_PANEL_DELETE, (panel_list == NULL || panel_list->next == NULL) ? TRUE : FALSE);
 
 	window.w = w;
 	wimp_get_window_state(&window);
@@ -1682,7 +1754,16 @@ static osbool panel_process_panel_dialogue(struct paneldb_entry *panel, void *da
 
 static osbool panel_delete_panel(struct panel_block *windat)
 {
-	return FALSE;
+	if (panel_list == NULL || panel_list->next == NULL) {
+		error_msgs_report_info("LastPanelDelete");
+		return FALSE;
+	}
+
+	panel_delete_instance(windat);
+
+	panel_create_from_db();
+
+	return TRUE;
 }
 
 

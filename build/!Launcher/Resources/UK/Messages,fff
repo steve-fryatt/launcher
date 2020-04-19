@@ -45,6 +45,8 @@ BadMemory:There was an error with the memory block sizes.
 NoMemNewPanel:There was not enough memory to create a new panel.
 NoMemNewButton:There was not enough memory to create a new button.
 
+LastPanelDelete:This is the last panel, and so can not be deleted.
+
 CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
 MissingName:The Name field must be completed.

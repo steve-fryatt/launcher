@@ -37,7 +37,7 @@ menu(MainMenu, "Launcher") {
 		dotted;
 	}
 	item("Panel") {
-		submenu(panel_menu);
+		submenu(PanelMenu);
 	}
 	item("New panel...") {
 		dotted;
@@ -56,7 +56,7 @@ menu(button_menu, "Button")
 	item("Delete");
 }
 
-menu(panel_menu, "Panel")
+menu(PanelMenu, "Panel")
 {
 	item("Edit...");
 	item("Delete");

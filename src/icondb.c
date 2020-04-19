@@ -69,6 +69,7 @@ static struct icondb_block *icondb_instances = NULL;
 
 void icondb_initialise(void)
 {
+	icondb_instances = NULL;
 }
 
 /**
@@ -77,15 +78,10 @@ void icondb_initialise(void)
 
 void icondb_terminate(void)
 {
-	struct icondb_block *current;
-
 	/* Free any instances. */
 
-	while (icondb_instances != NULL) {
-		current = icondb_instances;
-		icondb_instances = current->next;
-		icondb_destroy_instance(current);
-	}
+	while (icondb_instances != NULL)
+		icondb_destroy_instance(icondb_instances);
 }
 
 /**
@@ -122,10 +118,28 @@ struct icondb_block *icondb_create_instance()
 
 void icondb_destroy_instance(struct icondb_block *instance)
 {
+	struct icondb_block *parent;
+
 	if (instance == NULL)
 		return;
 
+	/* Deallocate any memory from the icon list. */
+
 	icondb_reset_instance(instance);
+
+	/* Delink the instance. */
+
+	if (icondb_instances == instance) {
+		icondb_instances = instance->next;
+	} else {
+		for (parent = icondb_instances; parent != NULL && parent->next != instance; parent = parent->next);
+
+		if (parent != NULL && parent->next == instance)
+			parent->next = instance->next;
+	}
+
+	/* Free the memory used. */
+
 	heap_free(instance);
 }
 
