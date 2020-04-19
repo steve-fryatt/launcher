@@ -558,8 +558,10 @@ static void appdb_delete(int index)
 		return;
 
 	if (flex_midextend((flex_ptr) &appdb_list, (index + 1) * sizeof(struct appdb_container),
-			-sizeof(struct appdb_container)))
-		appdb_allocation -= sizeof(struct appdb_container);
+			-sizeof(struct appdb_container))) {
+		appdb_allocation--;
+		appdb_apps--;
+	}
 }
 
 

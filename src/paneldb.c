@@ -657,8 +657,10 @@ static void paneldb_delete(int index)
 		return;
 
 	if (flex_midextend((flex_ptr) &paneldb_list, (index + 1) * sizeof(struct paneldb_container),
-			-sizeof(struct paneldb_container)))
-		paneldb_allocation -= sizeof(struct paneldb_container);
+			-sizeof(struct paneldb_container))) {
+		paneldb_allocation--;
+		paneldb_panels--;
+	}
 }
 
 
