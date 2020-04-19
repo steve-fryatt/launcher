@@ -1061,7 +1061,7 @@ static void panel_update_grid_info(struct panel_block *windat)
 
 static void panel_update_window_extent(struct panel_block *windat)
 {
-	int			old_window_size = 0, new_window_size, sidebar_width = 0;
+	int			new_window_size, sidebar_width = 0;
 	wimp_window_info	info;
 	wimp_icon_state		state;
 	os_error		*error;
@@ -1087,7 +1087,6 @@ static void panel_update_window_extent(struct panel_block *windat)
 	new_window_size = windat->max_longitude - windat->min_longitude;
 
 	if (windat->location & PANEL_POSITION_VERTICAL) {
-		old_window_size = info.extent.y1 - info.extent.y0;
 
 		/* Calculate the new vertical size of the window. */
 
@@ -1103,16 +1102,7 @@ static void panel_update_window_extent(struct panel_block *windat)
 		info.extent.x0 = 0;
 		info.extent.x1 = info.extent.x0 + sidebar_width + windat->grid_spacing +
 				windat->grid_dimensions.x * (windat->grid_spacing + windat->grid_square);
-
-		/* Extend the extent if required, but never bother to shrink it. */
-
-		if (old_window_size < new_window_size) {
-			error = xwimp_set_extent(windat->window, &(info.extent));
-			if (error != NULL)
-				return;
-		}
 	} else if (windat->location & PANEL_POSITION_HORIZONTAL) {
-		old_window_size = info.extent.x1 - info.extent.x0;
 
 		/* Calculate the new horizontal size of the window. */
 
@@ -1128,15 +1118,13 @@ static void panel_update_window_extent(struct panel_block *windat)
 		info.extent.y1 = 0;
 		info.extent.y0 = info.extent.y1 - sidebar_width - windat->grid_spacing -
 				windat->grid_dimensions.x * (windat->grid_spacing + windat->grid_square);
-
-		/* Extend the extent if required, but never bother to shrink it. */
-
-		if (old_window_size < new_window_size) {
-			error = xwimp_set_extent(windat->window, &(info.extent));
-			if (error != NULL)
-				return;
-		}
 	}
+
+	/* Update the extent. */
+
+	error = xwimp_set_extent(windat->window, &(info.extent));
+	if (error != NULL)
+		return;
 
 	/* Move the sidebar icon into its new location. */
 
@@ -1405,6 +1393,8 @@ static void panel_rebuild_window(struct panel_block *windat)
 	}
 
 	panel_reopen_window(windat);
+
+	windows_redraw(windat->window);
 }
 
 /**
@@ -1512,8 +1502,6 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 
 	button->window = windat->window;
 	button->icon = wimp_create_icon(&panel_icon_def);
-
-//	windows_redraw(windat->window);
 }
 
 
