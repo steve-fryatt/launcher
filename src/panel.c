@@ -1074,7 +1074,6 @@ static void panel_update_window_extent(struct panel_block *windat)
 {
 	int			new_window_size, sidebar_width = 0;
 	wimp_window_info	info;
-	wimp_icon_state		state;
 	os_error		*error;
 
 	if (windat == NULL)
@@ -1084,12 +1083,6 @@ static void panel_update_window_extent(struct panel_block *windat)
 
 	info.w = windat->window;
 	error = xwimp_get_window_info_header_only(&info);
-	if (error != NULL)
-		return;
-
-	state.w = windat->window;
-	state.i = PANEL_ICON_SIDEBAR;
-	error = xwimp_get_icon_state(&state);
 	if (error != NULL)
 		return;
 
@@ -1106,7 +1099,8 @@ static void panel_update_window_extent(struct panel_block *windat)
 
 		/* Calculate the sidebar width. */
 
-		sidebar_width = state.icon.extent.x1 - state.icon.extent.x0;
+		sidebar_width = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x1 -
+				panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x0;
 
 		/* Calculate the new horizontal size of the window. */
 
@@ -1122,7 +1116,8 @@ static void panel_update_window_extent(struct panel_block *windat)
 
 		/* Calculate the sidebar width (height). */
 
-		sidebar_width = state.icon.extent.y1 - state.icon.extent.y0;
+		sidebar_width = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y1 -
+				panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y0;
 
 		/* Calculate the new vertical size of the window. */
 
