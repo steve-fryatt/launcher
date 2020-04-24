@@ -64,7 +64,11 @@
 #define EDIT_BUTTON_ICON_CANCEL 1
 #define EDIT_BUTTON_ICON_NAME 2
 #define EDIT_BUTTON_ICON_XPOS 5
+#define EDIT_BUTTON_ICON_XPOS_DOWN 14
+#define EDIT_BUTTON_ICON_XPOS_UP 15
 #define EDIT_BUTTON_ICON_YPOS 7
+#define EDIT_BUTTON_ICON_YPOS_DOWN 16
+#define EDIT_BUTTON_ICON_YPOS_UP 17
 #define EDIT_BUTTON_ICON_SPRITE 8
 #define EDIT_BUTTON_ICON_KEEP_LOCAL 10
 #define EDIT_BUTTON_ICON_LOCATION 11
@@ -119,6 +123,9 @@ void edit_button_initialise(void)
 	ihelp_add_window(edit_button_window, "EditButton", NULL);
 	event_add_window_mouse_event(edit_button_window, edit_button_click_handler);
 	event_add_window_key_event(edit_button_window, edit_button_keypress_handler);
+
+	event_add_window_icon_bump(edit_button_window, EDIT_BUTTON_ICON_XPOS, EDIT_BUTTON_ICON_XPOS_UP, EDIT_BUTTON_ICON_XPOS_DOWN, 0, 999, 1);
+	event_add_window_icon_bump(edit_button_window, EDIT_BUTTON_ICON_YPOS, EDIT_BUTTON_ICON_YPOS_UP, EDIT_BUTTON_ICON_YPOS_DOWN, 0, 999, 1);
 
 	/* Watch out for Message_ModeChange. */
 
