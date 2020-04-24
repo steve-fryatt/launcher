@@ -716,7 +716,8 @@ static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *sele
 		break;
 
 	case PANEL_MENU_QUIT:
-		main_quit_flag = TRUE;
+		if (!main_check_for_unsaved_data())
+			main_quit_flag = TRUE;
 		break;
 	}
 }

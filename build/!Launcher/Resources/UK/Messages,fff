@@ -34,6 +34,9 @@ DupTaskB:Stop,Continue
 QDelete:Are you sure that you wish to delete this button?
 QDeleteB:Delete,Cancel
 
+QNotSaved:The panel and button layout is not saved: do you want to quit anyway?
+QNotSavedB:Quit,Cancel
+
 BootFail:Error booting %0: '%1'.
 
 UnknownFileData:The bar or button definitions contained tokens which this version of Launcher did not understand. These have been discarded, and saving the settings will cause that information to be lost.

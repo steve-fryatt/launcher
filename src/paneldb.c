@@ -116,6 +116,12 @@ static int				paneldb_allocation = 0;
 
 static unsigned				paneldb_key = 0;
 
+/**
+ * Track whether the data has changed since the last save.
+ */
+
+static osbool				paneldb_unsafe = FALSE;
+
 /* Static Function Prototypes. */
 
 static int paneldb_find(unsigned key);
@@ -156,6 +162,7 @@ void paneldb_reset(void)
 {
 	paneldb_panels = 0;
 	paneldb_key = 0;
+	paneldb_unsafe = FALSE;
 }
 
 /**
@@ -223,6 +230,8 @@ osbool paneldb_load_new_file(struct filing_block *in)
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
 
+	paneldb_unsafe = FALSE;
+
 	return TRUE;
 }
 
@@ -245,6 +254,8 @@ osbool paneldb_create_default(void)
 		return FALSE;
 
 	string_copy(paneldb_list[index].entry.name, "Default", PANELDB_NAME_LENGTH);
+
+	paneldb_unsafe = FALSE;
 
 	return TRUE;
 }
@@ -276,7 +287,21 @@ osbool paneldb_save_file(FILE *file)
 		fprintf(file, "Width: %d\n", entry->width);
 	}
 
+	paneldb_unsafe = FALSE;
+
 	return TRUE;
+}
+
+
+/**
+ * Indicate whether any data in the PanelDB is currently unsaved.
+ * 
+ * \return		TRUE if there is unsaved data; otherwise FALSE.
+ */
+
+osbool paneldb_data_unsafe(void)
+{
+	return paneldb_unsafe;
 }
 
 
@@ -422,6 +447,8 @@ osbool paneldb_set_panel_info(unsigned key, struct paneldb_entry *data)
 		return FALSE;
 
 	paneldb_copy(&(paneldb_list[index].entry), data);
+
+	paneldb_unsafe = TRUE;
 
 	return TRUE;
 }
@@ -622,6 +649,8 @@ static int paneldb_new(osbool allocate)
 		paneldb_list[paneldb_panels].key = PANELDB_NULL_KEY;
 	}
 
+	paneldb_unsafe = TRUE;
+
 	return paneldb_panels++;
 }
 
@@ -642,6 +671,8 @@ static void paneldb_delete(int index)
 		paneldb_allocation--;
 		paneldb_panels--;
 	}
+
+	paneldb_unsafe = TRUE;
 }
 
 

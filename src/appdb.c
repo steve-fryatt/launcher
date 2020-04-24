@@ -115,6 +115,12 @@ static int				appdb_allocation = 0;
 
 static unsigned				appdb_key = 0;
 
+/**
+ * Track whether the data has changed since the last save.
+ */
+
+static osbool				appdb_unsafe = FALSE;
+
 /* Static Function Prototypes. */
 
 static int	appdb_find(unsigned key);
@@ -152,6 +158,7 @@ void appdb_reset(void)
 {
 	appdb_apps = 0;
 	appdb_key = 0;
+	appdb_unsafe = FALSE;
 }
 
 
@@ -202,6 +209,8 @@ osbool appdb_load_old_file(struct filing_block *in, int panel)
 		} while (filing_get_next_token(in));
 	}
 
+	appdb_unsafe = FALSE;
+
 	return TRUE;
 }
 
@@ -248,6 +257,8 @@ osbool appdb_load_new_file(struct filing_block *in)
 		else
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
+
+	appdb_unsafe = FALSE;
 
 	return TRUE;
 }
@@ -304,7 +315,21 @@ osbool appdb_save_file(FILE *file)
 		fprintf(file, "Boot: %s\n", config_return_opt_string(entry->filer_boot));
 	}
 
+	appdb_unsafe = FALSE;
+
 	return TRUE;
+}
+
+
+/**
+ * Indicate whether any data in the AppDB is currently unsaved.
+ * 
+ * \return		TRUE if there is unsaved data; otherwise FALSE.
+ */
+
+osbool appdb_data_unsafe(void)
+{
+	return appdb_unsafe;
 }
 
 
@@ -469,6 +494,8 @@ osbool appdb_set_button_info(unsigned key, struct appdb_entry *data)
 
 	appdb_copy(&(appdb_list[index].entry), data);
 
+	appdb_unsafe = TRUE;
+
 	return TRUE;
 }
 
@@ -520,6 +547,8 @@ static int appdb_new()
 	appdb_list[appdb_apps].key = appdb_key++;
 	appdb_set_defaults(&(appdb_list[appdb_apps].entry));
 
+	appdb_unsafe = TRUE;
+
 	return appdb_apps++;
 }
 
@@ -540,6 +569,8 @@ static void appdb_delete(int index)
 		appdb_allocation--;
 		appdb_apps--;
 	}
+
+	appdb_unsafe = TRUE;
 }
 
 

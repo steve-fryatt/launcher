@@ -155,6 +155,14 @@ osbool appdb_save_file(FILE *file);
 
 
 /**
+ * Indicate whether any data in the AppDB is currently unsaved.
+ * 
+ * \return		TRUE if there is unsaved data; otherwise FALSE.
+ */
+
+osbool appdb_data_unsafe(void);
+
+/**
  * Filer_Boot all of the applications stored in the application database, if
  * selected.
  */

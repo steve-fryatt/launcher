@@ -91,9 +91,10 @@ osbool			main_quit_flag = FALSE;
 
 /* Static Function Prototypes */
 
-static void	main_poll_loop(void);
-static void	main_initialise(void);
-static osbool	main_message_quit(wimp_message *message);
+static void main_poll_loop(void);
+static void main_initialise(void);
+static osbool main_message_quit(wimp_message *message);
+static osbool main_message_prequit(wimp_message *message);
 
 
 /**
@@ -178,6 +179,7 @@ static void main_initialise(void)
 		main_quit_flag = TRUE;
 
 	event_add_message_handler(message_QUIT, EVENT_MESSAGE_INCOMING, main_message_quit);
+	event_add_message_handler(message_PRE_QUIT, EVENT_MESSAGE_INCOMING, main_message_prequit);
 
 	/* Initialise the flex heap. */
 
@@ -246,3 +248,45 @@ static osbool main_message_quit(wimp_message *message)
 	return TRUE;
 }
 
+
+/**
+ * Handle incoming Message_PreQuit.
+ *
+ * \param *message              The message data to be handled.
+ * \return                      TRUE to claim the message; FALSE to pass it on.
+ */
+
+static osbool main_message_prequit(wimp_message *message)
+{
+	if (!main_check_for_unsaved_data())
+		return TRUE;
+
+	message->your_ref = message->my_ref;
+	wimp_send_message(wimp_USER_MESSAGE_ACKNOWLEDGE, message, message->sender);
+
+	return TRUE;
+}
+
+
+/**
+ * Check for unsaved data in the Panel and App databases, and ask the user if
+ * they wish to discard the changes.
+ * 
+ * \return			TRUE if the user wishes to save the data.
+ */
+
+osbool main_check_for_unsaved_data(void)
+{
+	osbool modified = FALSE;
+
+	modified = (appdb_data_unsafe() || paneldb_data_unsafe());
+
+	/* If there's any unsaved data, allow the user to rescue it. */
+
+	if (modified && (error_msgs_report_question("QNotSaved", "QNotSavedB") == 3))
+		modified = FALSE;
+
+	/* Return true if anything needs rescuing. */
+
+	return modified;
+}

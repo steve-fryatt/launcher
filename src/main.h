@@ -42,5 +42,14 @@ extern osbool			main_quit_flag;
 
 int main (void);
 
+/**
+ * Check for unsaved data in the Panel and App databases, and ask the user if
+ * they wish to discard the changes.
+ * 
+ * \return			TRUE if the user wishes to save the data.
+ */
+
+osbool main_check_for_unsaved_data(void);
+
 #endif
 

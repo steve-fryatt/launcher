@@ -141,6 +141,14 @@ osbool paneldb_save_file(FILE *file);
 
 
 /**
+ * Indicate whether any data in the PanelDB is currently unsaved.
+ * 
+ * \return		TRUE if there is unsaved data; otherwise FALSE.
+ */
+
+osbool paneldb_data_unsafe(void);
+
+/**
  * Create a new, empty entry in the database and return its key.
  *
  * \return			The new key, or PANELDB_NULL_KEY.
