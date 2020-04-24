@@ -440,6 +440,7 @@ static void panel_delete_instance(struct panel_block *windat)
 	debug_printf("\\RDeleting panel!");
 
 	event_delete_window(windat->window);
+	ihelp_remove_window(windat->window);
 	wimp_delete_window(windat->window);
 
 	/* Delete the applications from the database. */
