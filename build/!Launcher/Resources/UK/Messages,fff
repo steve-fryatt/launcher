@@ -62,7 +62,7 @@ BadPanel:Panel ID does not match database.
 
 Help.Launch:\TLauncher \w.|M\Slaunch applications and files.
 Help.Launch.Sidebar:\TLauncher \w.|M\Sexpand or contract the display.
-Help.Launch.Button:\Slaunch this file or aplication.
+Help.Launch.Button:\Slaunch this file or application.
 
 Help.EditPanel:\Tpanel edit \w, which allows panels to be created and changed.
 Help.EditPanel.OK:\Sclose the \w and keep the new settings.|M\Astore the settings and leave the \w open.

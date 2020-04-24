@@ -74,7 +74,7 @@ If <cite>Launcher</cite> is to be used on a regular basis, it may be desirable t
 
 <chapter title="Using Launcher" file="Use">
 
-To use <cite>Launcher</cite>, run it in the usual way by double-clicking on its icon within a Filer window (or ensure that it runs at start up, as described in the previous section). It will install itself on the desktop, placing a bar down the left-hand side of the screen.
+To use <cite>Launcher</cite>, run it in the usual way by double-clicking on its icon within a Filer window (or ensure that it runs at start up, as described in the previous section). It will install itself on the desktop, initially placing a bar down the left-hand side of the screen &ndash; although this is configurable.
 
 To access the shortcuts, click on the bar and the panel will expand on to the screen; click again on the bar to shrink it back again. A <mouse>select</mouse>-click on a shortcut will launch the associated application and shrink the panel back, while clicking with <mouse>adjust</mouse> will leave the panel open on screen for another shortcut to be selected.
 
@@ -82,7 +82,7 @@ To access the shortcuts, click on the bar and the panel will expand on to the sc
 
 The panel can be moved to another side of the desktop by clicking <mouse>menu</mouse> over it and selecting <menu>Panel &msep; Edit...</menu> to open the <window>Edit panel</window> dialogue. The <icon>Location</icon> field sets the side of the desktop that the bar will appear.
 
-The <icon>Name</icon> is used to identify panels when there is more than one on screen. It is initially set to <entry>Default</entry> for the first bar, but can be changed to any name.
+The <icon>Name</icon> is used to identify panels when there is more than one on screen. It is initially set to <entry>Default</entry> for the first bar, but can be changed to any name. Names can contain lower and upper case letters, digits and a dash (hyphen); they must all be unique.
 
 When the options are set as required, click <icon>OK</icon> to set them.
 
@@ -92,7 +92,7 @@ The <icon>Location</icon> can set which side of the screen the new panel will be
 
 The order that the bars appear is set by their <icon>Order</icon> fields. Again, these are relative values, with the panels being arranged in ascending order; the values do not need to be consecutive: they could be <entry>1</entry>, <entry>2</entry>, <entry>3</entry> or <entry>10</entry>, <entry>20</entry>, <entry>30</entry>... or even <entry>10</entry>, <entry>50</entry>, <entry>500</entry>.
 
-To delete a panel, click <mouse>menu</mouse> over it and seletc <menu>Panel &msep; Delete</menu> &ndash; this will delete all of the shortcuts within it. It is not possible to delete the last bar remaining on the screen.
+To delete a panel, click <mouse>menu</mouse> over it and select <menu>Panel &msep; Delete</menu> &ndash; this will delete all of the shortcuts within it. It is not possible to delete the last bar remaining on the screen.
 
 After making changes to the panel arrangement, it is necessary to select <menu>Save layout</menu> from the panel menu to keep it for future sessions.
 
@@ -104,10 +104,10 @@ If the shortcut is to be used to launch an application, the easiest thing to do 
 
 If not, or if the details need to be changed from the defaults offered, then the <icon>Name</icon> of the button is a unique identifier, which will often be the name of the application or script to be run by the shortcut. The <icon>Sprite</icon> field holds the name of the sprite, and should be a sprite which is held in the Wimp Sprite Pool (such as one belonging to an application which has been seen by the Filer). Finally, the <icon>Location</icon> is the full path to an object to be run when the button is pressed: often the application folder, or maybe an Obey file within it.
 
-The position of button is set by the <icon>X position</icon> and <icon>Y position</icon> fields: these specify the top-right grid square which is occupied by the button, and will initially be filled in with the square over which the menu was opened. The X grid coordinates count up towards the edge of the screen, whilst the Y coordinates count up from the top of vertical panels, and from the left of horizontal ones, starting at (0,0); note that this means that on horizontal panels, the X coordinates count vertically and the Y coordinates count hotizontally, since Y is always taken to run along the length of the &lsquo;handle&rsquo; at the edge of the panel. Each button occupies a space of two squares by two squares, to allow them to be offset from each other if required.
+The position of button is set by the <icon>X position</icon> and <icon>Y position</icon> fields: these specify the top-right grid square which is occupied by the button, and will initially be filled in with the square over which the menu was opened. The X grid coordinates count up towards the edge of the screen, whilst the Y coordinates count up from the top of vertical panels, and from the left of horizontal ones, starting at (0,0); note that this means that on horizontal panels, the X coordinates count vertically and the Y coordinates count horizontally, since Y is always taken to run along the length of the &lsquo;handle&rsquo; at the edge of the panel. Each button occupies a space of two squares by two squares, to allow them to be offset from each other if required.
 
 <box type="info">
-Note that buttons are reflowed in the panel if they overlap or fall ouside the visible area in the axis of the screen edge. This means that buttons may not appear in the locations requested, and since buttons can push other buttons, this could affect a number of objects in a panel. Buttons may reflow if a change of screen mode results in a panel being too small to display the buttons that it contains.
+Note that buttons are reflowed in the panel if they overlap or fall outside the visible area in the axis of the screen edge. This means that buttons may not appear in the locations requested, and since buttons can push other buttons, this could affect a number of objects in a panel. Buttons may reflow if a change of screen mode results in a panel being too small to display the buttons that it contains.
 </box>
 
 Finally, <icon>Filer boot on startup</icon> determines whether <cite>Launcher</cite> should attempt to boot the object when it starts up. This is equivalent to a Filer window containing the object being opened, and would ensure that things like filetypes are set up correctly.
@@ -118,9 +118,13 @@ To store the new shortcut, click on <icon>OK</icon>; to abandon the changes, cli
 
 To edit an existing shortcut, click <mouse>menu</mouse> over the button and select <menu>Button &msep; Edit...</menu>. This opens the <window>Edit button</window> dialogue, as described in the previous section, to allow changes to be made. Buttons can be moved around the panel by changing their <icon>X position</icon> and <icon>Y position</icon> values.
 
+<box type="info">
+If the <window>Edit button</window> dialogue is opened for a button which has been reflowed, a warning is shown at the bottom of the window, since the <icon>X position</icon> and <icon>Y position</icon> fields will show the intended position and <em>not</em> the reflowed one.
+</box>
+
 To delete a shortcut from the panel, click <mouse>menu</mouse> over it and select <menu>Button &msep; Delete</menu>.
 
-As with new shortcuts, any edits or deletions to shortcuts will not be saved for future sessions unless <menu>Save buttons</menu> is selected from the main menu after the changes have been made.
+As with new shortcuts, any edits or deletions to shortcuts will not be saved for future sessions unless <menu>Save layout</menu> is selected from the main menu after the changes have been made.
 
 </chapter>
 
@@ -131,7 +135,7 @@ As with new shortcuts, any edits or deletions to shortcuts will not be saved for
 
 Selecting <menu>Choices...</menu> from the main menu allows the default behaviour of <cite>Launcher</cite> to be changed.
 
-The <icon>Grid dimensions</icon> section controls the dimensions of the grid in the launch panel. The number of colums can be set using <icon>Display columns</icon>, remembering that each button occupies 2 grid squares by 2 grid squares. The number of rows on the grid is determined by the size of the screen mode that is currently in use.
+The <icon>Grid dimensions</icon> section controls the dimensions of the grid in the launch panel. The number of columns can be set using <icon>Display columns</icon>, remembering that each button occupies 2 grid squares by 2 grid squares. The number of rows on the grid is determined by the size of the screen mode that is currently in use.
 
 The size of a grid square can be set using <icon>Grid size</icon>, using OS&nbsp;Units and again remembering that a button occupies two grid cells in each direction. The spacing between cells in the grid, which sets any spacing between buttons, is set in the <icon>Grid spacing</icon> field &ndash; the size of cells includes the spacing that crosses between their pairs of grid squares.
 
@@ -167,11 +171,14 @@ Update to first publicly released version.
 
 <subhead title="Test Build">
 
-Alpha release for feedback.
+Beta release for feedback.
 
 <list>
 <li>Prevent multiple copies of <cite>Launcher</cite> from starting by mistake (ticket&nbsp;#683).
 <li>Allow multiple bars on different edges of the desktop (tickets #678, #681 and #682).
+<li>Bump icons added to the <icon>X position</icon> and <icon>Y position</icon> fields in the <window>Edit button</window> dialogue.
+<li>Enable buttons to reflow within a panel when they fall outside of the available area.
+<li>Warn of unsaved changes to the panel or button layout on exit (ticket&nbsp;#665).
 </list>
 
 </chapter>
