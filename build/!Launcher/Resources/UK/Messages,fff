@@ -58,20 +58,32 @@ BadTemplate:Window template '%0' not found.
 BadPanel:Panel ID does not match database.
 
 Help.Launch:\TLauncher \w.|M\Slaunch applications and files.
-Help.Launch.Siebar:\TLauncher \w.|M\Sexpand or contract the display.
-Help.Launch.Button:\Sluanch this file or aplication.
+Help.Launch.Sidebar:\TLauncher \w.|M\Sexpand or contract the display.
+Help.Launch.Button:\Slaunch this file or aplication.
 
-Help.EditPanel:\Tpane editing \w.
-Help.EditPanel.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
+Help.EditPanel:\Tpanel edit \w, which allows panels to be created and changed.
+Help.EditPanel.OK:\Sclose the \w and keep the new settings.|M\Astore the settings and leave the \w open.
 Help.EditPanel.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
-Help.EditPanel.Name:\Tname of the panel.
+Help.EditPanel.Name:\Tname of the panel, which is used to identify it.|MIt must be unique each panel which is in use.
+Help.EditPanel.Pos:\Tlocation of the panel.|MLocations are given in terms of sides of the screen.
+Help.EditPanel.PosMenu:\Sselect a new location for the panel.
+Help.EditPanel.Width:\Twidth of the panel.|MWidths are not absolute, but are given relative to other panels on the same side of the screen.
+Help.EditPanel.WidthUp:\Sincrease the panel width value.|M\Adecrease it.
+Help.EditPanel.WidthDown:\Sdecrease the panel width value.|M\Aincrease it.
+Help.EditPanel.Order:\Tposition that the panel appears in relation to the other panels on the same side of the screen.|MThe panels are arranged in a numerically sorted order.
+Help.EditPanel.OrderUp:\Sincrease the panel order value.|M\Adecrease it.
+Help.EditPanel.OrderDown:\Sdecrease the panel order value.|M\Aincrease it.
 
 Help.EditButton:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
-Help.EditButton.OK:\Sclose the \w and keep the new settings.|M\Asave the settings.
+Help.EditButton.OK:\Sclose the \w and keep the new settings.|M\Astore the settings and leave the \w open.
 Help.EditButton.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
 Help.EditButton.Name:\Tname of the button.
 Help.EditButton.XPos:\Thorizontal position of the button on the grid.
+Help.EditButton.XUp:\Sincrease the X position of the buttOn.|M\Adecrease it.
+Help.EditButton.XDown:\Sdecrease the X position of the button.|M\Aincrease it.
 Help.EditButton.YPos:\Tvertical position of the button on the grid.
+Help.EditButton.YUp:\Sincrease the Y position of the button.|M\Adecrease it.
+Help.EditButton.YDown:\Sdecrease the Y position of the button.|M\Aincrease it.
 Help.EditButton.Sprite:\Tname of the sprite used on the button.
 Help.EditButton.Location:\Tlocation of the file or application which will be run when the button is clicked.
 Help.EditButton.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
@@ -99,10 +111,13 @@ Help.MainMenu.00:\Rsee information about Launcher.
 Help.MainMenu.01:\Sread the online help.
 Help.MainMenu.02:\Rto see options relating to the button under the pointer.
 Help.MainMenu.0200:\Sopen the button edit \w and edit the button under the pointer.
-Help.MainMenu.0201:\Smove the button under the pointer.
-Help.MainMenu.0202:\Sdelete the button under the pointer.
+Help.MainMenu.0201:\Sdelete the button under the pointer.
 Help.MainMenu.03:\Sopen the button edit \w and create a new button.
-Help.MainMenu.04:\Ssave the current button arrangement to file for future sessions.
-Help.MainMenu.05:\Schange the Launcher options.
-Help.MainMenu.06:\Squit Launcher.
+Help.MainMenu.04:\Rto see options relating to this panel.
+Help.MainMenu.0400:\Sopen the panel edit \w and edit the panel.
+Help.MainMenu.0401:\Sdelete this panel, and all of the buttons within it.
+Help.MainMenu.05:\Sopen the pane edit \w and create a new panel.
+Help.MainMenu.06:\Ssave the current arrangement of panels and buttons for future sessions.
+Help.MainMenu.07:\Schange the Launcher options.
+Help.MainMenu.08:\Squit Launcher.
 
