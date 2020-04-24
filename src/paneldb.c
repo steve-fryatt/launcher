@@ -41,7 +41,6 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
-#include "sflib/debug.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/general.h"
@@ -170,8 +169,6 @@ int paneldb_create_old_panel(void)
 {
 	int current = -1;
 
-	debug_printf("Loading an old file...");
-
 	current = paneldb_new(TRUE);
 	if (current == -1)
 		return -1;
@@ -195,8 +192,6 @@ osbool paneldb_load_new_file(struct filing_block *in)
 {
 	int current = -1;
 
-	debug_printf("Loading a new file...");
-
 	do {
 		if (filing_test_token(in, "@")) {
 			current = paneldb_lookup_name(filing_get_text_value(in, NULL, 0));
@@ -218,7 +213,6 @@ osbool paneldb_load_new_file(struct filing_block *in)
 			}
 
 			filing_get_text_value(in, paneldb_list[current].entry.name, PANELDB_NAME_LENGTH);
-			debug_printf("Loading section '%s'", paneldb_list[current].entry.name);
 		} else if ((current != -1) && filing_test_token(in, "Position"))
 			paneldb_list[current].entry.position = paneldb_position_from_name(filing_get_text_value(in, NULL, 0));
 		else if ((current != -1) && filing_test_token(in, "Sort"))
@@ -478,10 +472,8 @@ int paneldb_lookup_name(char *name)
 
 	/* If the name already exists, return the index. */
 
-	if (index != -1) {
-		debug_printf("'%s' already exists: index=%d", name, index);
+	if (index != -1)
 		return index;
-	}
 
 	/* If not, create a new entry and copy the name across. */
 
@@ -489,8 +481,6 @@ int paneldb_lookup_name(char *name)
 
 	if (index != -1)
 		string_copy(paneldb_list[index].entry.name, name, PANELDB_NAME_LENGTH);
-
-	debug_printf("'%s' created from new: index=%d", name, index);
 
 	return index;
 }
@@ -626,10 +616,9 @@ static int paneldb_new(osbool allocate)
 	 */
  
 	if (!allocate) {
-		if (paneldb_list[paneldb_panels].key != paneldb_panels) {
-			debug_printf("Non-allocted key mis-match!");
+		if (paneldb_list[paneldb_panels].key != paneldb_panels)
 			return -1;
-		}
+
 		paneldb_list[paneldb_panels].key = PANELDB_NULL_KEY;
 	}
 

@@ -39,7 +39,6 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
-#include "sflib/debug.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/general.h"

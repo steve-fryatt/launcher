@@ -37,7 +37,6 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
-#include "sflib/debug.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/general.h"
@@ -390,8 +389,6 @@ static struct panel_block *panel_create_instance(unsigned key)
 	if (new == NULL)
 		return NULL;
 
-	debug_printf("\\GNew Panel Instance Created: 0x%x", new);
-
 	new->panel_id = key;
 	new->grid_columns = 0;
 	new->grid_dimensions.x = 0;
@@ -437,8 +434,6 @@ static void panel_delete_instance(struct panel_block *windat)
 	if (windat == NULL)
 		return;
 
-	debug_printf("\\RDeleting panel!");
-
 	event_delete_window(windat->window);
 	ihelp_remove_window(windat->window);
 	wimp_delete_window(windat->window);
@@ -453,10 +448,8 @@ static void panel_delete_instance(struct panel_block *windat)
 		key = appdb_get_next_key(key);
 
 		app = appdb_get_button_info(last_key, NULL);
-		if (app != NULL && app->panel == windat->panel_id) {
-			debug_printf("Deleting '%s' button", app->name);
+		if (app != NULL && app->panel == windat->panel_id)
 			appdb_delete_key(last_key);
-		}
 	}
 
 	/* Delete the panel from the database. */
@@ -926,8 +919,6 @@ static void panel_update_positions(void)
 	os_box			locations, start_pos, next_pos, max_width, units, count;
 	int			i, sidebar_width, sidebar_height;
 
-	debug_printf("\\LUpdating the panel positions...");
-
 	/* Count the number of panels on each side of the screen.*/
 
 	locations.x0 = 0;
@@ -1188,8 +1179,6 @@ static void panel_update_window_extent(struct panel_block *windat)
 	if (windat == NULL)
 		return;
 
-	debug_printf("\\CUpdating extent for 0x%x", windat);
-
 	info.w = windat->window;
 	error = xwimp_get_window_info_header_only(&info);
 	if (error != NULL)
@@ -1303,16 +1292,10 @@ void panel_create_from_db(void)
 		if (key == PANELDB_NULL_KEY)
 			continue;
 
-		debug_printf("\\FCreating new panel %u from database.", key);
-
 		windat = panel_find_id(key);
 
-		if (windat == NULL) {
-			debug_printf("Panel doesn't exist; creating new...");
+		if (windat == NULL)
 			windat = panel_create_instance(key);
-		} else {
-			debug_printf("Panel already exists; using existing details...");
-		}
 
 		if (windat == NULL)
 			continue;
@@ -1342,8 +1325,6 @@ static void panel_add_buttons_from_db(struct panel_block *windat)
 
 	/* Add the icons to the database one by one. */
 
-	debug_printf("\\AAdding buttons from database to panel 0x%x", windat);
-
 	key = APPDB_NULL_KEY;
 
 	do {
@@ -1359,8 +1340,6 @@ static void panel_add_buttons_from_db(struct panel_block *windat)
 
 			if (appdb_get_button_info(key, &app) == NULL)
 				continue;
-
-			debug_printf("Adding button %s at %d, %d", app.name, app.position.x, app.position.y);
 
 			icondb_create_icon(windat->icondb, key, &(app.position));
 		}
@@ -1398,15 +1377,11 @@ static void panel_reflow_buttons(struct panel_block *windat)
 
 	button = icondb_get_list(windat->icondb);
 
-	debug_printf("\\KReflowing panel contents 0x%x", windat);
-
 	while (button != NULL) {
 		app = appdb_get_button_info(button->key, NULL);
 		if (app != NULL) {
 			button->position.x = app->position.x;
 			button->position.y = app->position.y;
-
-			debug_printf("\\fButton for %s at x=%d, y=%d in %d columns", app->name, button->position.x, button->position.y, windat->grid_columns);
 
 			/* Do a bounds check on all the buttons above and to the left. */
 
@@ -1418,7 +1393,6 @@ static void panel_reflow_buttons(struct panel_block *windat)
 						(button->position.y >= previous->position.y) &&
 						(button->position.y < (previous->position.y + windat->slab_grid_dimensions.y))) {
 					button->position.x = previous->position.x + windat->slab_grid_dimensions.x;
-					debug_printf("Horizontal clash, moving to x=%d, y=%d", button->position.x, button->position.y);
 				}
 
 				if ((button->position.y >= previous->position.y) &&
@@ -1426,7 +1400,6 @@ static void panel_reflow_buttons(struct panel_block *windat)
 						(button->position.x > (previous->position.x - windat->slab_grid_dimensions.x)) &&
 						(button->position.x <= previous->position.x)) {
 					button->position.y = previous->position.y + windat->slab_grid_dimensions.y;
-					debug_printf("Vertical clash, moving to x=%d, y=%d", button->position.x, button->position.y);
 				}
 
 				previous = previous->next;
@@ -1441,8 +1414,6 @@ static void panel_reflow_buttons(struct panel_block *windat)
 
 			if ((button->position.y + windat->slab_grid_dimensions.y) > windat->grid_dimensions.y) {
 				do {
-					debug_printf("Overflowing: try at x=%d, y=%d", overflow.x, overflow.y);
-
 					clash = FALSE;
 
 					previous = icondb_get_list(windat->icondb);
@@ -1473,10 +1444,8 @@ static void panel_reflow_buttons(struct panel_block *windat)
 
 			/* Does the button fall outside the colfigured columns? */
 
-			if ((button->position.x + windat->slab_grid_dimensions.x) > windat->grid_dimensions.x) {
+			if ((button->position.x + windat->slab_grid_dimensions.x) > windat->grid_dimensions.x)
 				windat->grid_dimensions.x = button->position.x + windat->slab_grid_dimensions.x;
-				debug_printf("Button falls outside range; expanding to %d columns", windat->grid_dimensions.x);
-			}
 		}
 
 		button = button->next;
@@ -1498,8 +1467,6 @@ static void panel_rebuild_window(struct panel_block *windat)
 		return;
 
 	button = icondb_get_list(windat->icondb);
-
-	debug_printf("\\ORebuilding panel 0x%x", windat);
 
 	while (button != NULL) {
 		panel_create_icon(windat, button);
@@ -1528,12 +1495,8 @@ static void panel_empty_window(struct panel_block *windat)
 
 	button = icondb_get_list(windat->icondb);
 
-	debug_printf("\\RWiping panel contents 0x%x", windat);
-
 	while (button != NULL) {
 		if (button->icon != wimp_ICON_WINDOW) {
-			debug_printf("Deleting icon %d", button->icon);
-
 			error = xwimp_delete_icon(windat->window, button->icon);
 			if (error != NULL)
 				error_report_program(error);
@@ -1606,11 +1569,6 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 	case PANEL_POSITION_NONE:
 		break;
 	}
-
-	debug_printf("Creating button icon: name=%s, x0=%d, y0=%d, x1=%d, y1=%d",
-			app->name,
-			panel_icon_def.icon.extent.x0, panel_icon_def.icon.extent.y0,
-			panel_icon_def.icon.extent.x1, panel_icon_def.icon.extent.y1);
 
 	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", app->sprite);
 	panel_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;

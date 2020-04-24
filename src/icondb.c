@@ -33,7 +33,6 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/debug.h"
 #include "sflib/heap.h"
 
 /* Application header files. */
@@ -123,8 +122,6 @@ void icondb_destroy_instance(struct icondb_block *instance)
 
 	if (instance == NULL)
 		return;
-
-	debug_printf("\\rDestroying IconDB instance: 0x%x", instance);
 
 	/* Deallocate any memory from the icon list. */
 

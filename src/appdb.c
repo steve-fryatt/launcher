@@ -41,7 +41,6 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
-#include "sflib/debug.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/general.h"
@@ -169,8 +168,6 @@ osbool appdb_load_old_file(struct filing_block *in, int panel)
 {
 	int current = -1;
 
-	debug_printf("Loading an old file...");
-
 	if (panel == -1) {
 		 filing_set_status(in, FILING_STATUS_MEMORY);
 		 return FALSE;
@@ -186,8 +183,6 @@ osbool appdb_load_old_file(struct filing_block *in, int panel)
 
 		filing_get_section_name(in, appdb_list[current].entry.name, APPDB_NAME_LENGTH);
 		appdb_list[current].entry.panel = panel;
-
-		debug_printf("Loading section '%s'", appdb_list[current].entry.name);
 
 		do {
 			if (current != -1) {
@@ -223,8 +218,6 @@ osbool appdb_load_new_file(struct filing_block *in)
 {
 	int current = -1, panel = -1;
 
-	debug_printf("Loading a new file...");
-
 	do {
 		if (filing_test_token(in, "@")) {
 			current = appdb_new();
@@ -235,7 +228,6 @@ osbool appdb_load_new_file(struct filing_block *in)
 			}
 
 			filing_get_text_value(in, appdb_list[current].entry.name, APPDB_NAME_LENGTH);
-			debug_printf("Loading section '%s'", appdb_list[current].entry.name);
 		} else if ((current != -1) && filing_test_token(in, "Panel")) {
 			panel = paneldb_lookup_name(filing_get_text_value(in, NULL, 0));
 			if (panel == -1) {
@@ -275,10 +267,8 @@ osbool appdb_complete_file_load(void)
 
 	for (i = 0; i < appdb_apps; i++) {
 		key = paneldb_lookup_key(appdb_list[i].entry.panel);
-		if (key == PANELDB_NULL_KEY) {
-			debug_printf("Unexpected panel for button '%s'", appdb_list[i].entry.name);
+		if (key == PANELDB_NULL_KEY)
 			return FALSE;
-		}
 		appdb_list[i].entry.panel = key;
 	}
 

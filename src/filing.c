@@ -43,7 +43,6 @@
 /* SF-Lib header files. */
 
 #include "sflib/config.h"
-#include "sflib/debug.h"
 #include "sflib/errors.h"
 #include "sflib/event.h"
 #include "sflib/general.h"
@@ -293,10 +292,6 @@ osbool filing_get_next_token(struct filing_block *in)
 
 	in->result = config_read_token_pair(in->handle, in->token, in->value, in->section);
 
-//#ifdef DEBUG
-	debug_printf("Read line: section=%s, token=%s, value=%s, result=%d", in->section, in->token, in->value, in->result);
-//#endif
-
 	return (in->result != sf_CONFIG_READ_EOF && in->result != sf_CONFIG_READ_NEW_SECTION) ? TRUE : FALSE;
 }
 
@@ -338,10 +333,6 @@ char *filing_get_section_name(struct filing_block *in, char *buffer, size_t leng
 	if (in == NULL)
 		return NULL;
 
-#ifdef DEBUG
-	debug_printf("Return section name: %s", in->value);
-#endif
-
 	if (buffer == NULL)
 		return in->section;
 
@@ -356,9 +347,6 @@ char *filing_get_section_name(struct filing_block *in, char *buffer, size_t leng
 	if (buffer[length - 1] != '\0') {
 		in->status = FILING_STATUS_CORRUPT;
 		buffer[length - 1] = '\0';
-#ifdef DEBUG
-		debug_printf("Field is too long: original=%s, copied=%s", in->section, buffer);
-#endif
 	}
 
 	return buffer;
@@ -385,10 +373,6 @@ char *filing_get_text_value(struct filing_block *in, char *buffer, size_t length
 	if (in == NULL)
 		return NULL;
 
-#ifdef DEBUG
-	debug_printf("Return text value: %s", in->value);
-#endif
-
 	if (buffer == NULL)
 		return in->value;
 
@@ -403,9 +387,6 @@ char *filing_get_text_value(struct filing_block *in, char *buffer, size_t length
 	if (buffer[length - 1] != '\0') {
 		in->status = FILING_STATUS_CORRUPT;
 		buffer[length - 1] = '\0';
-#ifdef DEBUG
-		debug_printf("Field is too long: original=%s, copied=%s", in->value, buffer);
-#endif
 	}
 
 	return buffer;
