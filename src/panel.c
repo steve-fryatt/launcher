@@ -1740,22 +1740,30 @@ static osbool panel_delete_panel(struct panel_block *windat)
 static void panel_open_button_dialogue(wimp_pointer *pointer, struct panel_block *windat, struct icondb_button *button, os_coord *grid)
 {
 	struct appdb_entry app;
-
-	appdb_set_defaults(&app);
+	osbool reflowed = FALSE;
 
 	/* Initialise deafults if button data can't be found. */
 
+	appdb_set_defaults(&app);
+
 	app.panel = windat->panel_id;
 
-	if (button != NULL)
+	/* Bring in the settings for the target button. */
+
+	if (button != NULL) {
 		appdb_get_button_info(button->key, &app);
+
+		reflowed = (app.position.x != button->position.x) || (app.position.y != button->position.y);
+	}
+
+	/* Apply the local grid override for new buttons. */
 
 	if (grid != NULL) {
 		app.position.x = grid->x;
 		app.position.y = grid->y;
 	}
 
-	edit_button_open_dialogue(pointer, &app, panel_process_button_dialogue, button);
+	edit_button_open_dialogue(pointer, &app, reflowed, panel_process_button_dialogue, button);
 }
 
 

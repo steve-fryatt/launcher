@@ -73,6 +73,7 @@
 #define EDIT_BUTTON_ICON_KEEP_LOCAL 10
 #define EDIT_BUTTON_ICON_LOCATION 11
 #define EDIT_BUTTON_ICON_BOOT 13
+#define EDIT_BUTTON_ICON_REFLOW 18
 
 /* Static Function Prototypes. */
 
@@ -148,11 +149,12 @@ void edit_button_terminate(void)
  *
  * \param *pointer	The pointer location at which to open the dialogue.
  * \param *data		The AppDB data to display in the dialogue.
+ * \param reflow	TRUE if the reflow message should be shown; else FALSE.
  * \param *callback	A callback to receive the dialogue data.
  * \param *target	A client-specified target for the callback.
  */
 
-void edit_button_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, osbool (*callback)(struct appdb_entry *entry, void *data), void *target)
+void edit_button_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, osbool reflow, osbool (*callback)(struct appdb_entry *entry, void *data), void *target)
 {
 	if (data == NULL)
 		return;
@@ -169,6 +171,7 @@ void edit_button_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, 
 	edit_button_callback = callback;
 	edit_button_target_icon = target;
 
+	icons_set_deleted(edit_button_window, EDIT_BUTTON_ICON_REFLOW, !reflow);
 	edit_button_fill_window(edit_button_default_data);
 	windows_open_centred_at_pointer(edit_button_window, pointer);
 	icons_put_caret_at_end(edit_button_window, EDIT_BUTTON_ICON_NAME);

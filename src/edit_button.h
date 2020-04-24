@@ -49,11 +49,12 @@ void edit_button_terminate(void);
  *
  * \param *pointer	The pointer location at which to open the dialogue.
  * \param *data		The AppDB data to display in the dialogue.
+ * \param reflow	TRUE if the reflow message should be shown; else FALSE.
  * \param *callback	A callback to receive the dialogue data.
  * \param *target	A client-specified target for the callback.
  */
 
-void edit_button_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, osbool (*callback)(struct appdb_entry *entry, void *data), void *target);
+void edit_button_open_dialogue(wimp_pointer *pointer, struct appdb_entry *data, osbool reflow, osbool (*callback)(struct appdb_entry *entry, void *data), void *target);
 
 #endif
 

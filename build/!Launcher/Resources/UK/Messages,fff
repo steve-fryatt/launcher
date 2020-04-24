@@ -91,6 +91,7 @@ Help.EditButton.Sprite:\Tname of the sprite used on the button.
 Help.EditButton.Location:\Tlocation of the file or application which will be run when the button is clicked.
 Help.EditButton.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
 Help.EditButton.Boot:\Stoggle whether the application will be filer-booted when Launcher starts.
+Help.EditButton.Reflow:The button has been reflowed in the panel due to lack of space.|MThe coordinates shown in this dialogue are the ideal position, but do not reflect its current position in the panel.
 
 Help.Choices:\Tchoices window for Launcher.
 Help.Choices.Apply:\Sclose the choices \w and use the changes|M\Ause the changes.
