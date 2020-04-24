@@ -1,4 +1,4 @@
-/* Copyright 2012-2019, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2012-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of Launcher:
  *
