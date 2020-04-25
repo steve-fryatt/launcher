@@ -301,6 +301,9 @@ osbool appdb_save_file(FILE *file)
 	if (file == NULL)
 		return FALSE;
 
+	if (appdb_apps <= 0)
+		return TRUE;
+
 	fprintf(file, "\n[Buttons]");
 
 	for (current = 0; current < appdb_apps; current++) {

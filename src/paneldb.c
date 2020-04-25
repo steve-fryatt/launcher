@@ -276,6 +276,9 @@ osbool paneldb_save_file(FILE *file)
 	if (file == NULL)
 		return FALSE;
 
+	if (paneldb_panels <= 0)
+		return TRUE;
+
 	fprintf(file, "\n[Panels]");
 
 	for (current = 0; current < paneldb_panels; current++) {
