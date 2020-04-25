@@ -226,7 +226,7 @@ osbool paneldb_load_new_file(struct filing_block *in)
 			paneldb_list[current].entry.sort = filing_get_int_value(in);
 		else if ((current != -1) && filing_test_token(in, "Width"))
 			paneldb_list[current].entry.width = filing_get_int_value(in);
-		else
+		else if (!filing_test_token(in, ""))
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
 

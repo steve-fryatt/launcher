@@ -254,7 +254,7 @@ osbool appdb_load_new_file(struct filing_block *in)
 			filing_get_text_value(in, appdb_list[current].entry.command, APPDB_COMMAND_LENGTH);
 		else if ((current != -1) && filing_test_token(in, "Boot"))
 			appdb_list[current].entry.filer_boot = filing_get_opt_value(in);
-		else
+		else if (!filing_test_token(in, ""))
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
 
