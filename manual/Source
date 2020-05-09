@@ -110,7 +110,7 @@ The position of button is set by the <icon>X position</icon> and <icon>Y positio
 Note that buttons are reflowed in the panel if they overlap or fall outside the visible area in the axis of the screen edge. This means that buttons may not appear in the locations requested, and since buttons can push other buttons, this could affect a number of objects in a panel. Buttons may reflow if a change of screen mode results in a panel being too small to display the buttons that it contains.
 </box>
 
-Finally, <icon>Filer boot on startup</icon> determines whether <cite>Launcher</cite> should attempt to boot the object when it starts up. This is equivalent to a Filer window containing the object being opened, and would ensure that things like filetypes are set up correctly.
+Finally, <icon>On startup</icon> determines whether <cite>Launcher</cite> should attempt to boot the object or load its sprites when it starts up. <icon>Boot</icon> is equivalent to a Filer window containing the object being opened, and would ensure that things like filetypes are set up correctly. <icon>Sprites</icon> will merge any application sprites held in a standard <file>!Sprites</file> file into the Wimp Sprite Pool. <icon>None</icon> will perform no action.
 
 To store the new shortcut, click on <icon>OK</icon>; to abandon the changes, click <icon>Cancel</icon>. New shortcuts will not be saved for future sessions unless <menu>Save layout</menu> is selected from the main menu after the changes have been made.
 
@@ -179,6 +179,7 @@ Beta release for feedback.
 <li>Bump icons added to the <icon>X position</icon> and <icon>Y position</icon> fields in the <window>Edit button</window> dialogue.
 <li>Enable buttons to reflow within a panel when they fall outside of the available area.
 <li>Warn of unsaved changes to the panel or button layout on exit (ticket&nbsp;#665).
+<li>Allow iconsprites to be merged instead of a full application boot (ticket&nbsp;#688).
 </list>
 
 </chapter>
