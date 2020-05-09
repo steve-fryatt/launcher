@@ -85,9 +85,9 @@
 
 struct filing_block {
 	FILE			*handle;
-	char			section[FILING_MAX_FILE_LINE_LEN];
-	char			token[FILING_MAX_FILE_LINE_LEN];
-	char			value[FILING_MAX_FILE_LINE_LEN];
+	char			section[sf_MAX_CONFIG_FILE_BUFFER];
+	char			token[sf_MAX_CONFIG_FILE_BUFFER];
+	char			value[sf_MAX_CONFIG_FILE_BUFFER];
 	int			format;
 	enum config_read_status	result;
 	enum filing_status	status;

@@ -38,6 +38,15 @@
 #include <stdio.h>
 #include "filing.h"
 
+/**
+ * The possible actions when booting an application.
+ */
+
+enum appdb_boot_action {
+	APPDB_BOOT_ACTION_NONE,
+	APPDB_BOOT_ACTION_SPRITES,
+	APPDB_BOOT_ACTION_BOOT
+};
 
 /**
  * Application data structure -- Implementation.
@@ -48,43 +57,37 @@ struct appdb_entry {
 	 * The target panel key.
 	 */
 
-	unsigned	panel;
+	unsigned panel;
 
 	/**
 	 * Button name.
 	 */
 
-	char		name[APPDB_NAME_LENGTH];
+	char name[APPDB_NAME_LENGTH];
 
 	/**
 	 * The position of the button in the window.
 	 */
 
-	os_coord	position;
+	os_coord position;
 
 	/**
 	 * The sprite name.
 	 */
 
-	char		sprite[APPDB_SPRITE_LENGTH];
-
-	/**
-	 * Do we keep a local copy of the sprite?
-	 */
-
-	osbool		local_copy;
+	char sprite[APPDB_SPRITE_LENGTH];
 
 	/**
 	 * The command to be executed.
 	 */
 
-	char		command[APPDB_COMMAND_LENGTH];
+	char command[APPDB_COMMAND_LENGTH];
 
 	/**
-	 * Should the item be Filer_Booted on startup?
+	 * What should we do to the item on startup?
 	 */
 
-	osbool		filer_boot;
+	enum appdb_boot_action boot_action;
 };
 
 

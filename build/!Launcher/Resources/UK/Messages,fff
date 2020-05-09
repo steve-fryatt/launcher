@@ -89,8 +89,9 @@ Help.EditButton.YUp:\Sincrease the Y position of the button.|M\Adecrease it.
 Help.EditButton.YDown:\Sdecrease the Y position of the button.|M\Aincrease it.
 Help.EditButton.Sprite:\Tname of the sprite used on the button.
 Help.EditButton.Location:\Tlocation of the file or application which will be run when the button is clicked.
-Help.EditButton.KeepLocal:\Stoggle whether a copy of the sprite will be retained by Launcher.
-Help.EditButton.Boot:\Stoggle whether the application will be filer-booted when Launcher starts.
+Help.EditButton.Boot:\Taction taken for the file or application when Launcher starts.\Shave the application passed to *Filer_Boot.
+Help.EditButton.Sprites:\Taction taken for the file or application when Launcher starts.\Shave the application's sprites passed to *IconSprites.
+Help.EditButton.None:\Taction taken for the file or application when Launcher starts.\Stake no action.
 Help.EditButton.Reflow:The button has been reflowed in the panel due to lack of space.|MThe coordinates shown in this dialogue are the ideal position, but do not reflect its current position in the panel.
 
 Help.Choices:\Tchoices window for Launcher.

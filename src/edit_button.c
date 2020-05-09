@@ -62,18 +62,19 @@
 
 #define EDIT_BUTTON_ICON_OK 0
 #define EDIT_BUTTON_ICON_CANCEL 1
-#define EDIT_BUTTON_ICON_NAME 2
+#define EDIT_BUTTON_ICON_NAME 3
 #define EDIT_BUTTON_ICON_XPOS 5
-#define EDIT_BUTTON_ICON_XPOS_DOWN 14
-#define EDIT_BUTTON_ICON_XPOS_UP 15
-#define EDIT_BUTTON_ICON_YPOS 7
-#define EDIT_BUTTON_ICON_YPOS_DOWN 16
-#define EDIT_BUTTON_ICON_YPOS_UP 17
-#define EDIT_BUTTON_ICON_SPRITE 8
-#define EDIT_BUTTON_ICON_KEEP_LOCAL 10
-#define EDIT_BUTTON_ICON_LOCATION 11
-#define EDIT_BUTTON_ICON_BOOT 13
-#define EDIT_BUTTON_ICON_REFLOW 18
+#define EDIT_BUTTON_ICON_XPOS_DOWN 6
+#define EDIT_BUTTON_ICON_XPOS_UP 7
+#define EDIT_BUTTON_ICON_YPOS 9
+#define EDIT_BUTTON_ICON_YPOS_DOWN 10
+#define EDIT_BUTTON_ICON_YPOS_UP 11
+#define EDIT_BUTTON_ICON_SPRITE 13
+#define EDIT_BUTTON_ICON_LOCATION 15
+#define EDIT_BUTTON_ICON_ACTION_BOOT 17
+#define EDIT_BUTTON_ICON_ACTION_SPRITE 18
+#define EDIT_BUTTON_ICON_ACTION_NONE 19
+#define EDIT_BUTTON_ICON_REFLOW 20
 
 /* Static Function Prototypes. */
 
@@ -128,7 +129,11 @@ void edit_button_initialise(void)
 	event_add_window_icon_bump(edit_button_window, EDIT_BUTTON_ICON_XPOS, EDIT_BUTTON_ICON_XPOS_UP, EDIT_BUTTON_ICON_XPOS_DOWN, 0, 999, 1);
 	event_add_window_icon_bump(edit_button_window, EDIT_BUTTON_ICON_YPOS, EDIT_BUTTON_ICON_YPOS_UP, EDIT_BUTTON_ICON_YPOS_DOWN, 0, 999, 1);
 
-	/* Watch out for Message_ModeChange. */
+	event_add_window_icon_radio(edit_button_window, EDIT_BUTTON_ICON_ACTION_BOOT, TRUE);
+	event_add_window_icon_radio(edit_button_window, EDIT_BUTTON_ICON_ACTION_SPRITE, TRUE);
+	event_add_window_icon_radio(edit_button_window, EDIT_BUTTON_ICON_ACTION_NONE, TRUE);
+
+	/* Watch out for Message_DataLoad. */
 
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_INCOMING, edit_button_message_data_load);
 }
@@ -275,8 +280,9 @@ static void edit_button_fill_window(struct appdb_entry *data)
 	icons_printf(edit_button_window, EDIT_BUTTON_ICON_XPOS, "%d", data->position.x);
 	icons_printf(edit_button_window, EDIT_BUTTON_ICON_YPOS, "%d", data->position.y);
 
-	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_KEEP_LOCAL, data->local_copy);
-	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_BOOT, data->filer_boot);
+	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_ACTION_BOOT, data->boot_action == APPDB_BOOT_ACTION_BOOT);
+	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_ACTION_SPRITE, data->boot_action == APPDB_BOOT_ACTION_SPRITES);
+	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_ACTION_NONE, data->boot_action == APPDB_BOOT_ACTION_NONE);
 }
 
 
@@ -314,8 +320,12 @@ static osbool edit_button_read_window(void)
 	entry.position.x = atoi(icons_get_indirected_text_addr(edit_button_window, EDIT_BUTTON_ICON_XPOS));
 	entry.position.y = atoi(icons_get_indirected_text_addr(edit_button_window, EDIT_BUTTON_ICON_YPOS));
 
-	entry.local_copy = icons_get_selected(edit_button_window, EDIT_BUTTON_ICON_KEEP_LOCAL);
-	entry.filer_boot = icons_get_selected(edit_button_window, EDIT_BUTTON_ICON_BOOT);
+	if (icons_get_selected(edit_button_window, EDIT_BUTTON_ICON_ACTION_BOOT))
+		entry.boot_action = APPDB_BOOT_ACTION_BOOT;
+	else if (icons_get_selected(edit_button_window, EDIT_BUTTON_ICON_ACTION_SPRITE))
+		entry.boot_action = APPDB_BOOT_ACTION_SPRITES;
+	else
+		entry.boot_action = APPDB_BOOT_ACTION_NONE;
 
 	icons_copy_text(edit_button_window, EDIT_BUTTON_ICON_NAME, entry.name, APPDB_NAME_LENGTH);
 	icons_copy_text(edit_button_window, EDIT_BUTTON_ICON_SPRITE, entry.sprite, APPDB_SPRITE_LENGTH);

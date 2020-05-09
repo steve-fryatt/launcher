@@ -66,10 +66,10 @@
 #define APPDB_ALLOC_CHUNK 10
 
 /**
- * The length of the *Filer_Boot command string.
+ * The length of the "*Filer_Boot X" or "*IconSprites X.!Sprites" command string.
  */
 
-#define APPDB_FILER_BOOT_LENGTH 15
+#define APPDB_FILER_BOOT_LENGTH 25
 
 /**
  * The internal database entry container.
@@ -88,6 +88,22 @@ struct appdb_container {
 
 	struct appdb_entry	entry;	
 };
+
+/**
+ * Struct to allow mapping between boot actions and file tokens.
+ */
+
+struct appdb_boot_action_map_entry {
+	enum appdb_boot_action	action;
+	char			*token;
+};
+
+static struct appdb_boot_action_map_entry appdb_boot_action_map[] = {
+	{APPDB_BOOT_ACTION_NONE, "None"},
+	{APPDB_BOOT_ACTION_BOOT, "Boot"},
+	{APPDB_BOOT_ACTION_SPRITES, "Sprites"},
+	{APPDB_BOOT_ACTION_NONE, NULL}
+}; 
 
 /* Global Variables. */
 
@@ -123,9 +139,11 @@ static osbool				appdb_unsafe = FALSE;
 
 /* Static Function Prototypes. */
 
-static int	appdb_find(unsigned key);
-static int	appdb_new();
-static void	appdb_delete(int index);
+static char *appdb_boot_action_to_token(enum appdb_boot_action action);
+static enum appdb_boot_action appdb_boot_token_to_action(char *token);
+static int appdb_find(unsigned key);
+static int appdb_new();
+static void appdb_delete(int index);
 
 /**
  * Initialise the application database.
@@ -202,7 +220,7 @@ osbool appdb_load_old_file(struct filing_block *in, int panel)
 				else if (filing_test_token(in, "RunPath"))
 					filing_get_text_value(in, appdb_list[current].entry.command, APPDB_COMMAND_LENGTH);
 				else if (filing_test_token(in, "Boot"))
-					appdb_list[current].entry.filer_boot = filing_get_opt_value(in);
+					appdb_list[current].entry.boot_action = filing_get_opt_value(in) ? APPDB_BOOT_ACTION_BOOT : APPDB_BOOT_ACTION_NONE;
 				else
 					filing_set_status(in, FILING_STATUS_UNEXPECTED);
 			}
@@ -253,7 +271,9 @@ osbool appdb_load_new_file(struct filing_block *in)
 		else if ((current != -1) && filing_test_token(in, "RunPath"))
 			filing_get_text_value(in, appdb_list[current].entry.command, APPDB_COMMAND_LENGTH);
 		else if ((current != -1) && filing_test_token(in, "Boot"))
-			appdb_list[current].entry.filer_boot = filing_get_opt_value(in);
+			appdb_list[current].entry.boot_action = filing_get_opt_value(in) ? APPDB_BOOT_ACTION_BOOT : APPDB_BOOT_ACTION_NONE;
+		else if ((current != -1) && filing_test_token(in, "BootAction"))
+			appdb_list[current].entry.boot_action = appdb_boot_token_to_action(filing_get_text_value(in, NULL, 0));
 		else if (!filing_test_token(in, ""))
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
@@ -315,12 +335,51 @@ osbool appdb_save_file(FILE *file)
 		fprintf(file, "YPos: %d\n", entry->position.y);
 		fprintf(file, "Sprite: %s\n", entry->sprite);
 		fprintf(file, "RunPath: %s\n", entry->command);
-		fprintf(file, "Boot: %s\n", config_return_opt_string(entry->filer_boot));
+		fprintf(file, "BootAction: %s\n", appdb_boot_action_to_token(entry->boot_action));
 	}
 
 	appdb_unsafe = FALSE;
 
 	return TRUE;
+}
+
+
+/**
+ * Convert a boot action value into an action token.
+ *
+ * \param *token	The value to convert.
+ * \return		Pointer to the corresponding token, or NULL.
+ */
+
+static char *appdb_boot_action_to_token(enum appdb_boot_action action)
+{
+	int i = 0;
+
+	while (appdb_boot_action_map[i].token != NULL && appdb_boot_action_map[i].action != action)
+		i++;
+
+	return (appdb_boot_action_map[i].token != NULL) ? appdb_boot_action_map[i].token : NULL;
+}
+
+
+/**
+ * Convert a boot action token into an action value.
+ *
+ * \param *token	Pointer to the token to convert.
+ * \return		The corresponding action, or APPDB_BOOT_ACTION_NONE.
+ */
+
+static enum appdb_boot_action appdb_boot_token_to_action(char *token)
+{
+	int i = 0;
+
+	if (token == NULL)
+		return APPDB_BOOT_ACTION_NONE;
+
+	while (appdb_boot_action_map[i].token != NULL && string_nocase_strcmp(appdb_boot_action_map[i].token, token) != 0)
+		i++;
+
+	return (appdb_boot_action_map[i].token != NULL) ? appdb_boot_action_map[i].action : APPDB_BOOT_ACTION_NONE;
 }
 
 
@@ -348,14 +407,22 @@ void appdb_boot_all(void)
 	os_error	*error;
 
 	for (current = 0; current < appdb_apps; current++) {
-		if (appdb_list[current].entry.filer_boot) {
+		switch (appdb_list[current].entry.boot_action) {
+		case APPDB_BOOT_ACTION_BOOT:
 			string_printf(command, APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH, "Filer_Boot %s", appdb_list[current].entry.command);
-			error = xos_cli(command);
-
-			if ((error != NULL) &&
-					(error_msgs_param_report_error("BootFail", appdb_list[current].entry.name, error->errmess, NULL, NULL) == wimp_ERROR_BOX_SELECTED_CANCEL))
-				break;
+			break;
+		case APPDB_BOOT_ACTION_SPRITES:
+			string_printf(command, APPDB_FILER_BOOT_LENGTH + APPDB_COMMAND_LENGTH, "IconSprites %s.!Sprites", appdb_list[current].entry.command);
+			break;
+		default:
+			continue;
 		}
+
+		error = xos_cli(command);
+
+		if ((error != NULL) &&
+				(error_msgs_param_report_error("BootFail", appdb_list[current].entry.name, error->errmess, NULL, NULL) == wimp_ERROR_BOX_SELECTED_CANCEL))
+			break;
 	}
 }
 
@@ -589,8 +656,7 @@ void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
 	to->panel = from->panel;
 	to->position.x = from->position.x;
 	to->position.y = from->position.y;
-	to->local_copy = from->local_copy;
-	to->filer_boot = from->filer_boot;
+	to->boot_action = from->boot_action;
 
 	string_copy(to->name, from->name, APPDB_NAME_LENGTH);
 	string_copy(to->sprite, from->sprite, APPDB_SPRITE_LENGTH);
@@ -612,8 +678,7 @@ void appdb_set_defaults(struct appdb_entry *entry)
 	entry->panel = APPDB_NULL_PANEL;
 	entry->position.x = 0;
 	entry->position.y = 0;
-	entry->local_copy = FALSE;
-	entry->filer_boot = TRUE;
+	entry->boot_action = APPDB_BOOT_ACTION_BOOT;
 
 	*(entry->name) = '\0';
 	*(entry->sprite) = '\0';

@@ -29,12 +29,6 @@
 #define LAUNCHER_FILING
 
 /**
- * The maximum length of a line in a Launcher buttons file.
- */
-
-#define FILING_MAX_FILE_LINE_LEN 1024
-
-/**
  * File load result statuses.
  */
 
