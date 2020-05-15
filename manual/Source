@@ -80,19 +80,19 @@ To access the shortcuts, click on the bar and the panel will expand on to the sc
 
 <subhead title="Moving and adding panels">
 
-The panel can be moved to another side of the desktop by clicking <mouse>menu</mouse> over it and selecting <menu>Panel &msep; Edit...</menu> to open the <window>Edit panel</window> dialogue. The <icon>Location</icon> field sets the side of the desktop that the bar will appear.
+The panel can be moved to another side of the desktop by clicking <mouse>menu</mouse> over it and selecting <menu>Panel &msep; Edit...</menu> to open the <window>Edit panel</window> dialogue. The <icon>Location</icon> field sets the side of the desktop on which the bar will appear.
 
 The <icon>Name</icon> is used to identify panels when there is more than one on screen. It is initially set to <entry>Default</entry> for the first bar, but can be changed to any name. Names can contain lower and upper case letters, digits and a dash (hyphen); they must all be unique.
 
-When the options are set as required, click <icon>OK</icon> to set them.
+When the options are set as required, click <icon>OK</icon> to apply them.
 
-To add additional bars, select <menu>New panel...</menu> from the panel menu: this will open the <window>Edit panel</window> dialogue, ready for the new settings. Give the panel a new name, which is different to the other panels already defined.
+To add additional bars, select <menu>New panel...</menu> from the panel menu: this will open the <window>Edit panel</window> dialogue, ready for the new settings. Give the panel a new name, which must be different to the other panels already defined.
 
-The <icon>Location</icon> can set which side of the screen the new panel will be displayed. If it is on the same side as another panel, then the <icon>Width</icon> values are used to adjust the relative sizes: the total values are summed, and then each bar takes on the proportion given by its own value. If two bars had widths of <entry>50</entry> and <entry>100</entry>, then the second would be twice as wide as the first.
+The <icon>Location</icon> controls which side of the screen the new panel will be displayed. If it is on the same side as another panel, then the <icon>Width</icon> values are used to adjust the relative sizes: the total values are summed, and then each bar takes on the proportion given by its own value. If two bars had widths of <entry>50</entry> and <entry>100</entry>, then the second would be twice as wide as the first.
 
-The order that the bars appear is set by their <icon>Order</icon> fields. Again, these are relative values, with the panels being arranged in ascending order; the values do not need to be consecutive: they could be <entry>1</entry>, <entry>2</entry>, <entry>3</entry> or <entry>10</entry>, <entry>20</entry>, <entry>30</entry>... or even <entry>10</entry>, <entry>50</entry>, <entry>500</entry>.
+The order in which the bars appear is set by their <icon>Order</icon> fields. Again, these are relative values, with the panels being arranged in ascending numeric order; the values do not need to be consecutive: they could be <entry>1</entry>, <entry>2</entry>, <entry>3</entry> or <entry>10</entry>, <entry>20</entry>, <entry>30</entry>... or even <entry>10</entry>, <entry>50</entry>, <entry>500</entry>.
 
-To delete a panel, click <mouse>menu</mouse> over it and select <menu>Panel &msep; Delete</menu> &ndash; this will delete all of the shortcuts within it. It is not possible to delete the last bar remaining on the screen.
+To delete a panel, click <mouse>menu</mouse> over it and select <menu>Panel &msep; Delete</menu> &ndash; this will delete all of the shortcuts within it. It is not possible to delete the last panel remaining on the screen.
 
 After making changes to the panel arrangement, it is necessary to select <menu>Save layout</menu> from the panel menu to keep it for future sessions.
 
@@ -104,7 +104,7 @@ If the shortcut is to be used to launch an application, the easiest thing to do 
 
 If not, or if the details need to be changed from the defaults offered, then the <icon>Name</icon> of the button is a unique identifier, which will often be the name of the application or script to be run by the shortcut. The <icon>Sprite</icon> field holds the name of the sprite, and should be a sprite which is held in the Wimp Sprite Pool (such as one belonging to an application which has been seen by the Filer). Finally, the <icon>Location</icon> is the full path to an object to be run when the button is pressed: often the application folder, or maybe an Obey file within it.
 
-The position of button is set by the <icon>X position</icon> and <icon>Y position</icon> fields: these specify the top-right grid square which is occupied by the button, and will initially be filled in with the square over which the menu was opened. The X grid coordinates count up towards the edge of the screen, whilst the Y coordinates count up from the top of vertical panels, and from the left of horizontal ones, starting at (0,0); note that this means that on horizontal panels, the X coordinates count vertically and the Y coordinates count horizontally, since Y is always taken to run along the length of the &lsquo;handle&rsquo; at the edge of the panel. Each button occupies a space of two squares by two squares, to allow them to be offset from each other if required.
+The position of the button is set by the <icon>X position</icon> and <icon>Y position</icon> fields: these specify the top-right grid square which is occupied by the button, and will initially be filled in with the square over which the menu was opened. The X grid coordinates increase as they move towards the edge of the screen, whilst the Y coordinates increase as they move away from the top of vertical panels, and away from the left of horizontal ones, starting at (0,0); note that this means that on horizontal panels, the X coordinates count vertically and the Y coordinates count horizontally, since Y is always taken to run along the length of the &lsquo;handle&rsquo; at the edge of the panel. Each button occupies a space of two squares by two squares, to allow them to be offset from each other if required.
 
 <box type="info">
 Note that buttons are reflowed in the panel if they overlap or fall outside the visible area in the axis of the screen edge. This means that buttons may not appear in the locations requested, and since buttons can push other buttons, this could affect a number of objects in a panel. Buttons may reflow if a change of screen mode results in a panel being too small to display the buttons that it contains.
