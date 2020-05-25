@@ -154,9 +154,7 @@ This is a complete list of all the changes made to the publicly released version
 
 <subhead title="0.50 (23 April 2019)">
 
-<list>
-<li>First publicly released version.
-</list>
+First public release.
 
 
 <subhead title="0.51 (17 May 2019)">
@@ -169,9 +167,9 @@ Update to first publicly released version.
 </list>
 
 
-<subhead title="Test Build">
+<subhead title="1.00 (25 May 2020)">
 
-Beta release for feedback.
+Second public release.
 
 <list>
 <li>Prevent multiple copies of <cite>Launcher</cite> from starting by mistake (ticket&nbsp;#683).
