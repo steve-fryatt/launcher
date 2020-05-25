@@ -124,8 +124,8 @@ int main(void)
 
 static void main_poll_loop(void)
 {
-	wimp_event_no		reason;
-	wimp_block		blk;
+	wimp_event_no	reason;
+	wimp_block	blk;
 
 
 	while (!main_quit_flag) {
@@ -134,11 +134,15 @@ static void main_poll_loop(void)
 		if (!event_process_event(reason, &blk, 0)) {
 			switch (reason) {
 			case wimp_OPEN_WINDOW_REQUEST:
-				wimp_open_window (&(blk.open));
+				wimp_open_window(&(blk.open));
 				break;
 
 			case wimp_CLOSE_WINDOW_REQUEST:
-				wimp_close_window (blk.close.w);
+				wimp_close_window(blk.close.w);
+				break;
+
+			case wimp_KEY_PRESSED:
+				wimp_process_key(blk.key.c);
 				break;
 			}
 		}
