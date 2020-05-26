@@ -139,6 +139,8 @@ The <icon>Grid dimensions</icon> section controls the dimensions of the grid in 
 
 The size of a grid square can be set using <icon>Grid size</icon>, using OS&nbsp;Units and again remembering that a button occupies two grid cells in each direction. The spacing between cells in the grid, which sets any spacing between buttons, is set in the <icon>Grid spacing</icon> field &ndash; the size of cells includes the spacing that crosses between their pairs of grid squares.
 
+<icon>Open on mouse-over</icon> controls whether the panels will open when the mouse moves over them. When off, which is its default state, a panel will open when the mouse is clicked on its bar. If turned on, a panel will open as soon as the mouse passes over it, and will close again when the pointer moves away again.
+
 If <icon>Confirm deletions</icon> is ticked, <cite>Launcher</cite> will confirm any attempt to delete a button from the grid.
 
 Clicking on <icon>Apply</icon> will store the settings in the window for the current session (using <mouse>adjust</mouse> will leave the dialogue box open), whilst clicking <icon>Save</icon> will also save any changes to disc for future use. Clicking <mouse>select</mouse> on <icon>Cancel</icon> will close the dialogue and discard the changes, whilst using <mouse>adjust</mouse> will reset any values which have been changed.
@@ -178,6 +180,15 @@ Second public release.
 <li>Enable buttons to reflow within a panel when they fall outside of the available area.
 <li>Warn of unsaved changes to the panel or button layout on exit (ticket&nbsp;#665).
 <li>Allow iconsprites to be merged instead of a full application boot (ticket&nbsp;#688).
+</list>
+
+
+<subhead title="Test Build">
+
+Development build for testing and feedack.
+
+</list>
+<li>Add support for automatically opening panels when the mouse moves over them (Ticket&nbsp;#707).
 </list>
 
 </chapter>
