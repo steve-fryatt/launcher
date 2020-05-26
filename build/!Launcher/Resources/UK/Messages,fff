@@ -108,6 +108,7 @@ Help.Choices.Spacing:\Tspace between buttons in OS units.|MUse the arrows to the
 Help.Choices.SpacingUp:\Sincrease the column spacing.|M\Adecrease it.
 Help.Choices.SpacingDown:\Sdecrease the column spacing.|M\Aincrease it.
 Help.Choices.ConfirmDel:\Stoggle a confirmation message before buttons are deleted from the display.
+Help.Choices.MOver:\Stoggle the mouse-over behaviour, when panels open automatically as the mouse passes over them.
 
 Help.ProgInfo:This \w displays information about Launcher.
 Help.ProgInfo.Website:\Sopen the Launcher home page in your web browser, if one has been seen.

@@ -73,6 +73,7 @@
 #define CHOICE_ICON_SPACING_DOWN 16
 #define CHOICE_ICON_SPACING_UP 17
 #define CHOICE_ICON_CONFIRM_DELETE 19
+#define CHOICE_ICON_MOUSE_OVER 20
 
 /* Bump field limits and step values. */
 
@@ -164,6 +165,7 @@ static void choices_set_window(void)
 	icons_printf(choices_window, CHOICE_ICON_SPACING, "%d", config_int_read("GridSpacing"));
 
 	icons_set_selected(choices_window, CHOICE_ICON_CONFIRM_DELETE, config_opt_read("ConfirmDelete"));
+	icons_set_selected(choices_window, CHOICE_ICON_MOUSE_OVER, config_opt_read("MouseOver"));
 }
 
 
@@ -178,6 +180,7 @@ static void choices_read_window(void)
 	config_int_set("GridSpacing", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_SPACING)));
 
 	config_opt_set("ConfirmDelete", icons_get_selected(choices_window, CHOICE_ICON_CONFIRM_DELETE));
+	config_opt_set("MouseOver", icons_get_selected(choices_window, CHOICE_ICON_MOUSE_OVER));
 }
 
 
