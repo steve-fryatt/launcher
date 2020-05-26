@@ -204,6 +204,7 @@ static void main_initialise(void)
 	config_int_init("SlabXSize", 2);					/**< The X size of a button slab, in grid quares.			*/
 	config_int_init("SlabYSize", 2);					/**< The Y size of a button slab, in grid quares.			*/
 	config_opt_init("ConfirmDelete", TRUE);					/**< TRUE to confirm button deletion; FALSE to delete immediately.	*/
+	config_opt_init("MouseOver", TRUE);					/**< TRUE to open panels when the mouse passes over them.		*/
 
 	config_load();
 

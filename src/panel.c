@@ -203,6 +203,12 @@ struct panel_block {
 	os_coord slab_os_dimensions;
 
 	/**
+	 * Does the panel respond to mouseover events.
+	 */
+
+	osbool auto_mouseover;
+
+	/**
 	 * The next instance in the list, or NULL.
 	 */
 
@@ -286,6 +292,8 @@ static void panel_delete_instance(struct panel_block *windat);
 static void panel_update_instance_from_db(struct panel_block *windat);
 
 static void panel_click_handler(wimp_pointer *pointer);
+static void panel_pointer_entering_handler(wimp_entering *entering);
+static void panel_pointer_leaving_handler(wimp_leaving *leaving);
 static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static osbool panel_message_mode_change(wimp_message *message);
@@ -398,6 +406,7 @@ static struct panel_block *panel_create_instance(unsigned key)
 	new->panel_is_open = FALSE;
 	new->min_longitude = 0;
 	new->max_longitude = 0;
+	new->auto_mouseover = config_opt_read("MouseOver");
 
 	new->icondb = icondb_create_instance();
 
@@ -406,6 +415,8 @@ static struct panel_block *panel_create_instance(unsigned key)
 	event_add_window_user_data(new->window, new);
 	event_add_window_open_event(new->window, panel_open_window);
 	event_add_window_mouse_event(new->window, panel_click_handler);
+	event_add_window_pointer_entering_event(new->window, panel_pointer_entering_handler);
+	event_add_window_pointer_leaving_event(new->window, panel_pointer_leaving_handler);
 	event_add_window_menu(new->window, panel_menu);
 	event_add_window_menu_prepare(new->window, panel_menu_prepare);
 	event_add_window_menu_selection(new->window, panel_menu_selection);
@@ -532,6 +543,8 @@ void panel_refresh_choices(void)
 		panel_update_window_extent(windat);
 		panel_rebuild_window(windat);
 
+		windat->auto_mouseover = config_opt_read("MouseOver");
+
 		windat = windat->next;
 	}
 }
@@ -567,6 +580,58 @@ static void panel_click_handler(wimp_pointer *pointer)
 		}
 		break;
 	}
+}
+
+
+/**
+ * Process pointer entering events for a panel.
+ *
+ * \param *entering		The pointer entering event block.
+ */
+
+static void panel_pointer_entering_handler(wimp_entering *entering)
+{
+	struct panel_block *windat;
+
+	if (entering == NULL)
+		return;
+
+	windat = event_get_window_user_data(entering->w);
+	if (windat == NULL)
+		return;
+
+	if (!windat->auto_mouseover)
+		return;
+
+	windat->panel_is_open = TRUE;
+
+	panel_reopen_window(windat);
+}
+
+
+/**
+ * Process pointer leaving events for a panel.
+ *
+ * \param *leaving		The pointer leaving event block.
+ */
+
+static void panel_pointer_leaving_handler(wimp_leaving *leaving)
+{
+	struct panel_block *windat;
+
+	if (leaving == NULL)
+		return;
+
+	windat = event_get_window_user_data(leaving->w);
+	if (windat == NULL)
+		return;
+
+	if (!windat->auto_mouseover)
+		return;
+
+	windat->panel_is_open = FALSE;
+
+	panel_reopen_window(windat);
 }
 
 
