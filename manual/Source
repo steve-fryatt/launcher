@@ -187,8 +187,9 @@ Second public release.
 
 Development build for testing and feedack.
 
-</list>
+<list>
 <li>Add support for automatically opening panels when the mouse moves over them (Ticket&nbsp;#707).
+<li>Improve the launching of objects, passing items to *StartDesktopTask, *Filer_Run or *Filer_OpenDir as appropriate (Ticket&nbsp;706).
 </list>
 
 </chapter>

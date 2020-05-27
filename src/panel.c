@@ -58,6 +58,7 @@
 #include "filing.h"
 #include "icondb.h"
 #include "main.h"
+#include "objutil.h"
 #include "paneldb.h"
 
 
@@ -1654,9 +1655,6 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 static void panel_press(struct panel_block *windat, wimp_i icon)
 {
 	struct appdb_entry	app;
-	char			*buffer;
-	int			length;
-	os_error		*error;
 	struct icondb_button	*button = NULL;
 
 	if (windat == NULL)
@@ -1670,19 +1668,7 @@ static void panel_press(struct panel_block *windat, wimp_i icon)
 	if (appdb_get_button_info(button->key, &app) == NULL)
 		return;
 
-	length = strlen(app.command) + 19;
-
-	buffer = heap_alloc(length);
-
-	if (buffer == NULL)
-		return;
-
-	string_printf(buffer, length, "%%StartDesktopTask %s", app.command);
-	error = xos_cli(buffer);
-	if (error != NULL)
-		error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
-
-	heap_free(buffer);
+	objutil_launch(app.command);
 
 	return;
 }

@@ -35,6 +35,7 @@ OBJS =  appdb.o		\
 	filing.o	\
 	icondb.o	\
 	main.o		\
+	objutil.o	\
 	panel.o		\
 	paneldb.o	\
 	proginfo.o
