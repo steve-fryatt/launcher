@@ -43,13 +43,26 @@ void objutil_terminate(void);
 
 
 /**
+ * Given an object referenced by a filename, find an appropriate sprite
+ * from the Wimp Sprite Pool and return its name in the supplied buffer.
+ * 
+ * \param *object	The filename of the object to process.
+ * \param *sprite	Pointer to a buffer to hold the sprite name.
+ * \param length	The length of the supplied buffer.
+ * \return		TRUE if successful; FALSE on failure.
+ */
+
+osbool objutil_find_sprite(char *object, char *sprite, size_t length);
+
+
+/**
  * Launch an object referenced by a supplied filename.
  * 
- * \param *file		The filename of the object to launch.
+ * \param *object	The filename of the object to launch.
  * \return		TRUE if successful; FALSE on error.
  */ 
 
-osbool objutil_launch(char *file);
+osbool objutil_launch(char *object);
 
 #endif
 

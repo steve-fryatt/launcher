@@ -356,18 +356,8 @@ static osbool edit_button_message_data_load(wimp_message *message)
 
 	leafname = string_find_leafname(data_load->file_name);
 
-	if (leafname[0] == '!') {
-		strncpy(spritename, leafname, APPDB_SPRITE_LENGTH);
-		string_tolower(spritename);
-
-		/* \TODO -- If the sprite doesn't exist, use application? */
-
-		leafname++;
-	} else {
-		strncpy(spritename, "file_xxx", APPDB_SPRITE_LENGTH);
-
-		/* \TODO -- This should sort out filetype sprites! */
-	}
+	if (!objutil_find_sprite(data_load->file_name, spritename, APPDB_SPRITE_LENGTH))
+		return TRUE;
 
 	icons_strncpy(edit_button_window, EDIT_BUTTON_ICON_NAME, leafname);
 	icons_strncpy(edit_button_window, EDIT_BUTTON_ICON_SPRITE, spritename);
