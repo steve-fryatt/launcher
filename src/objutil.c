@@ -59,25 +59,6 @@ static osbool objutil_test_sprite(char *sprite);
 
 
 /**
- * Initialise the Object Utils.
- */
-
-void objutil_initialise(void)
-{
-	/* Nothing to do! */
-}
-
-
-/**
- * Terminate the Object Utils.
- */
-
-void objutil_terminate(void)
-{
-	/* Nothing to do! */
-}
-
-/**
  * Given an object referenced by a filename, find an appropriate sprite
  * from the Wimp Sprite Pool and return its name in the supplied buffer.
  * 

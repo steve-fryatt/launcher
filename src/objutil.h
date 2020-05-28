@@ -28,19 +28,6 @@
 #ifndef LAUNCHER_OBJUTIL
 #define LAUNCHER_OBJUTIL
 
-/**
- * Initialise the Object Utils.
- */
-
-void objutil_initialise(void);
-
-
-/**
- * Terminate the Object Utils.
- */
-
-void objutil_terminate(void);
-
 
 /**
  * Given an object referenced by a filename, find an appropriate sprite
