@@ -44,9 +44,12 @@ UnknownFileFormat:The bar or button definitions are in a format newer than that 
 CorruptFile:The file contents appear to be corrupt, and it can not be loaded.
 NoMemLoadFile:There was not enough memory to load the bar or button definitions.
 BadMemory:There was an error with the memory block sizes.
+ObjectMissing:The object to be launched was not found.
+ObjectBadType:It was not possible to identify the type of object to be launched.
 
 NoMemNewPanel:There was not enough memory to create a new panel.
 NoMemNewButton:There was not enough memory to create a new button.
+NoMemLaunch:There was not enough memory to launch the target object.
 
 LastPanelDelete:This is the last panel, and so can not be deleted.
 
