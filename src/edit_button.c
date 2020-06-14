@@ -57,6 +57,7 @@
 #include "edit_button.h"
 
 #include "appdb.h"
+#include "objutil.h"
 
 /* Edit Dialogue */
 
