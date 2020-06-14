@@ -34,6 +34,7 @@
 /* OSLib header files */
 
 #include "oslib/hourglass.h"
+#include "oslib/os.h"
 #include "oslib/wimp.h"
 
 /* SF-Lib header files */
@@ -124,14 +125,19 @@ int main(void)
 
 static void main_poll_loop(void)
 {
+	wimp_poll_flags	flags;
 	wimp_event_no	reason;
 	wimp_block	blk;
+	os_t		next_poll;
 
+	next_poll = os_read_monotonic_time();
 
 	while (!main_quit_flag) {
-		reason = wimp_poll(wimp_MASK_NULL, &blk, NULL);
+		flags = (next_poll != 0) ? 0 : wimp_MASK_NULL;
 
-		if (!event_process_event(reason, &blk, 0)) {
+		reason = wimp_poll_idle(flags, &blk, next_poll, NULL);
+
+		if (!event_process_event(reason, &blk, 0, &next_poll)) {
 			switch (reason) {
 			case wimp_OPEN_WINDOW_REQUEST:
 				wimp_open_window(&(blk.open));

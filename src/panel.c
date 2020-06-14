@@ -104,6 +104,18 @@ enum panel_position {
 };
 
 /**
+ * The reasons that a panel might be on display.
+ */
+
+enum panel_status {
+	PANEL_STATUS_CLOSED = 0,
+	PANEL_STATUS_POINTER_OVER = 1,
+	PANEL_STATUS_MENU_OPEN = 2,
+	PANEL_STATUS_PANEL_DLOG_OPEN = 4,
+	PANEL_STATUS_BUTTON_DLOG_OPEN = 8
+};
+
+/**
  * The buttion instance data block.
  */
 
@@ -161,6 +173,12 @@ struct panel_block {
 	 */
 
 	osbool panel_is_open;
+
+	/**
+	 * Track reasons why a panel might be open.
+	 */
+
+	enum panel_status open_status;
 
 	/**
 	 * The handle of the buttons window.
@@ -294,6 +312,7 @@ static void panel_update_instance_from_db(struct panel_block *windat);
 
 static void panel_click_handler(wimp_pointer *pointer);
 static void panel_pointer_entering_handler(wimp_entering *entering);
+static osbool panel_pointer_entering_callback(os_t time, void *data);
 static void panel_pointer_leaving_handler(wimp_leaving *leaving);
 static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
@@ -382,6 +401,7 @@ void panel_terminate(void)
 	edit_button_terminate();
 }
 
+
 /**
  * Create a new panel instance, using a given database entry.
  * This does not open the panel.
@@ -405,6 +425,7 @@ static struct panel_block *panel_create_instance(unsigned key)
 	new->origin.x = 0;
 	new->origin.y = 0;
 	new->panel_is_open = FALSE;
+	new->open_status = PANEL_STATUS_CLOSED;
 	new->min_longitude = 0;
 	new->max_longitude = 0;
 	new->auto_mouseover = config_opt_read("MouseOver");
@@ -601,12 +622,27 @@ static void panel_pointer_entering_handler(wimp_entering *entering)
 	if (windat == NULL)
 		return;
 
+	windat->open_status |= PANEL_STATUS_POINTER_OVER;
+
 	if (!windat->auto_mouseover)
 		return;
+
+	event_add_single_callback(entering->w, 100, panel_pointer_entering_callback, windat);
+}
+
+
+static osbool panel_pointer_entering_callback(os_t time, void *data)
+{
+	struct panel_block *windat = data;
+
+	if (windat == NULL || !windat->auto_mouseover || windat->open_status == PANEL_STATUS_CLOSED)
+		return TRUE;
 
 	windat->panel_is_open = TRUE;
 
 	panel_reopen_window(windat);
+
+	return TRUE;
 }
 
 
@@ -627,7 +663,9 @@ static void panel_pointer_leaving_handler(wimp_leaving *leaving)
 	if (windat == NULL)
 		return;
 
-	if (!windat->auto_mouseover)
+	windat->open_status &= ~PANEL_STATUS_POINTER_OVER;
+
+	if (!windat->auto_mouseover || windat->open_status != PANEL_STATUS_CLOSED)
 		return;
 
 	windat->panel_is_open = FALSE;
