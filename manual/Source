@@ -139,7 +139,7 @@ The <icon>Grid dimensions</icon> section controls the dimensions of the grid in 
 
 The size of a grid square can be set using <icon>Grid size</icon>, using OS&nbsp;Units and again remembering that a button occupies two grid cells in each direction. The spacing between cells in the grid, which sets any spacing between buttons, is set in the <icon>Grid spacing</icon> field &ndash; the size of cells includes the spacing that crosses between their pairs of grid squares.
 
-<icon>Open on mouse-over</icon> controls whether the panels will open when the mouse moves over them. When off, which is its default state, a panel will open when the mouse is clicked on its bar. If turned on, a panel will open as soon as the mouse passes over it, and will close again when the pointer moves away again.
+<icon>Open on mouse-over</icon> controls whether the panels will open when the mouse moves over them. When off, which is its default state, a panel will open when the mouse is clicked on its bar. If turned on, a panel will open when the mouse passes over it, and will close again when the pointer moves away again. There is a delay between the mouse entering the panel and the panel opening, which is set by <icon>Open delay</icon>; the value is in hundredths of a second.
 
 If <icon>Confirm deletions</icon> is ticked, <cite>Launcher</cite> will confirm any attempt to delete a button from the grid.
 

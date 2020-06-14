@@ -443,7 +443,7 @@ static struct panel_block *panel_create_instance(unsigned key)
 	new->min_longitude = 0;
 	new->max_longitude = 0;
 	new->auto_mouseover = config_opt_read("MouseOver");
-	new->auto_open_delay = 50;
+	new->auto_open_delay = config_int_read("OpenDelay");
 	new->auto_close_delay = 10;
 
 	new->icondb = icondb_create_instance();
@@ -583,6 +583,7 @@ void panel_refresh_choices(void)
 		panel_rebuild_window(windat);
 
 		windat->auto_mouseover = config_opt_read("MouseOver");
+		windat->auto_open_delay = config_int_read("OpenDelay");
 
 		windat = windat->next;
 	}

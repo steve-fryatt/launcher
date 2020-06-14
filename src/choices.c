@@ -73,7 +73,10 @@
 #define CHOICE_ICON_SPACING_DOWN 16
 #define CHOICE_ICON_SPACING_UP 17
 #define CHOICE_ICON_CONFIRM_DELETE 19
-#define CHOICE_ICON_MOUSE_OVER 20
+#define CHOICE_ICON_MOUSE_OVER 22
+#define CHOICE_ICON_DELAY 23
+#define CHOICE_ICON_DELAY_DOWN 24
+#define CHOICE_ICON_DELAY_UP 25
 
 /* Bump field limits and step values. */
 
@@ -89,6 +92,9 @@
 #define CHOICE_SPACING_MAX 10
 #define CHOICE_SPACING_STEP 2
 
+#define CHOICE_DELAY_MIN 10
+#define CHOICE_DELAY_MAX 999
+#define CHOICE_DELAY_STEP 1
 
 /* Global variables */
 
@@ -124,6 +130,9 @@ void choices_initialise(void)
 	event_add_window_icon_bump(choices_window, CHOICE_ICON_SPACING,
 			CHOICE_ICON_SPACING_UP, CHOICE_ICON_SPACING_DOWN,
 			CHOICE_SPACING_MIN, CHOICE_SPACING_MAX, CHOICE_SPACING_STEP);
+	event_add_window_icon_bump(choices_window, CHOICE_ICON_DELAY,
+			CHOICE_ICON_DELAY_UP, CHOICE_ICON_DELAY_DOWN,
+			CHOICE_DELAY_MIN, CHOICE_DELAY_MAX, CHOICE_DELAY_STEP);
 }
 
 
@@ -163,6 +172,7 @@ static void choices_set_window(void)
 	icons_printf(choices_window, CHOICE_ICON_COLUMNS, "%d", config_int_read("WindowColumns"));
 	icons_printf(choices_window, CHOICE_ICON_SIZE, "%d", config_int_read("GridSize"));
 	icons_printf(choices_window, CHOICE_ICON_SPACING, "%d", config_int_read("GridSpacing"));
+	icons_printf(choices_window, CHOICE_ICON_DELAY, "%d", config_int_read("OpenDelay"));
 
 	icons_set_selected(choices_window, CHOICE_ICON_CONFIRM_DELETE, config_opt_read("ConfirmDelete"));
 	icons_set_selected(choices_window, CHOICE_ICON_MOUSE_OVER, config_opt_read("MouseOver"));
@@ -178,6 +188,7 @@ static void choices_read_window(void)
 	config_int_set("WindowColumns", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_COLUMNS)));
 	config_int_set("GridSize", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_SIZE)));
 	config_int_set("GridSpacing", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_SPACING)));
+	config_int_set("OpenDelay", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DELAY)));
 
 	config_opt_set("ConfirmDelete", icons_get_selected(choices_window, CHOICE_ICON_CONFIRM_DELETE));
 	config_opt_set("MouseOver", icons_get_selected(choices_window, CHOICE_ICON_MOUSE_OVER));
@@ -193,6 +204,7 @@ static void choices_redraw_window(void)
 	wimp_set_icon_state(choices_window, CHOICE_ICON_COLUMNS, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_SIZE, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_SPACING, 0, 0);
+	wimp_set_icon_state(choices_window, CHOICE_ICON_DELAY, 0, 0);
 }
 
 
