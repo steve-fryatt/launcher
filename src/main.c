@@ -35,6 +35,7 @@
 
 #include "oslib/hourglass.h"
 #include "oslib/os.h"
+#include "oslib/osfile.h"
 #include "oslib/wimp.h"
 
 /* SF-Lib header files */
@@ -168,12 +169,17 @@ static void main_initialise(void)
 
 	hourglass_on();
 
+	/* Initialise the resources. */
+
 	string_copy(resources, "<Launcher$Dir>.Resources", MAIN_FILENAME_BUFFER_LEN);
-	resources_find_path(resources, MAIN_FILENAME_BUFFER_LEN);
+	if (!resources_initialise_paths(resources, MAIN_FILENAME_BUFFER_LEN, "Launcher$Language"))
+		error_report_fatal("Failed to initialise resources.");
 
 	/* Load the messages file. */
 
-	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Messages", resources);
+	if (!resources_find_file(resources, res_temp, MAIN_FILENAME_BUFFER_LEN, "Messages", osfile_TYPE_TEXT))
+		error_report_fatal("Failed to locate suitable Messages file.");
+
 	msgs_initialise(res_temp);
 
 	/* Initialise the error message system. */
@@ -196,10 +202,6 @@ static void main_initialise(void)
 	flex_init(task_name, 0, 0);
 	heap_initialise();
 
-	/* Read the mode size and details. */
-
-	/* read_mode_size(); */
-
 	/* Load the configuration. */
 
 	config_initialise(task_name, "Launcher", "<Launcher$Dir>");
@@ -217,12 +219,16 @@ static void main_initialise(void)
 
 	/* Load the menu structure. */
 
-	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Menus", resources);
+	if (!resources_find_file(resources, res_temp, MAIN_FILENAME_BUFFER_LEN, "Menus", osfile_TYPE_DATA))
+		error_msgs_param_report_fatal("BadResource", "Menus", NULL, NULL, NULL);
+
 	templates_load_menus(res_temp);
 
 	/* Load the window templates. */
 
-	string_printf(res_temp, MAIN_FILENAME_BUFFER_LEN, "%s.Templates", resources);
+	if (!resources_find_file(resources, res_temp, MAIN_FILENAME_BUFFER_LEN, "Templates", osfile_TYPE_TEMPLATE))
+		error_msgs_param_report_fatal("BadResource", "Templates", NULL, NULL, NULL);
+
 	templates_open(res_temp);
 
 	/* Initialise the individual modules. */

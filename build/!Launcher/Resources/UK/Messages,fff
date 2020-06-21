@@ -56,9 +56,10 @@ LastPanelDelete:This is the last panel, and so can not be deleted.
 CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
 MissingName:The Name field must be completed.
-DuplicateName: The panel name '%0' is already in use.
-SortRange: The order must be between 1 and 9999.
-WidthRange: The width must be between 1 and 9999.
+DuplicateName:The panel name '%0' is already in use.
+SortRange:The order must be between 1 and 9999.
+WidthRange:The width must be between 1 and 9999.
+BadResource:Failed to locate suitable %0 file.
 BadTemplate:Window template '%0' not found.
 
 BadPanel:Panel ID does not match database.
