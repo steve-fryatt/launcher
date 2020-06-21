@@ -172,7 +172,7 @@ static void main_initialise(void)
 	/* Initialise the resources. */
 
 	string_copy(resources, "<Launcher$Dir>.Resources", MAIN_FILENAME_BUFFER_LEN);
-	if (!resources_initialise_paths(resources, MAIN_FILENAME_BUFFER_LEN, "Launcher$Language"))
+	if (!resources_initialise_paths(resources, MAIN_FILENAME_BUFFER_LEN, "Launcher$Language", "UK"))
 		error_report_fatal("Failed to initialise resources.");
 
 	/* Load the messages file. */
