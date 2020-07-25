@@ -185,7 +185,7 @@ Second public release.
 
 <subhead title="Test Build">
 
-Development build for testing and feedack.
+Development build for testing and feedback.
 
 <list>
 <li>Add support for automatically opening panels when the mouse moves over them (Ticket&nbsp;#707).
