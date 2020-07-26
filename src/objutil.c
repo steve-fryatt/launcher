@@ -71,7 +71,7 @@ static osbool objutil_test_sprite(char *sprite);
 osbool objutil_find_sprite(char *object, char *sprite, size_t length)
 {
 	fileswitch_object_type	object_type;
-	bits			load_addr, exec_addr, file_type;
+	bits			load_addr, file_type;
 	os_error		*error;
 	char			*leafname;
 
@@ -87,7 +87,7 @@ osbool objutil_find_sprite(char *object, char *sprite, size_t length)
 
 	leafname = string_find_leafname(object);
 
-	error = xosfile_read_stamped_no_path(object, &object_type, &load_addr, &exec_addr, NULL, NULL, &file_type);
+	error = xosfile_read_stamped_no_path(object, &object_type, NULL, NULL, NULL, NULL, &file_type);
 	if (error != NULL) {
 		error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
 		return FALSE;
@@ -96,6 +96,23 @@ osbool objutil_find_sprite(char *object, char *sprite, size_t length)
 	if (object_type == fileswitch_NOT_FOUND) {
 		error_msgs_report_error("ObjectMissing");
 		return FALSE;
+	}
+
+	/* If this is an image file the filetype will be unhelpful, so read it manually. */
+
+	if (object_type == fileswitch_IS_IMAGE) {
+		error = xosfile_read_no_path(object, &object_type, &load_addr, NULL, NULL, NULL);
+		if (error != NULL) {
+			error_report_os_error(error, wimp_ERROR_BOX_OK_ICON);
+			return FALSE;
+		}
+
+		if (object_type != fileswitch_IS_IMAGE) {
+			error_msgs_report_error("ObjectBadType");
+			return FALSE;
+		}
+
+		file_type = (load_addr & osfile_FILE_TYPE) >> osfile_FILE_TYPE_SHIFT;
 	}
 
 	switch (object_type) {

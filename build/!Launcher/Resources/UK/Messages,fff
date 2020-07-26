@@ -56,9 +56,10 @@ LastPanelDelete:This is the last panel, and so can not be deleted.
 CoordRange:Button coordinates are out of range.
 MissingText:The Name, Sprite and Command fields must be completed.
 MissingName:The Name field must be completed.
-DuplicateName: The panel name '%0' is already in use.
-SortRange: The order must be between 1 and 9999.
-WidthRange: The width must be between 1 and 9999.
+DuplicateName:The panel name '%0' is already in use.
+SortRange:The order must be between 1 and 9999.
+WidthRange:The width must be between 1 and 9999.
+BadResource:Failed to locate suitable %0 file.
 BadTemplate:Window template '%0' not found.
 
 BadPanel:Panel ID does not match database.
@@ -112,6 +113,9 @@ Help.Choices.SpacingUp:\Sincrease the column spacing.|M\Adecrease it.
 Help.Choices.SpacingDown:\Sdecrease the column spacing.|M\Aincrease it.
 Help.Choices.ConfirmDel:\Stoggle a confirmation message before buttons are deleted from the display.
 Help.Choices.MOver:\Stoggle the mouse-over behaviour, when panels open automatically as the mouse passes over them.
+Help.Choices.Delay:\Tdelay before automatically opening a panel on mouse-over, in centiseconds.
+Help.Choices.DelayUp:\Sincrease the auto-open delay.|M\Adecrease it.
+Help.Choices.DelayDown:\Sdecrease the auto-open delay.|M\Aincrease it.
 
 Help.ProgInfo:This \w displays information about Launcher.
 Help.ProgInfo.Website:\Sopen the Launcher home page in your web browser, if one has been seen.

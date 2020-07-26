@@ -104,6 +104,18 @@ enum panel_position {
 };
 
 /**
+ * The reasons that a panel might be on display.
+ */
+
+enum panel_status {
+	PANEL_STATUS_CLOSED = 0,
+	PANEL_STATUS_POINTER_OVER = 1,
+	PANEL_STATUS_MENU_OPEN = 2,
+	PANEL_STATUS_PANEL_DLOG_OPEN = 4,
+	PANEL_STATUS_BUTTON_DLOG_OPEN = 8
+};
+
+/**
  * The buttion instance data block.
  */
 
@@ -163,6 +175,12 @@ struct panel_block {
 	osbool panel_is_open;
 
 	/**
+	 * Track reasons why a panel might be open.
+	 */
+
+	enum panel_status open_status;
+
+	/**
 	 * The handle of the buttons window.
 	 */
 
@@ -208,6 +226,18 @@ struct panel_block {
 	 */
 
 	osbool auto_mouseover;
+
+	/**
+	 * The time, in centiseconds, before an auto-open occurs.
+	 */
+
+	os_t auto_open_delay;
+
+	/**
+	 * The time, in centiseconds, before an auto-close occurs.
+	 */
+
+	os_t auto_close_delay;
 
 	/**
 	 * The next instance in the list, or NULL.
@@ -294,9 +324,12 @@ static void panel_update_instance_from_db(struct panel_block *windat);
 
 static void panel_click_handler(wimp_pointer *pointer);
 static void panel_pointer_entering_handler(wimp_entering *entering);
+static osbool panel_pointer_entering_callback(os_t time, void *data);
 static void panel_pointer_leaving_handler(wimp_leaving *leaving);
+static osbool panel_pointer_leaving_callback(os_t time, void *data);
 static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
+static void panel_menu_close(wimp_w w, wimp_menu *menu);
 static osbool panel_message_mode_change(wimp_message *message);
 
 static void panel_update_mode_details(void);
@@ -382,6 +415,7 @@ void panel_terminate(void)
 	edit_button_terminate();
 }
 
+
 /**
  * Create a new panel instance, using a given database entry.
  * This does not open the panel.
@@ -405,9 +439,12 @@ static struct panel_block *panel_create_instance(unsigned key)
 	new->origin.x = 0;
 	new->origin.y = 0;
 	new->panel_is_open = FALSE;
+	new->open_status = PANEL_STATUS_CLOSED;
 	new->min_longitude = 0;
 	new->max_longitude = 0;
 	new->auto_mouseover = config_opt_read("MouseOver");
+	new->auto_open_delay = config_int_read("OpenDelay");
+	new->auto_close_delay = 10;
 
 	new->icondb = icondb_create_instance();
 
@@ -421,6 +458,7 @@ static struct panel_block *panel_create_instance(unsigned key)
 	event_add_window_menu(new->window, panel_menu);
 	event_add_window_menu_prepare(new->window, panel_menu_prepare);
 	event_add_window_menu_selection(new->window, panel_menu_selection);
+	event_add_window_menu_close(new->window, panel_menu_close);
 
 	/* Link the window in to the data structure. */
 
@@ -545,6 +583,7 @@ void panel_refresh_choices(void)
 		panel_rebuild_window(windat);
 
 		windat->auto_mouseover = config_opt_read("MouseOver");
+		windat->auto_open_delay = config_int_read("OpenDelay");
 
 		windat = windat->next;
 	}
@@ -601,12 +640,34 @@ static void panel_pointer_entering_handler(wimp_entering *entering)
 	if (windat == NULL)
 		return;
 
-	if (!windat->auto_mouseover)
-		return;
+	windat->open_status |= PANEL_STATUS_POINTER_OVER;
+
+	if (windat->auto_mouseover && windat->open_status == PANEL_STATUS_POINTER_OVER)
+		event_add_single_callback(entering->w, windat->auto_open_delay, panel_pointer_entering_callback, windat);
+}
+
+
+/**
+ * Callback to check the position of the pointer after
+ * the auto-open delay has elapsed.
+ *
+ * \param time			The time that the callback occurred.
+ * \param *data			The window instance of interest.
+ * \return			TRUE if the callback was complete.
+ */
+
+static osbool panel_pointer_entering_callback(os_t time, void *data)
+{
+	struct panel_block *windat = data;
+
+	if (windat == NULL || !windat->auto_mouseover || windat->open_status != PANEL_STATUS_POINTER_OVER)
+		return TRUE;
 
 	windat->panel_is_open = TRUE;
 
 	panel_reopen_window(windat);
+
+	return TRUE;
 }
 
 
@@ -627,12 +688,34 @@ static void panel_pointer_leaving_handler(wimp_leaving *leaving)
 	if (windat == NULL)
 		return;
 
-	if (!windat->auto_mouseover)
-		return;
+	windat->open_status &= ~PANEL_STATUS_POINTER_OVER;
+
+	if (windat->auto_mouseover)
+		event_add_single_callback(leaving->w, windat->auto_close_delay, panel_pointer_leaving_callback, windat);
+}
+
+
+/**
+ * Callback to check the position of the pointer after
+ * the auto-close delay has elapsed.
+ *
+ * \param time			The time that the callback occurred.
+ * \param *data			The window instance of interest.
+ * \return			TRUE if the callback was complete.
+ */
+
+static osbool panel_pointer_leaving_callback(os_t time, void *data)
+{
+	struct panel_block *windat = data;
+
+	if (!windat->auto_mouseover || !windat->auto_mouseover || windat->open_status != PANEL_STATUS_CLOSED)
+		return TRUE;
 
 	windat->panel_is_open = FALSE;
 
 	panel_reopen_window(windat);
+
+	return TRUE;
 }
 
 
@@ -708,6 +791,10 @@ static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer)
 
 	panel_menu_coordinate.x = panel_menu_coordinate.x / (windat->grid_square + windat->grid_spacing);
 	panel_menu_coordinate.y = panel_menu_coordinate.y / (windat->grid_square + windat->grid_spacing);
+
+	/* Track that the menu is open. */
+
+	windat->open_status |= PANEL_STATUS_MENU_OPEN;
 }
 
 
@@ -786,6 +873,25 @@ static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *sele
 			main_quit_flag = TRUE;
 		break;
 	}
+}
+
+
+/**
+ * Handles the menu tree closing.
+ */
+
+static void panel_menu_close(wimp_w w, wimp_menu *menu)
+{
+	struct panel_block	*windat;
+
+	windat = event_get_window_user_data(w);
+	if (windat == NULL)
+		return;
+
+	windat->open_status &= ~PANEL_STATUS_MENU_OPEN;
+
+	if (windat->auto_mouseover)
+		event_add_single_callback(w, windat->auto_close_delay, panel_pointer_leaving_callback, windat);
 }
 
 
