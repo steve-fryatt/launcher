@@ -78,6 +78,8 @@ To use <cite>Launcher</cite>, run it in the usual way by double-clicking on its 
 
 To access the shortcuts, click on the bar and the panel will expand on to the screen; click again on the bar to shrink it back again. A <mouse>select</mouse>-click on a shortcut will launch the associated application and shrink the panel back, while clicking with <mouse>adjust</mouse> will leave the panel open on screen for another shortcut to be selected.
 
+The panel can also be configured to open when the mouse passes over it and remains in place for a minimum time, which saves a click to open it up. See the chapter on <link ref="Configuration">configuration</link> for more details.
+
 <subhead title="Moving and adding panels">
 
 The panel can be moved to another side of the desktop by clicking <mouse>menu</mouse> over it and selecting <menu>Panel &msep; Edit...</menu> to open the <window>Edit panel</window> dialogue. The <icon>Location</icon> field sets the side of the desktop on which the bar will appear.
@@ -183,9 +185,9 @@ Second public release.
 </list>
 
 
-<subhead title="Test Build">
+<subhead title="1.10 (26 July 2020)">
 
-Development build for testing and feedback.
+Third public release.
 
 <list>
 <li>Add support for automatically opening panels when the mouse moves over them (Ticket&nbsp;#707).
