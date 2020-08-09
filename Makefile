@@ -28,6 +28,9 @@ ARCHIVE := launcher
 
 APP := !Launcher
 
+PACKAGE := Launcher
+PACKAGELOC := Desktop
+
 OBJS =  appdb.o		\
 	choices.o	\
 	edit_button.o	\

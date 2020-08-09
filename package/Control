@@ -1,0 +1,20 @@
+Package: Launcher
+Version: 1.10-1
+Section: Desktop
+Priority: Optional
+Maintainer: Stephen Fryatt <info@stevefryatt.org.uk>
+Standards-Version: 0.6.0
+Environment: arm
+Licence: Free
+Description: Yet Another RISC OS Application Launcher
+ Launcher is yet another application launcher for RISC OS, which sits to the
+ side of the desktop and allows applications to be started from a palette of
+ shortcuts. Multiple bars can be configured to slide out of sight when not in
+ use, and can be quickly brought back into view with a click of the mouse, or
+ optionally when the mouse moves over them.
+ .
+ Despite being in use on my desktop since 2003, it took sixteen years and many
+ nudges from people who saw it on my machine at RISC OS shows and WROCC
+ meetings to make it out into the wild.
+Homepage: http://www.stevefryatt.org.uk/software/utils/
+Components: Apps.Desktop.!Launcher (Movable)
