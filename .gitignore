@@ -1,0 +1,9 @@
+.vscode
+build/Licence,fff
+build/ReadMe,fff
+build/!Launcher/!Help,ffb
+build/!Launcher/!RunImage,ff8
+build/!Launcher/Resources/UK/HelpText,fff
+build/!Launcher/Resources/UK/Menus,ffd
+build/package
+obj
