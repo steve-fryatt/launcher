@@ -297,6 +297,16 @@ static int panel_mode_x_units_per_pixel;
 static int panel_mode_y_units_per_pixel;
 
 /**
+ * The width of the panel sidebar on vertical panels.
+ */
+static int panel_sidebar_width;
+
+/**
+ * The height of the panel sidebar on horizontal panels.
+ */
+static int panel_sidebar_height;
+
+/**
  * The handle of the main menu.
  */
 
@@ -384,6 +394,14 @@ void panel_initialise(void)
 	panel_window_def->icon_count = 1;
 
 	panel_icon_def.icon = panel_window_def->icons[PANEL_ICON_TEMPLATE];
+
+	/* Work out the size of the sidebar icon. */
+
+	panel_sidebar_width = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x1 -
+			panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x0;
+
+	panel_sidebar_height = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y1 -
+			panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y0;
 
 	/* Watch out for Message_ModeChange. */
 
@@ -1090,7 +1108,7 @@ static void panel_update_positions(void)
 	struct panel_block	**panels;
 	size_t			panel_count = 0;
 	os_box			locations, start_pos, next_pos, max_width, units, count;
-	int			i, sidebar_width, sidebar_height;
+	int			i;
 
 	/* Count the number of panels on each side of the screen.*/
 
@@ -1158,14 +1176,6 @@ static void panel_update_positions(void)
 
 	qsort(panels, panel_count, sizeof(struct panel_block *), &compare_panels);
 
-	/* Work out the size of the sidebar icon. */
-
-	sidebar_width = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x1 -
-			panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x0;
-
-	sidebar_height = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y1 -
-			panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y0;
-
 	/* The lowest position of the first bar on each side of the screen. */
 
 	start_pos.x0 = panel_iconbar_height;
@@ -1183,35 +1193,35 @@ static void panel_update_positions(void)
 	/* If there's a bar on the left, push the top and bottom bars in. */
 
 	if (locations.x0 > 0) {
-		start_pos.y0 += sidebar_width;
-		start_pos.y1 += sidebar_width;
+		start_pos.y0 += panel_sidebar_width;
+		start_pos.y1 += panel_sidebar_width;
 
-		max_width.y0 -= sidebar_width;
-		max_width.y1 -= sidebar_width;
+		max_width.y0 -= panel_sidebar_width;
+		max_width.y1 -= panel_sidebar_width;
 	}
 
 	/* If there's a bar on the right, pull the top and bottom bars back. */
 
 	if (locations.x1 > 0) {
-		max_width.y0 -= sidebar_width;
-		max_width.y1 -= sidebar_width;
+		max_width.y0 -= panel_sidebar_width;
+		max_width.y1 -= panel_sidebar_width;
 	}
 
 	/* If there's a bar at the bottum, push the left and right bars up. */
 
 	if (locations.y0 > 0) {
-		start_pos.x0 += sidebar_height;
-		start_pos.x1 += sidebar_height;
+		start_pos.x0 += panel_sidebar_height;
+		start_pos.x1 += panel_sidebar_height;
 
-		max_width.x0 -= sidebar_height;
-		max_width.x1 -= sidebar_height;
+		max_width.x0 -= panel_sidebar_height;
+		max_width.x1 -= panel_sidebar_height;
 	}
 
 	/* If there's a bar at the top, pull the left and right bars down. */
 
 	if (locations.y1 > 0) {
-		max_width.x0 -= sidebar_height;
-		max_width.x1 -= sidebar_height;
+		max_width.x0 -= panel_sidebar_height;
+		max_width.x1 -= panel_sidebar_height;
 	}
 
 	/* Track the start of the next bar on each side of the screen. */
@@ -1345,7 +1355,7 @@ static void panel_update_grid_info(struct panel_block *windat)
 
 static void panel_update_window_extent(struct panel_block *windat)
 {
-	int			new_window_size, sidebar_width = 0;
+	int			new_window_size;
 	wimp_window_info	info;
 	os_error		*error;
 
@@ -1368,15 +1378,10 @@ static void panel_update_window_extent(struct panel_block *windat)
 		info.extent.y1 = 0;
 		info.extent.y0 = info.extent.y1 - new_window_size;
 
-		/* Calculate the sidebar width. */
-
-		sidebar_width = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x1 -
-				panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.x0;
-
 		/* Calculate the new horizontal size of the window. */
 
 		info.extent.x0 = 0;
-		info.extent.x1 = info.extent.x0 + sidebar_width + windat->grid_spacing +
+		info.extent.x1 = info.extent.x0 + panel_sidebar_width + windat->grid_spacing +
 				windat->grid_dimensions.x * (windat->grid_spacing + windat->grid_square);
 	} else if (windat->location & PANEL_POSITION_HORIZONTAL) {
 
@@ -1385,15 +1390,10 @@ static void panel_update_window_extent(struct panel_block *windat)
 		info.extent.x0 = 0;
 		info.extent.x1 = info.extent.x0 + new_window_size;
 
-		/* Calculate the sidebar width (height). */
-
-		sidebar_width = panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y1 -
-				panel_window_def->icons[PANEL_ICON_SIDEBAR].extent.y0;
-
 		/* Calculate the new vertical size of the window. */
 
 		info.extent.y1 = 0;
-		info.extent.y0 = info.extent.y1 - sidebar_width - windat->grid_spacing -
+		info.extent.y0 = info.extent.y1 - panel_sidebar_height - windat->grid_spacing -
 				windat->grid_dimensions.x * (windat->grid_spacing + windat->grid_square);
 	}
 
@@ -1407,35 +1407,35 @@ static void panel_update_window_extent(struct panel_block *windat)
 
 	switch (windat->location) {
 	case PANEL_POSITION_LEFT:
-		windat->origin.x = info.extent.x1 - windat->grid_spacing - sidebar_width;
+		windat->origin.x = info.extent.x1 - windat->grid_spacing - panel_sidebar_width;
 		windat->origin.y = info.extent.y1 - windat->grid_spacing;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
-			info.extent.x1 - sidebar_width, info.extent.y0, info.extent.x1, info.extent.y1);
+			info.extent.x1 - panel_sidebar_width, info.extent.y0, info.extent.x1, info.extent.y1);
 		break;
 
 	case PANEL_POSITION_RIGHT:
-		windat->origin.x = info.extent.x0 + windat->grid_spacing + sidebar_width;
+		windat->origin.x = info.extent.x0 + windat->grid_spacing + panel_sidebar_width;
 		windat->origin.y = info.extent.y1 - windat->grid_spacing;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
-			info.extent.x0, info.extent.y0, info.extent.x0 + sidebar_width, info.extent.y1);
+			info.extent.x0, info.extent.y0, info.extent.x0 + panel_sidebar_width, info.extent.y1);
 		break;
 
 	case PANEL_POSITION_TOP:
 		windat->origin.x = info.extent.x0 + windat->grid_spacing;
-		windat->origin.y = info.extent.y0 + windat->grid_spacing + sidebar_width;
+		windat->origin.y = info.extent.y0 + windat->grid_spacing + panel_sidebar_height;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
-			info.extent.x0, info.extent.y0, info.extent.x1, info.extent.y0 + sidebar_width);
+			info.extent.x0, info.extent.y0, info.extent.x1, info.extent.y0 + panel_sidebar_height);
 		break;
 
 	case PANEL_POSITION_BOTTOM:
 		windat->origin.x = info.extent.x0 + windat->grid_spacing;
-		windat->origin.y = info.extent.y1 - windat->grid_spacing - sidebar_width;
+		windat->origin.y = info.extent.y1 - windat->grid_spacing - panel_sidebar_height;
 
 		xwimp_resize_icon(windat->window, PANEL_ICON_SIDEBAR,
-			info.extent.x0, info.extent.y1 - sidebar_width, info.extent.x1, info.extent.y1);
+			info.extent.x0, info.extent.y1 - panel_sidebar_height, info.extent.x1, info.extent.y1);
 		break;
 
 	case PANEL_POSITION_HORIZONTAL:
