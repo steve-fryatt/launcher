@@ -16,5 +16,5 @@ Description: Yet Another RISC OS Application Launcher
  Despite being in use on my desktop since 2003, it took sixteen years and many
  nudges from people who saw it on my machine at RISC OS shows and WROCC
  meetings to make it out into the wild.
-Homepage: http://www.stevefryatt.org.uk/software/utils/
+Homepage: http://www.stevefryatt.org.uk/risc-os/launcher
 Components: Apps.Desktop.!Launcher (Movable)

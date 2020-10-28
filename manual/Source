@@ -44,9 +44,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 See the Licence for the specific language governing permissions and limitations under the Licence.
 
-The source for <cite>Launcher</cite> can be found alongside this binary download, at <link ref="#url http://www.stevefryatt.org.uk/software">http://www.stevefryatt.org.uk/software</link>
-
-The necessary libraries and build tools can be found at <link ref="#url http://www.stevefryatt.org.uk/software/build">http://www.stevefryatt.org.uk/software/build</link>
+The source for <cite>Launcher</cite> can be found on GitHub, at <link ref="#url https://github.com/steve-fryatt/launcher">https://github.com/steve-fryatt/launcher</link>
 
 </chapter>
 
@@ -210,7 +208,7 @@ Updates and Contacting Me
   that you find, you can email me at the address below.
 
   Updates to Launcher and more programs for RISC OS computers can be found
-  on my website at http://www.stevefryatt.org.uk/software/
+  on my website at http://www.stevefryatt.org.uk/risc-os/launcher
 
   Stephen Fryatt
   email: info@stevefryatt.org.uk
@@ -226,7 +224,7 @@ Updates and Contacting Me
 
 <p>If you have any comments about Launcher, or would like to report any bugs that you find, you can email me at the address below.</p>
 
-<p>Updates to Launcher and more programs for RISC&nbsp;OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/software/">http://www.stevefryatt.org.uk/software/</a></p>
+<p>Updates to Launcher and more programs for RISC&nbsp;OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/risc-os/launcher">http://www.stevefryatt.org.uk/risc-os/launcher</a></p>
 
 <p>Stephen Fryatt (email: <a href="mailto:info@stevefryatt.org.uk">info@stevefryatt.org.uk</a>)</p>
 </body>

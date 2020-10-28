@@ -95,7 +95,7 @@ static osbool proginfo_web_click(wimp_pointer *pointer)
 {
 	char		temp_buf[PROGINFO_URL_LENGTH];
 
-	msgs_lookup("SupportURL:http://www.stevefryatt.org.uk/software/utils/", temp_buf, PROGINFO_URL_LENGTH);
+	msgs_lookup("SupportURL:http://www.stevefryatt.org.uk/risc-os/launcher", temp_buf, PROGINFO_URL_LENGTH);
 	url_launch(temp_buf);
 
 	if (pointer->buttons == wimp_CLICK_SELECT)
