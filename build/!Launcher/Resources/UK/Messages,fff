@@ -113,9 +113,12 @@ Help.Choices.SpacingUp:\Sincrease the column spacing.|M\Adecrease it.
 Help.Choices.SpacingDown:\Sdecrease the column spacing.|M\Aincrease it.
 Help.Choices.ConfirmDel:\Stoggle a confirmation message before buttons are deleted from the display.
 Help.Choices.MOver:\Stoggle the mouse-over behaviour, when panels open automatically as the mouse passes over them.
-Help.Choices.Delay:\Tdelay before automatically opening a panel on mouse-over, in centiseconds.
+Help.Choices.Delay:\Tdelay before automatically opening a panel on mouse-over, in centiseconds.|MUse the arrows to the right to adjust the value.
 Help.Choices.DelayUp:\Sincrease the auto-open delay.|M\Adecrease it.
 Help.Choices.DelayDown:\Sdecrease the auto-open delay.|M\Aincrease it.
+Help.Choices.SideBar:\Tthickness of the sidebar on panels, in OS units.|MUse the arrows to the right to adjust the value.
+Help.Choices.SideBarUp:\Sincrease the sidebar panel thickness.|M\Adecrease it.
+Help.Choices.SideBarDown:\Sdecrease the sidebar panel thickness.|M\Aincrease it.
 
 Help.ProgInfo:This \w displays information about Launcher.
 Help.ProgInfo.Website:\Sopen the Launcher home page in your web browser, if one has been seen.

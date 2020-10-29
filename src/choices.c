@@ -1,4 +1,4 @@
-/* Copyright 2012-2019, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2012-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of Launcher:
  *
@@ -77,6 +77,9 @@
 #define CHOICE_ICON_DELAY 23
 #define CHOICE_ICON_DELAY_DOWN 24
 #define CHOICE_ICON_DELAY_UP 25
+#define CHOICE_ICON_SIDEBAR 29
+#define CHOICE_ICON_SIDEBAR_DOWN 30
+#define CHOICE_ICON_SIDEBAR_UP 31
 
 /* Bump field limits and step values. */
 
@@ -95,6 +98,10 @@
 #define CHOICE_DELAY_MIN 10
 #define CHOICE_DELAY_MAX 999
 #define CHOICE_DELAY_STEP 1
+
+#define CHOICE_SIDEBAR_MIN 2
+#define CHOICE_SIDEBAR_MAX 30
+#define CHOICE_SIDEBAR_STEP 2
 
 /* Global variables */
 
@@ -133,6 +140,9 @@ void choices_initialise(void)
 	event_add_window_icon_bump(choices_window, CHOICE_ICON_DELAY,
 			CHOICE_ICON_DELAY_UP, CHOICE_ICON_DELAY_DOWN,
 			CHOICE_DELAY_MIN, CHOICE_DELAY_MAX, CHOICE_DELAY_STEP);
+	event_add_window_icon_bump(choices_window, CHOICE_ICON_SIDEBAR,
+			CHOICE_ICON_SIDEBAR_UP, CHOICE_ICON_SIDEBAR_DOWN,
+			CHOICE_SIDEBAR_MIN, CHOICE_SIDEBAR_MAX, CHOICE_SIDEBAR_STEP);
 }
 
 
@@ -173,6 +183,7 @@ static void choices_set_window(void)
 	icons_printf(choices_window, CHOICE_ICON_SIZE, "%d", config_int_read("GridSize"));
 	icons_printf(choices_window, CHOICE_ICON_SPACING, "%d", config_int_read("GridSpacing"));
 	icons_printf(choices_window, CHOICE_ICON_DELAY, "%d", config_int_read("OpenDelay"));
+	icons_printf(choices_window, CHOICE_ICON_SIDEBAR, "%d", config_int_read("SideBarSize"));
 
 	icons_set_selected(choices_window, CHOICE_ICON_CONFIRM_DELETE, config_opt_read("ConfirmDelete"));
 	icons_set_selected(choices_window, CHOICE_ICON_MOUSE_OVER, config_opt_read("MouseOver"));
@@ -189,6 +200,7 @@ static void choices_read_window(void)
 	config_int_set("GridSize", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_SIZE)));
 	config_int_set("GridSpacing", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_SPACING)));
 	config_int_set("OpenDelay", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DELAY)));
+	config_int_set("SideBarSize", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_SIDEBAR)));
 
 	config_opt_set("ConfirmDelete", icons_get_selected(choices_window, CHOICE_ICON_CONFIRM_DELETE));
 	config_opt_set("MouseOver", icons_get_selected(choices_window, CHOICE_ICON_MOUSE_OVER));
@@ -205,6 +217,7 @@ static void choices_redraw_window(void)
 	wimp_set_icon_state(choices_window, CHOICE_ICON_SIZE, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_SPACING, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_DELAY, 0, 0);
+	wimp_set_icon_state(choices_window, CHOICE_ICON_SIDEBAR, 0, 0);
 }
 
 

@@ -139,6 +139,8 @@ The <icon>Grid dimensions</icon> section controls the dimensions of the grid in 
 
 The size of a grid square can be set using <icon>Grid size</icon>, using OS&nbsp;Units and again remembering that a button occupies two grid cells in each direction. The spacing between cells in the grid, which sets any spacing between buttons, is set in the <icon>Grid spacing</icon> field &ndash; the size of cells includes the spacing that crosses between their pairs of grid squares.
 
+The thickness of the sidebar used to open and close panels can be configured with <icon>Sidebar size</icon>. The value is also in OS&nbsp;Units, and can be reduced from the default for a more minimalistic look.
+
 <icon>Open on mouse-over</icon> controls whether the panels will open when the mouse moves over them. When off, which is its default state, a panel will open when the mouse is clicked on its bar. If turned on, a panel will open when the mouse passes over it, and will close again when the pointer moves away again. There is a delay between the mouse entering the panel and the panel opening, which is set by <icon>Open delay</icon>; the value is in hundredths of a second.
 
 If <icon>Confirm deletions</icon> is ticked, <cite>Launcher</cite> will confirm any attempt to delete a button from the grid.
@@ -188,10 +190,19 @@ Second public release.
 Third public release.
 
 <list>
-<li>Add support for automatically opening panels when the mouse moves over them (Ticket&nbsp;#707).
-<li>Improve the launching of objects, passing items to *StartDesktopTask, *Filer_Run or *Filer_OpenDir as appropriate (Ticket&nbsp;706).
+<li>Add support for automatically opening panels when the mouse moves over them (ticket&nbsp;#707).
+<li>Improve the launching of objects, passing items to *StartDesktopTask, *Filer_Run or *Filer_OpenDir as appropriate (ticket&nbsp;706).
 <li>Find the most appropriate sprite possible when adding a button using drag-and-drop.
 <li>Use ResConf-style system variables to identify resources.
+</list>
+
+
+<subhead title="Test Build">
+
+Alpha release, for testing and feedback.
+
+<list>
+<li>Add configuration for sidebar width (ticket&nbsp;#729).
 </list>
 
 </chapter>
