@@ -202,6 +202,7 @@ Third public release.
 Alpha release, for testing and feedback.
 
 <list>
+<li>Update the licence from EUPL&nbsp;v1.1 to EUPL&nbsp;v1.2.
 <li>Add configuration for sidebar width (ticket&nbsp;#729).
 </list>
 
