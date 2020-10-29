@@ -594,6 +594,9 @@ void panel_refresh_choices(void)
 {
 	struct panel_block *windat = panel_list;
 
+	panel_sidebar_width = config_int_read("SideBarSize");
+	panel_sidebar_height = panel_sidebar_width;
+
 	while (windat != NULL) {
 		panel_update_grid_info(windat);
 		panel_reflow_buttons(windat);
