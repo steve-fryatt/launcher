@@ -1322,7 +1322,12 @@ static int compare_panels(const void *p, const void *q)
 
 static void panel_update_grid_info(struct panel_block *windat)
 {
+	struct paneldb_entry panel;
+
 	if (windat == NULL)
+		return;
+
+	if (paneldb_get_panel_info(windat->panel_id, &panel) == NULL)
 		return;
 
 	/* Update the user choices. */
@@ -1330,8 +1335,8 @@ static void panel_update_grid_info(struct panel_block *windat)
 	windat->grid_square = config_int_read("GridSize");
 	windat->grid_spacing = config_int_read("GridSpacing");
 	windat->grid_columns = config_int_read("WindowColumns");
-	windat->slab_grid_dimensions.x = config_int_read("SlabXSize");
-	windat->slab_grid_dimensions.y = config_int_read("SlabYSize");
+	windat->slab_grid_dimensions.x = panel.slab_size.x;
+	windat->slab_grid_dimensions.y = panel.slab_size.y;
 
 	/* Update the slab size in OS units. */
 

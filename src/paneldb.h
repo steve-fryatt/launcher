@@ -74,6 +74,11 @@ struct paneldb_entry {
 	 * Panel sort value.
 	 */
 	int			sort;
+
+	/**
+	 * The size of a slab on the panel, in grid squares.
+	 */
+	os_coord		slab_size;
 };
 
 
