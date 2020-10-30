@@ -102,10 +102,7 @@ Help.Choices:\Tchoices window for Launcher.
 Help.Choices.Apply:\Sclose the choices \w and use the changes|M\Ause the changes.
 Help.Choices.Save:\Sclose the choices \w, using the changes and saving them to disc.|M\Ause the changes and save them.
 Help.Choices.Cancel:\Sclose the choices \w and forget any changes made.|M\Aforget the changes made since the window was opened.
-Help.Choices.Columns:\Tnumber of columns of buttons displayed when the display opens.|MUse the arrows to the right to adjust the value.
-Help.Choices.ColumnsUp:\Sincrease the number of columns.|M\Adecrease it.
-Help.Choices.ColumnsDown:\Sdecrease the number of columns.|M\Aincrease it.
-Help.Choices.Size:\Tsize of a grid square (half a button) in OS units.|MUse the arrows to the right to adjust the value.
+Help.Choices.Size:\Tsize of a grid square in OS units.|MUse the arrows to the right to adjust the value.
 Help.Choices.SizeUp:\Sincrease the grid square size.|M\Adecrease it.
 Help.Choices.SizeDown:\Sdecrease the grid square size.|M\Aincrease it.
 Help.Choices.Spacing:\Tspace between buttons in OS units.|MUse the arrows to the right to adjust the value.

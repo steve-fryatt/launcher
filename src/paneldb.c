@@ -230,6 +230,8 @@ osbool paneldb_load_new_file(struct filing_block *in)
 			paneldb_list[current].entry.slab_size.x = filing_get_int_value(in);
 		else if ((current != -1) && filing_test_token(in, "SlabYSize"))
 			paneldb_list[current].entry.slab_size.y = filing_get_int_value(in);
+		else if ((current != -1) && filing_test_token(in, "Depth"))
+			paneldb_list[current].entry.depth = filing_get_int_value(in);
 		else if (!filing_test_token(in, ""))
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
@@ -292,8 +294,9 @@ osbool paneldb_save_file(FILE *file)
 		fprintf(file, "Position: %s\n", paneldb_position_to_name(entry->position));
 		fprintf(file, "Sort: %d\n", entry->sort);
 		fprintf(file, "Width: %d\n", entry->width);
-		fprintf(file, "SlabXSize: %d", entry->slab_size.x);
-		fprintf(file, "SlabYSize: %d", entry->slab_size.y);
+		fprintf(file, "SlabXSize: %d\n", entry->slab_size.x);
+		fprintf(file, "SlabYSize: %d\n", entry->slab_size.y);
+		fprintf(file, "Depth: %d\n", entry->depth);
 	}
 
 	paneldb_unsafe = FALSE;
@@ -699,6 +702,7 @@ void paneldb_copy(struct paneldb_entry *to, struct paneldb_entry *from)
 	to->sort = from->sort;
 	to->slab_size.x = from->slab_size.x;
 	to->slab_size.y = from->slab_size.y;
+	to->depth = from->depth;
 	string_copy(to->name, from->name, PANELDB_NAME_LENGTH);
 }
 
@@ -719,5 +723,6 @@ void paneldb_set_defaults(struct paneldb_entry *entry)
 	entry->sort = 1;
 	entry->slab_size.x = config_int_read("SlabXSize");
 	entry->slab_size.y = config_int_read("SlabYSize");
+	entry->depth = config_int_read("WindowColumns");
 	*(entry->name) = '\0';
 }

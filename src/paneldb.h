@@ -79,6 +79,11 @@ struct paneldb_entry {
 	 * The size of a slab on the panel, in grid squares.
 	 */
 	os_coord		slab_size;
+
+	/**
+	 * The number of columns of grid squares on the panel.
+	 */
+	int			depth;
 };
 
 

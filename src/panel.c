@@ -154,7 +154,7 @@ struct panel_block {
 	 * The number of columns in the visible grid.
 	 */
 
-	int grid_columns;
+	int grid_depth;
 
 	/**
 	 * The number of rows in the visible grid.
@@ -451,7 +451,7 @@ static struct panel_block *panel_create_instance(unsigned key)
 		return NULL;
 
 	new->panel_id = key;
-	new->grid_columns = 0;
+	new->grid_depth = 0;
 	new->grid_dimensions.x = 0;
 	new->grid_dimensions.y = 0;
 	new->origin.x = 0;
@@ -1334,7 +1334,7 @@ static void panel_update_grid_info(struct panel_block *windat)
 
 	windat->grid_square = config_int_read("GridSize");
 	windat->grid_spacing = config_int_read("GridSpacing");
-	windat->grid_columns = config_int_read("WindowColumns");
+	windat->grid_depth = panel.depth;
 	windat->slab_grid_dimensions.x = panel.slab_size.x;
 	windat->slab_grid_dimensions.y = panel.slab_size.y;
 
@@ -1345,7 +1345,7 @@ static void panel_update_grid_info(struct panel_block *windat)
 
 	/* Calculate the number of rows in the panel at the current slab size. */
 
-	windat->grid_dimensions.x = windat->grid_columns;
+	windat->grid_dimensions.x = windat->grid_depth;
 
 	if (windat->grid_square + windat->grid_spacing != 0)
 		windat->grid_dimensions.y = (windat->max_longitude - windat->min_longitude) /
@@ -1547,7 +1547,7 @@ static void panel_reflow_buttons(struct panel_block *windat)
 
 	/* Start the grid at the configured width. */
 
-	windat->grid_dimensions.x = windat->grid_columns;
+	windat->grid_dimensions.x = windat->grid_depth;
 
 	/* Start to place overflow buttons top-left. */
 
@@ -1957,7 +1957,7 @@ static osbool panel_process_button_dialogue(struct appdb_entry *app, void *data)
 
 	/* Validate the button location. */
 
-	if (app->position.x < 0 || app->position.y < 0 || app->position.x >= windat->grid_columns || app->position.y >= windat->grid_dimensions.y) {
+	if (app->position.x < 0 || app->position.y < 0 || app->position.x >= windat->grid_depth || app->position.y >= windat->grid_dimensions.y) {
 		error_msgs_report_info("CoordRange");
 		return FALSE;
 	}

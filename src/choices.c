@@ -63,29 +63,22 @@
 #define CHOICE_ICON_APPLY 0
 #define CHOICE_ICON_SAVE 1
 #define CHOICE_ICON_CANCEL 2
-#define CHOICE_ICON_COLUMNS 6
-#define CHOICE_ICON_COLUMNS_DOWN 7
-#define CHOICE_ICON_COLUMNS_UP 8
-#define CHOICE_ICON_SIZE 10
-#define CHOICE_ICON_SIZE_DOWN 11
-#define CHOICE_ICON_SIZE_UP 12
-#define CHOICE_ICON_SPACING 15
-#define CHOICE_ICON_SPACING_DOWN 16
-#define CHOICE_ICON_SPACING_UP 17
-#define CHOICE_ICON_CONFIRM_DELETE 19
+#define CHOICE_ICON_SIZE 6
+#define CHOICE_ICON_SIZE_DOWN 7
+#define CHOICE_ICON_SIZE_UP 8
+#define CHOICE_ICON_SPACING 11
+#define CHOICE_ICON_SPACING_DOWN 12
+#define CHOICE_ICON_SPACING_UP 13
+#define CHOICE_ICON_SIDEBAR 16
+#define CHOICE_ICON_SIDEBAR_DOWN 17
+#define CHOICE_ICON_SIDEBAR_UP 18
 #define CHOICE_ICON_MOUSE_OVER 22
-#define CHOICE_ICON_DELAY 23
-#define CHOICE_ICON_DELAY_DOWN 24
-#define CHOICE_ICON_DELAY_UP 25
-#define CHOICE_ICON_SIDEBAR 29
-#define CHOICE_ICON_SIDEBAR_DOWN 30
-#define CHOICE_ICON_SIDEBAR_UP 31
+#define CHOICE_ICON_DELAY 24
+#define CHOICE_ICON_DELAY_DOWN 25
+#define CHOICE_ICON_DELAY_UP 26
+#define CHOICE_ICON_CONFIRM_DELETE 28
 
 /* Bump field limits and step values. */
-
-#define CHOICE_COLUMNS_MIN 1
-#define CHOICE_COLUMNS_MAX 10
-#define CHOICE_COLUMNS_STEP 1
 
 #define CHOICE_SIZE_MIN 20
 #define CHOICE_SIZE_MAX 100
@@ -128,9 +121,6 @@ void choices_initialise(void)
 	event_add_window_mouse_event(choices_window, choices_click_handler);
 	event_add_window_key_event(choices_window, choices_keypress_handler);
 
-	event_add_window_icon_bump(choices_window, CHOICE_ICON_COLUMNS,
-			CHOICE_ICON_COLUMNS_UP, CHOICE_ICON_COLUMNS_DOWN,
-			CHOICE_COLUMNS_MIN, CHOICE_COLUMNS_MAX, CHOICE_COLUMNS_STEP);
 	event_add_window_icon_bump(choices_window, CHOICE_ICON_SIZE,
 			CHOICE_ICON_SIZE_UP, CHOICE_ICON_SIZE_DOWN,
 			CHOICE_SIZE_MIN, CHOICE_SIZE_MAX, CHOICE_SIZE_STEP);
@@ -179,7 +169,6 @@ static void choices_close_window(void)
 
 static void choices_set_window(void)
 {
-	icons_printf(choices_window, CHOICE_ICON_COLUMNS, "%d", config_int_read("WindowColumns"));
 	icons_printf(choices_window, CHOICE_ICON_SIZE, "%d", config_int_read("GridSize"));
 	icons_printf(choices_window, CHOICE_ICON_SPACING, "%d", config_int_read("GridSpacing"));
 	icons_printf(choices_window, CHOICE_ICON_DELAY, "%d", config_int_read("OpenDelay"));
@@ -196,7 +185,6 @@ static void choices_set_window(void)
 
 static void choices_read_window(void)
 {
-	config_int_set("WindowColumns", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_COLUMNS)));
 	config_int_set("GridSize", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_SIZE)));
 	config_int_set("GridSpacing", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_SPACING)));
 	config_int_set("OpenDelay", atoi(icons_get_indirected_text_addr(choices_window, CHOICE_ICON_DELAY)));
@@ -213,7 +201,6 @@ static void choices_read_window(void)
 
 static void choices_redraw_window(void)
 {
-	wimp_set_icon_state(choices_window, CHOICE_ICON_COLUMNS, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_SIZE, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_SPACING, 0, 0);
 	wimp_set_icon_state(choices_window, CHOICE_ICON_DELAY, 0, 0);
