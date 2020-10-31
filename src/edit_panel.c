@@ -63,14 +63,23 @@
 #define EDIT_PANEL_ICON_OK 0
 #define EDIT_PANEL_ICON_CANCEL 1
 #define EDIT_PANEL_ICON_NAME 3
-#define EDIT_PANEL_ICON_LOCATION 5
-#define EDIT_PANEL_ICON_LOCATION_MENU 6
-#define EDIT_PANEL_ICON_WIDTH 8
-#define EDIT_PANEL_ICON_WIDTH_DOWN 9
-#define EDIT_PANEL_ICON_WIDTH_UP 10
-#define EDIT_PANEL_ICON_ORDER 12
-#define EDIT_PANEL_ICON_ORDER_DOWN 13
-#define EDIT_PANEL_ICON_ORDER_UP 14
+#define EDIT_PANEL_ICON_LOCATION 7
+#define EDIT_PANEL_ICON_LOCATION_MENU 8
+#define EDIT_PANEL_ICON_WIDTH 10
+#define EDIT_PANEL_ICON_WIDTH_DOWN 11
+#define EDIT_PANEL_ICON_WIDTH_UP 12
+#define EDIT_PANEL_ICON_ORDER 14
+#define EDIT_PANEL_ICON_ORDER_DOWN 15
+#define EDIT_PANEL_ICON_ORDER_UP 16
+#define EDIT_PANEL_ICON_SLAB_WIDTH 20
+#define EDIT_PANEL_ICON_SLAB_WIDTH_DOWN 21
+#define EDIT_PANEL_ICON_SLAB_WIDTH_UP 22
+#define EDIT_PANEL_ICON_SLAB_HEIGHT 25
+#define EDIT_PANEL_ICON_SLAB_HEIGHT_DOWN 26
+#define EDIT_PANEL_ICON_SLAB_HEIGHT_UP 27
+#define EDIT_PANEL_ICON_DEPTH 30
+#define EDIT_PANEL_ICON_DEPTH_DOWN 31
+#define EDIT_PANEL_ICON_DEPTH_UP 32
 
 /* Static Function Prototypes. */
 
@@ -128,8 +137,26 @@ void edit_panel_initialise(void)
 	event_add_window_key_event(edit_panel_window, edit_panel_keypress_handler);
 
 	event_add_window_icon_popup(edit_panel_window, EDIT_PANEL_ICON_LOCATION_MENU, location_menu, EDIT_PANEL_ICON_LOCATION, NULL);
-	event_add_window_icon_bump(edit_panel_window, EDIT_PANEL_ICON_WIDTH, EDIT_PANEL_ICON_WIDTH_UP, EDIT_PANEL_ICON_WIDTH_DOWN, 1, 9999, 1);
-	event_add_window_icon_bump(edit_panel_window, EDIT_PANEL_ICON_ORDER, EDIT_PANEL_ICON_ORDER_UP, EDIT_PANEL_ICON_ORDER_DOWN, 1, 9999, 1);
+
+	event_add_window_icon_bump(edit_panel_window, EDIT_PANEL_ICON_WIDTH,
+			EDIT_PANEL_ICON_WIDTH_UP, EDIT_PANEL_ICON_WIDTH_DOWN,
+			1, 9999, 1);
+
+	event_add_window_icon_bump(edit_panel_window, EDIT_PANEL_ICON_ORDER,
+			EDIT_PANEL_ICON_ORDER_UP, EDIT_PANEL_ICON_ORDER_DOWN,
+			1, 9999, 1);
+
+	event_add_window_icon_bump(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH,
+			EDIT_PANEL_ICON_SLAB_WIDTH_UP, EDIT_PANEL_ICON_SLAB_WIDTH_DOWN,
+			1, 10, 1);
+
+	event_add_window_icon_bump(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT,
+			EDIT_PANEL_ICON_SLAB_HEIGHT_UP, EDIT_PANEL_ICON_SLAB_HEIGHT_DOWN,
+			1, 10, 1);
+
+	event_add_window_icon_bump(edit_panel_window, EDIT_PANEL_ICON_DEPTH,
+			EDIT_PANEL_ICON_DEPTH_UP, EDIT_PANEL_ICON_DEPTH_DOWN,
+			1, 10, 1);
 }
 
 
@@ -270,6 +297,9 @@ static void edit_panel_fill_window(struct paneldb_entry *data)
 			(data->position < PANELDB_POSITION_MAX) ? data->position : PANELDB_POSITION_LEFT);
 	icons_printf(edit_panel_window, EDIT_PANEL_ICON_ORDER, "%d", data->sort);
 	icons_printf(edit_panel_window, EDIT_PANEL_ICON_WIDTH, "%d", data->width);
+	icons_printf(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH, "%d", data->slab_size.x);
+	icons_printf(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT, "%d", data->slab_size.y);
+	icons_printf(edit_panel_window, EDIT_PANEL_ICON_DEPTH, "%d", data->depth);
 }
 
 
@@ -283,6 +313,9 @@ static void edit_panel_redraw_window(void)
 	wimp_set_icon_state(edit_panel_window, EDIT_PANEL_ICON_LOCATION, 0, 0);
 	wimp_set_icon_state(edit_panel_window, EDIT_PANEL_ICON_ORDER, 0, 0);
 	wimp_set_icon_state(edit_panel_window, EDIT_PANEL_ICON_WIDTH, 0, 0);
+	wimp_set_icon_state(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH, 0, 0);
+	wimp_set_icon_state(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT, 0, 0);
+	wimp_set_icon_state(edit_panel_window, EDIT_PANEL_ICON_DEPTH, 0, 0);
 
 	icons_replace_caret_in_window(edit_panel_window);
 }
@@ -305,6 +338,9 @@ static osbool edit_panel_read_window(void)
 	entry.position = event_get_window_icon_popup_selection(edit_panel_window, EDIT_PANEL_ICON_LOCATION_MENU);
 	entry.sort = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_ORDER));
 	entry.width = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_WIDTH));
+	entry.slab_size.x = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH));
+	entry.slab_size.y = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT));
+	entry.depth = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_DEPTH));
 
 	return edit_panel_callback(&entry, edit_panel_target_icon);
 }

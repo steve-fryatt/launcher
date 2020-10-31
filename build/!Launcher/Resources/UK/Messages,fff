@@ -80,6 +80,15 @@ Help.EditPanel.WidthDown:\Sdecrease the panel width value.|M\Aincrease it.
 Help.EditPanel.Order:\Tposition that the panel appears in relation to the other panels on the same side of the screen.|MThe panels are arranged in a numerically sorted order.
 Help.EditPanel.OrderUp:\Sincrease the panel order value.|M\Adecrease it.
 Help.EditPanel.OrderDown:\Sdecrease the panel order value.|M\Aincrease it.
+Help.EditPanel.SlabW:\Twidth of a button in grid squares.|MUse the arrows to the right to adjust the value.
+Help.EditPanel.SlabWUp:\Sincrease the button width.|M\Adecrease it.
+Help.EditPanel.SlabWDown:\Sdecrease the button width.|M\Aincrease it.
+Help.EditPanel.SlabH:\Theight of a button in grid squares.|MUse the arrows to the right to adjust the value.
+Help.EditPanel.SlabHUp:\Sincrease the button height.|M\Adecrease it.
+Help.EditPanel.SlabHDown:\Sdecrease the button height.|M\Aincrease it.
+Help.EditPanel.Depth:\Tthe minimum number of grid rows or columns between the screen edge and the sidebar.|MUse the arrows to the right to adjust the value.
+Help.EditPanel.DepthUp:\Sincrease the grid depth.|M\Adecrease it.
+Help.EditPanel.DepthDown:\Sdecrease the grid depth.|M\Aincrease it.
 
 Help.EditButton:\Tbutton editing \w.|MDrag files or applications to the \w to update the fields appropriately.
 Help.EditButton.OK:\Sclose the \w and keep the new settings.|M\Astore the settings and leave the \w open.
