@@ -598,16 +598,13 @@ void panel_refresh_choices(void)
 	panel_sidebar_height = panel_sidebar_width;
 
 	while (windat != NULL) {
-		panel_update_grid_info(windat);
-		panel_reflow_buttons(windat);
-		panel_update_window_extent(windat);
-		panel_rebuild_window(windat);
-
 		windat->auto_mouseover = config_opt_read("MouseOver");
 		windat->auto_open_delay = config_int_read("OpenDelay");
 
 		windat = windat->next;
 	}
+
+	panel_update_positions();
 }
 
 
