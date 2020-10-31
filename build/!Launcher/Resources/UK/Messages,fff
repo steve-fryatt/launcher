@@ -106,6 +106,7 @@ Help.EditButton.Boot:\Taction taken for the file or application when Launcher st
 Help.EditButton.Sprites:\Taction taken for the file or application when Launcher starts.\Shave the application's sprites passed to *IconSprites.
 Help.EditButton.None:\Taction taken for the file or application when Launcher starts.\Stake no action.
 Help.EditButton.Reflow:The button has been reflowed in the panel due to lack of space.|MThe coordinates shown in this dialogue are the ideal position, but do not reflect its current position in the panel.
+Help.EditButton.ShowName:\Toption for whether the button name is shown beneath the sprite in the button.|M\Schange the setting.
 
 Help.Choices:\Tchoices window for Launcher.
 Help.Choices.Apply:\Sclose the choices \w and use the changes|M\Ause the changes.

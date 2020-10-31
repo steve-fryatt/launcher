@@ -76,6 +76,7 @@
 #define EDIT_BUTTON_ICON_ACTION_SPRITE 18
 #define EDIT_BUTTON_ICON_ACTION_NONE 19
 #define EDIT_BUTTON_ICON_REFLOW 20
+#define EDIT_BUTTON_ICON_SHOW_NAME 21
 
 /* Static Function Prototypes. */
 
@@ -284,6 +285,8 @@ static void edit_button_fill_window(struct appdb_entry *data)
 	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_ACTION_BOOT, data->boot_action == APPDB_BOOT_ACTION_BOOT);
 	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_ACTION_SPRITE, data->boot_action == APPDB_BOOT_ACTION_SPRITES);
 	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_ACTION_NONE, data->boot_action == APPDB_BOOT_ACTION_NONE);
+
+	icons_set_selected(edit_button_window, EDIT_BUTTON_ICON_SHOW_NAME, data->show_name);
 }
 
 
@@ -327,6 +330,8 @@ static osbool edit_button_read_window(void)
 		entry.boot_action = APPDB_BOOT_ACTION_SPRITES;
 	else
 		entry.boot_action = APPDB_BOOT_ACTION_NONE;
+
+	entry.show_name = icons_get_selected(edit_button_window, EDIT_BUTTON_ICON_SHOW_NAME);
 
 	icons_copy_text(edit_button_window, EDIT_BUTTON_ICON_NAME, entry.name, APPDB_NAME_LENGTH);
 	icons_copy_text(edit_button_window, EDIT_BUTTON_ICON_SPRITE, entry.sprite, APPDB_SPRITE_LENGTH);
