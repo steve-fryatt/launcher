@@ -350,7 +350,8 @@ static osbool edit_button_read_window(void)
 
 static osbool edit_button_message_data_load(wimp_message *message)
 {
-	char *leafname, spritename[APPDB_SPRITE_LENGTH];
+	char	*leafname, spritename[APPDB_SPRITE_LENGTH];
+	osbool	bootable;
 
 	wimp_full_message_data_xfer *data_load = (wimp_full_message_data_xfer *) message;
 
@@ -362,12 +363,17 @@ static osbool edit_button_message_data_load(wimp_message *message)
 
 	leafname = string_find_leafname(data_load->file_name);
 
-	if (!objutil_find_sprite(data_load->file_name, spritename, APPDB_SPRITE_LENGTH))
+	if (!objutil_find_sprite(data_load->file_name, spritename, APPDB_SPRITE_LENGTH, &bootable))
 		return TRUE;
 
 	icons_strncpy(edit_button_window, EDIT_BUTTON_ICON_NAME, leafname);
 	icons_strncpy(edit_button_window, EDIT_BUTTON_ICON_SPRITE, spritename);
 	icons_strncpy(edit_button_window, EDIT_BUTTON_ICON_LOCATION, data_load->file_name);
+
+	icons_set_radio_group_selected(edit_button_window, (bootable == TRUE) ? 0 : 2, 3,
+			EDIT_BUTTON_ICON_ACTION_BOOT,
+			EDIT_BUTTON_ICON_ACTION_SPRITE,
+			EDIT_BUTTON_ICON_ACTION_NONE);
 
 	edit_button_redraw_window();
 

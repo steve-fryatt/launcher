@@ -65,15 +65,19 @@ static osbool objutil_test_sprite(char *sprite);
  * \param *object	The filename of the object to process.
  * \param *sprite	Pointer to a buffer to hold the sprite name.
  * \param length	The length of the supplied buffer.
+ * \param *bootable	Pointer to a variable to return the bootable state
  * \return		TRUE if successful; FALSE on failure.
  */
 
-osbool objutil_find_sprite(char *object, char *sprite, size_t length)
+osbool objutil_find_sprite(char *object, char *sprite, size_t length, osbool *bootable)
 {
 	fileswitch_object_type	object_type;
 	bits			load_addr, file_type;
 	os_error		*error;
 	char			*leafname;
+
+	if (bootable != NULL)
+		*bootable = FALSE;
 
 	if (sprite == NULL || length == 0)
 		return FALSE;
@@ -138,6 +142,8 @@ osbool objutil_find_sprite(char *object, char *sprite, size_t length)
 			string_tolower(sprite);
 			if (!objutil_test_sprite(sprite))
 				string_copy(sprite, "application", length);
+			if (bootable != NULL)
+				*bootable = TRUE;
 			break;
 		}
 		break;
