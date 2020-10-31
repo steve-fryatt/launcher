@@ -1699,6 +1699,8 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 {
 	os_error		*error = NULL;
 	struct appdb_entry	*app = NULL;
+	int			width;
+	char			text[APPDB_NAME_LENGTH];
 
 	if (windat == NULL || button == NULL)
 		return;
@@ -1715,6 +1717,8 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 		return;
 
 	panel_icon_def.w = windat->window;
+
+	/* Position the icon extent. */
 
 	switch (windat->location) {
 	case PANEL_POSITION_LEFT:
@@ -1751,8 +1755,40 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 		break;
 	}
 
+	/* Set up the validation string. */
+
 	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", app->sprite);
 	panel_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
+
+	/* Set up the icon text. */
+
+	if (app->show_name) {
+		width = panel_icon_def.icon.extent.x1 - panel_icon_def.icon.extent.x0 -10;
+		error = xwimptextop_truncate_with_ellipsis(app->name, text, APPDB_NAME_LENGTH, width, NULL);
+
+		/* At least copy the text across if the available Wimp doesn't
+		 * support Wimp_TextOp 4.
+		 */
+
+		if (error != NULL)
+			string_copy(text, app->name, APPDB_NAME_LENGTH);
+
+		/*** WARNING: The heap_strdup() will invalidate *app, ***
+		 *** as it will shift the flex heap around.           ***
+		 ***/
+
+		button->text = heap_strdup(text);
+
+		panel_icon_def.icon.data.indirected_text_and_sprite.text = button->text;
+		panel_icon_def.icon.data.indirected_text_and_sprite.size = strlen(text) + 1;
+		panel_icon_def.icon.flags &= ~wimp_ICON_VCENTRED;
+	} else {
+		panel_icon_def.icon.data.indirected_text_and_sprite.text = "";
+		panel_icon_def.icon.data.indirected_text_and_sprite.size = 1;
+		panel_icon_def.icon.flags |= wimp_ICON_VCENTRED;
+	}
+
+	/* Store the icon details. */
 
 	button->window = windat->window;
 	button->icon = wimp_create_icon(&panel_icon_def);

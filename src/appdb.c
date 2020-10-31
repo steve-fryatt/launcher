@@ -274,6 +274,8 @@ osbool appdb_load_new_file(struct filing_block *in)
 			appdb_list[current].entry.boot_action = filing_get_opt_value(in) ? APPDB_BOOT_ACTION_BOOT : APPDB_BOOT_ACTION_NONE;
 		else if ((current != -1) && filing_test_token(in, "BootAction"))
 			appdb_list[current].entry.boot_action = appdb_boot_token_to_action(filing_get_text_value(in, NULL, 0));
+		else if ((current != -1) && filing_test_token(in, "ShowName"))
+			appdb_list[current].entry.show_name = config_read_opt_string(filing_get_text_value(in, NULL, 0));
 		else if (!filing_test_token(in, ""))
 			filing_set_status(in, FILING_STATUS_UNEXPECTED);
 	} while (filing_get_next_token(in));
@@ -336,6 +338,7 @@ osbool appdb_save_file(FILE *file)
 		fprintf(file, "Sprite: %s\n", entry->sprite);
 		fprintf(file, "RunPath: %s\n", entry->command);
 		fprintf(file, "BootAction: %s\n", appdb_boot_action_to_token(entry->boot_action));
+		fprintf(file, "ShowName: %s\n", config_return_opt_string(entry->show_name));
 	}
 
 	appdb_unsafe = FALSE;
@@ -657,6 +660,7 @@ void appdb_copy(struct appdb_entry *to, struct appdb_entry *from)
 	to->position.x = from->position.x;
 	to->position.y = from->position.y;
 	to->boot_action = from->boot_action;
+	to->show_name = from->show_name;
 
 	string_copy(to->name, from->name, APPDB_NAME_LENGTH);
 	string_copy(to->sprite, from->sprite, APPDB_SPRITE_LENGTH);
@@ -679,6 +683,7 @@ void appdb_set_defaults(struct appdb_entry *entry)
 	entry->position.x = 0;
 	entry->position.y = 0;
 	entry->boot_action = APPDB_BOOT_ACTION_BOOT;
+	entry->show_name = FALSE;
 
 	*(entry->name) = '\0';
 	*(entry->sprite) = '\0';

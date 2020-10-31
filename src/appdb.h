@@ -88,6 +88,11 @@ struct appdb_entry {
 	 */
 
 	enum appdb_boot_action boot_action;
+
+	/**
+	 * Should the icon include the button name?
+	 */
+	osbool show_name;
 };
 
 
