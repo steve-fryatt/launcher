@@ -65,6 +65,11 @@ struct icondb_button {
 	wimp_i		icon;
 
 	/**
+	 * Pointer to storage for the icon's text.
+	 */
+	char		*text;
+
+	/**
 	 * Storage for the icon's validation string.
 	 */
 

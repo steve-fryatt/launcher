@@ -151,16 +151,11 @@ void icondb_destroy_instance(struct icondb_block *instance)
 
 void icondb_reset_instance(struct icondb_block *instance)
 {
-	struct icondb_button *current = NULL;
-
 	if (instance == NULL)
 		return;
 
-	while (instance->buttons != NULL) {
-		current = instance->buttons;
-		instance->buttons = current->next;
-		heap_free(current);
-	}
+	while (instance->buttons != NULL)
+		icondb_delete_icon(instance, instance->buttons);
 }
 
 /**
@@ -191,6 +186,7 @@ struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned
 	button->window = NULL;
 	button->icon = -1;
 	button->validation[0] = '\0';
+	button->text = NULL;
 	button->position.x = position->x;
 	button->position.y = position->y;
 
@@ -234,6 +230,9 @@ void icondb_delete_icon(struct icondb_block *instance, struct icondb_button *but
 		if (parent != NULL)
 			parent->next = button->next;
 	}
+
+	if (button->text != NULL)
+		heap_free(button->text);
 
 	heap_free(button);
 }
