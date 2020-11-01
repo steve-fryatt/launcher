@@ -1337,8 +1337,10 @@ static void panel_update_grid_info(struct panel_block *windat)
 
 	/* Update the slab size in OS units. */
 
-	windat->slab_os_dimensions.x = (windat->slab_grid_dimensions.x * windat->grid_square) + windat->grid_spacing;
-	windat->slab_os_dimensions.y = (windat->slab_grid_dimensions.y * windat->grid_square) + windat->grid_spacing;
+	windat->slab_os_dimensions.x = (windat->slab_grid_dimensions.x * (windat->grid_spacing + windat->grid_square))
+			- windat->grid_spacing;
+	windat->slab_os_dimensions.y = (windat->slab_grid_dimensions.y * (windat->grid_spacing + windat->grid_square))
+			- windat->grid_spacing;
 
 	/* Calculate the number of rows in the panel at the current slab size. */
 
