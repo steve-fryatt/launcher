@@ -1735,15 +1735,15 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 	case PANEL_POSITION_TOP:
 		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (windat->grid_square + windat->grid_spacing);
 		panel_icon_def.icon.extent.y0 = windat->origin.y + button->position.x * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.x;
-		panel_icon_def.icon.extent.y1 = panel_icon_def.icon.extent.y0 + windat->slab_os_dimensions.y;
+		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.y;
+		panel_icon_def.icon.extent.y1 = panel_icon_def.icon.extent.y0 + windat->slab_os_dimensions.x;
 		break;
 
 	case PANEL_POSITION_BOTTOM:
 		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (windat->grid_square + windat->grid_spacing);
 		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.x * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.x;
-		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - windat->slab_os_dimensions.y;
+		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.y;
+		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - windat->slab_os_dimensions.x;
 		break;
 
 	case PANEL_POSITION_HORIZONTAL:
