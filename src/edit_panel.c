@@ -87,8 +87,9 @@ static void		edit_panel_close_window(void);
 static void		edit_panel_fill_window(struct paneldb_entry *data);
 static void		edit_panel_redraw_window(void);
 static osbool		edit_panel_read_window(void);
-static osbool		edit_panel_keypress_handler(wimp_key *key);
 static void		edit_panel_click_handler(wimp_pointer *pointer);
+static osbool		edit_panel_keypress_handler(wimp_key *key);
+static void		edit_panel_menu_selection_handler(wimp_w window, wimp_menu *menu, wimp_selection *selection);
 
 /* ================================================================================================================== */
 
@@ -116,6 +117,13 @@ static void			*edit_panel_target_icon = NULL;
 
 static struct paneldb_entry	*edit_panel_default_data = NULL;
 
+/**
+ * TRUE if the current orientation of the dialogue contents is horizontal.
+ * This will result in Button Width and Height being swapped.
+ */
+
+static osbool			edit_panel_horizontal = TRUE;
+
 
 /**
  * Initialise the Edit dialogue.
@@ -135,6 +143,7 @@ void edit_panel_initialise(void)
 
 	event_add_window_mouse_event(edit_panel_window, edit_panel_click_handler);
 	event_add_window_key_event(edit_panel_window, edit_panel_keypress_handler);
+	event_add_window_menu_selection(edit_panel_window, edit_panel_menu_selection_handler);
 
 	event_add_window_icon_popup(edit_panel_window, EDIT_PANEL_ICON_LOCATION_MENU, location_menu, EDIT_PANEL_ICON_LOCATION, NULL);
 
@@ -263,6 +272,44 @@ static osbool edit_panel_keypress_handler(wimp_key *key)
 
 
 /**
+ * Process menu selections in the Edit dialogue, which will
+ * pick up changes to the panel orientation.
+ * 
+ * \param window	The window owning the menu.
+ * \param *menu		Pointer to the menu block.
+ * \param *selection	The menu selection block.
+ */
+
+static void edit_panel_menu_selection_handler(wimp_w window, wimp_menu *menu, wimp_selection *selection)
+{
+	enum paneldb_position	position;
+	osbool			is_horizontal;
+	int			width, height;
+
+	if (window != edit_panel_window)
+		return;
+
+	position = event_get_window_icon_popup_selection(window, EDIT_PANEL_ICON_LOCATION_MENU);
+	is_horizontal = (position == PANELDB_POSITION_TOP || position == PANELDB_POSITION_BOTTOM);
+
+	if (is_horizontal == edit_panel_horizontal)
+		return;
+
+	edit_panel_horizontal = is_horizontal;
+
+	width = atoi(icons_get_indirected_text_addr(window, EDIT_PANEL_ICON_SLAB_WIDTH));
+	height = atoi(icons_get_indirected_text_addr(window, EDIT_PANEL_ICON_SLAB_HEIGHT));
+
+	icons_printf(window, EDIT_PANEL_ICON_SLAB_WIDTH, "%d", height);
+	wimp_set_icon_state(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH, 0, 0);
+
+	icons_printf(window, EDIT_PANEL_ICON_SLAB_HEIGHT, "%d", width);
+	wimp_set_icon_state(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT, 0, 0);
+}
+
+
+
+/**
  * Close the current instance of the edit dialogue.
  */
 
@@ -289,16 +336,23 @@ static void edit_panel_close_window(void)
 
 static void edit_panel_fill_window(struct paneldb_entry *data)
 {
+	enum paneldb_position position;
+
 	if (data == NULL)
 		return;
 
+	position = (data->position < PANELDB_POSITION_MAX) ? data->position : PANELDB_POSITION_LEFT;
+
+	edit_panel_horizontal = (position == PANELDB_POSITION_TOP || position == PANELDB_POSITION_BOTTOM);
+
 	icons_strncpy(edit_panel_window, EDIT_PANEL_ICON_NAME, data->name);
-	event_set_window_icon_popup_selection(edit_panel_window, EDIT_PANEL_ICON_LOCATION_MENU,
-			(data->position < PANELDB_POSITION_MAX) ? data->position : PANELDB_POSITION_LEFT);
+	event_set_window_icon_popup_selection(edit_panel_window, EDIT_PANEL_ICON_LOCATION_MENU, position);
 	icons_printf(edit_panel_window, EDIT_PANEL_ICON_ORDER, "%d", data->sort);
 	icons_printf(edit_panel_window, EDIT_PANEL_ICON_WIDTH, "%d", data->width);
-	icons_printf(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH, "%d", data->slab_size.x);
-	icons_printf(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT, "%d", data->slab_size.y);
+	icons_printf(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH, "%d",
+			(edit_panel_horizontal) ? data->slab_size.y : data->slab_size.x);
+	icons_printf(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT, "%d",
+			(edit_panel_horizontal) ? data->slab_size.x : data->slab_size.y);
 	icons_printf(edit_panel_window, EDIT_PANEL_ICON_DEPTH, "%d", data->depth);
 }
 
@@ -329,17 +383,21 @@ static void edit_panel_redraw_window(void)
 
 static osbool edit_panel_read_window(void)
 {
+	int			width, height;
 	struct paneldb_entry	entry;
 
 	if (edit_panel_callback == NULL)
 		return TRUE;
 
+	width = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH));
+	height = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT));
+
 	icons_copy_text(edit_panel_window, EDIT_PANEL_ICON_NAME, entry.name, PANELDB_NAME_LENGTH);
 	entry.position = event_get_window_icon_popup_selection(edit_panel_window, EDIT_PANEL_ICON_LOCATION_MENU);
 	entry.sort = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_ORDER));
 	entry.width = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_WIDTH));
-	entry.slab_size.x = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_SLAB_WIDTH));
-	entry.slab_size.y = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_SLAB_HEIGHT));
+	entry.slab_size.x = (edit_panel_horizontal) ? height : width;
+	entry.slab_size.y = (edit_panel_horizontal) ? width : height;
 	entry.depth = atoi(icons_get_indirected_text_addr(edit_panel_window, EDIT_PANEL_ICON_DEPTH));
 
 	return edit_panel_callback(&entry, edit_panel_target_icon);
