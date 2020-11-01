@@ -101,7 +101,7 @@ Help.EditButton.YPos:\Tvertical position of the button on the grid.
 Help.EditButton.YUp:\Sincrease the Y position of the button.|M\Adecrease it.
 Help.EditButton.YDown:\Sdecrease the Y position of the button.|M\Aincrease it.
 Help.EditButton.Sprite:\Tname of the sprite used on the button.
-Help.EditButton.Location:\Tlocation of the file or application which will be run when the button is clicked.
+Help.EditButton.Target:\Tlocation of the target file or application which will be run when the button is clicked.
 Help.EditButton.Boot:\Taction taken for the file or application when Launcher starts.\Shave the application passed to *Filer_Boot.
 Help.EditButton.Sprites:\Taction taken for the file or application when Launcher starts.\Shave the application's sprites passed to *IconSprites.
 Help.EditButton.None:\Taction taken for the file or application when Launcher starts.\Stake no action.
