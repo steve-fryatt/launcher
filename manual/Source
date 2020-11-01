@@ -78,39 +78,43 @@ To access the shortcuts, click on the bar and the panel will expand on to the sc
 
 The panel can also be configured to open when the mouse passes over it and remains in place for a minimum time, which saves a click to open it up. See the chapter on <link ref="Configuration">configuration</link> for more details.
 
-<subhead title="Moving and adding panels">
+<subhead title="Adding, Editing and Deleting panels">
 
-The panel can be moved to another side of the desktop by clicking <mouse>menu</mouse> over it and selecting <menu>Panel &msep; Edit...</menu> to open the <window>Edit panel</window> dialogue. The <icon>Location</icon> field sets the side of the desktop on which the bar will appear.
+The initial panel can be configured and more panels can be added through the menu. To add a panel, click <mouse>menu</mouse> over an existing one and select <menu>New panel...</menu>; to edit one, select <menu>Panel &msep; Edit...</menu> instead. In both cases, the <window>Edit panel</window> dialogue will open.
 
-The <icon>Name</icon> is used to identify panels when there is more than one on screen. It is initially set to <entry>Default</entry> for the first bar, but can be changed to any name. Names can contain lower and upper case letters, digits and a dash (hyphen); they must all be unique.
+The <icon>Name</icon> of a panel is simply used to identify it when there is more than one on screen. It is initially set to <entry>Default</entry> for the first panel, but can be changed to any name. Names can contain lower and upper case letters, digits and a dash (hyphen); they must all be unique.
 
-When the options are set as required, click <icon>OK</icon> to apply them.
+The <icon>Position</icon> section controls the location of the panel. It can be moved to another side of the desktop by changing the <icon>Location</icon> field &ndash; panels can be located on any side of the desktop.
 
-To add additional bars, select <menu>New panel...</menu> from the panel menu: this will open the <window>Edit panel</window> dialogue, ready for the new settings. Give the panel a new name, which must be different to the other panels already defined.
-
-The <icon>Location</icon> controls which side of the screen the new panel will be displayed. If it is on the same side as another panel, then the <icon>Width</icon> values are used to adjust the relative sizes: the total values are summed, and then each bar takes on the proportion given by its own value. If two bars had widths of <entry>50</entry> and <entry>100</entry>, then the second would be twice as wide as the first.
+If there is more than one panel on the same side of the screen, then the <icon>Width</icon> values are used to adjust the relative sizes: the total values for all of the panels on the side are summed, and then each bar takes on the proportion given by its own value. If two bars had widths of <entry>50</entry> and <entry>100</entry>, then the second would be twice as wide as the first.
 
 The order in which the bars appear is set by their <icon>Order</icon> fields. Again, these are relative values, with the panels being arranged in ascending numeric order; the values do not need to be consecutive: they could be <entry>1</entry>, <entry>2</entry>, <entry>3</entry> or <entry>10</entry>, <entry>20</entry>, <entry>30</entry>... or even <entry>10</entry>, <entry>50</entry>, <entry>500</entry>.
 
+The <icon>Layout</icon> section controls the arrangement of buttons within the panel. Buttons are arranged on a grid, with dimensions as set in the <link ref="Configuration">configuration</link>; the <icon>Button width</icon> and <icon>Button height</icon> fields specify the number of grid squares that buttons will occupy. Since the button layout is arranged along the length of the side of the screen, the width and height will swap around if a panel is moved from the top or bottom of the screen to the left or right.
+
+The <icon>Grid depth</icon> sets the minimum number of grid rows which will be displayed when a panel opens. If buttons end up outside of this area, either by being placed there or because the layout has been reflowed, the number of rows will be increased automatically.
+
 To delete a panel, click <mouse>menu</mouse> over it and select <menu>Panel &msep; Delete</menu> &ndash; this will delete all of the shortcuts within it. It is not possible to delete the last panel remaining on the screen.
 
-After making changes to the panel arrangement, it is necessary to select <menu>Save layout</menu> from the panel menu to keep it for future sessions.
+After making changes to the panel arrangement, it is necessary to select <menu>Save layout</menu> from the panel menu to retain it for future sessions.
 
 <subhead title="Adding shortcuts">
 
 New shortcuts can be added by clicking <mouse>menu</mouse> over an empty part of the panel and selecting <menu>New button...</menu>. This will open the <window>Edit button</window> dialogue, allowing a new shortcut button to be created.
 
-If the shortcut is to be used to launch an application, the easiest thing to do is to drag the application&rsquo;s icon from a Filer window into the dialogue. This will complete the <icon>Name</icon>, <icon>Sprite</icon> and <icon>Location</icon> fields based on the application's details. 
+If the shortcut is to be used to launch an application, the easiest thing to do is to drag the application&rsquo;s icon from a Filer window into the dialogue. This will complete the <icon>Name</icon>, <icon>Sprite</icon> and <icon>Target</icon> fields based on the application's details, and set a sensbile default for the load action.
 
-If not, or if the details need to be changed from the defaults offered, then the <icon>Name</icon> of the button is a unique identifier, which will often be the name of the application or script to be run by the shortcut. The <icon>Sprite</icon> field holds the name of the sprite, and should be a sprite which is held in the Wimp Sprite Pool (such as one belonging to an application which has been seen by the Filer). Finally, the <icon>Location</icon> is the full path to an object to be run when the button is pressed: often the application folder, or maybe an Obey file within it.
+If not, or if the details need to be changed from the defaults offered, then the <icon>Name</icon> of the button is a unique identifier, which will often be the name of the application or script to be run by the shortcut. If <name>Show name in button</name> is ticked, the name will appear below the sprite in the button. The <icon>Sprite</icon> field holds the name of the sprite, and should be a sprite which is held in the Wimp Sprite Pool (such as one belonging to an application which has been seen by the Filer).
 
-The position of the button is set by the <icon>X position</icon> and <icon>Y position</icon> fields: these specify the top-right grid square which is occupied by the button, and will initially be filled in with the square over which the menu was opened. The X grid coordinates increase as they move towards the edge of the screen, whilst the Y coordinates increase as they move away from the top of vertical panels, and away from the left of horizontal ones, starting at (0,0); note that this means that on horizontal panels, the X coordinates count vertically and the Y coordinates count horizontally, since Y is always taken to run along the length of the &lsquo;handle&rsquo; at the edge of the panel. Each button occupies a space of two squares by two squares, to allow them to be offset from each other if required.
+The position of the button is set by the <icon>In direction of sidebar</icon> and <icon>Away from sidebar</icon> fields: these specify the grid square occupied by the button which is nearest the top (for vertical bars) or left (for horizontal bars), and closest to the sidebar. The coordinates start at (0,0), increasing as they move down (for vertical bars) or right (for horizontal bars), and as they move away from the sidebar towards the edge of the screen.
 
 <box type="info">
 Note that buttons are reflowed in the panel if they overlap or fall outside the visible area in the axis of the screen edge. This means that buttons may not appear in the locations requested, and since buttons can push other buttons, this could affect a number of objects in a panel. Buttons may reflow if a change of screen mode results in a panel being too small to display the buttons that it contains.
 </box>
 
-Finally, <icon>On startup</icon> determines whether <cite>Launcher</cite> should attempt to boot the object or load its sprites when it starts up. <icon>Boot</icon> is equivalent to a Filer window containing the object being opened, and would ensure that things like filetypes are set up correctly. <icon>Sprites</icon> will merge any application sprites held in a standard <file>!Sprites</file> file into the Wimp Sprite Pool. <icon>None</icon> will perform no action.
+Finally, the <icon>Action</icon> section defines what happens when the button is clicked. The <icon>Location</icon> is the full path to an object to be launched, opened or run when the button is pressed: often an application folder, maybe an Obey file within it, or perhaps a folder or file.
+
+The three radio icons below determine what <cite>Launcher</cite> should attempt to do with the object when it starts up. For an application, <icon>Boot target on startup</icon> is equivalent to opening the Filer window containing it, and would ensure that things like filetypes are set up correctly. <icon>Load icon sprites on startup</icon> will merge any application sprites held in a standard <file>!Sprites</file> file within an application into the Wimp Sprite Pool. <icon>Do nothing</icon> will perform no action, and is suitable for applications, directories and files.
 
 To store the new shortcut, click on <icon>OK</icon>; to abandon the changes, click <icon>Cancel</icon>. New shortcuts will not be saved for future sessions unless <menu>Save layout</menu> is selected from the main menu after the changes have been made.
 
@@ -119,7 +123,7 @@ To store the new shortcut, click on <icon>OK</icon>; to abandon the changes, cli
 To edit an existing shortcut, click <mouse>menu</mouse> over the button and select <menu>Button &msep; Edit...</menu>. This opens the <window>Edit button</window> dialogue, as described in the previous section, to allow changes to be made. Buttons can be moved around the panel by changing their <icon>X position</icon> and <icon>Y position</icon> values.
 
 <box type="info">
-If the <window>Edit button</window> dialogue is opened for a button which has been reflowed, a warning is shown at the bottom of the window, since the <icon>X position</icon> and <icon>Y position</icon> fields will show the intended position and <em>not</em> the reflowed one.
+If the <window>Edit button</window> dialogue is opened for a button which has been reflowed, a warning is shown at the bottom of the window, since the <icon>Position</icon> fields will show the intended position and <em>not</em> the reflowed one.
 </box>
 
 To delete a shortcut from the panel, click <mouse>menu</mouse> over it and select <menu>Button &msep; Delete</menu>.
@@ -204,6 +208,8 @@ Alpha release, for testing and feedback.
 <list>
 <li>Update the licence from EUPL&nbsp;v1.1 to EUPL&nbsp;v1.2.
 <li>Add configuration for sidebar width (ticket&nbsp;#729).
+<li>Allow button sizes to be configured on a panel-by-panel basis.
+<li>Allow button names to be included in the button (ticket&nbsp;#728).
 </list>
 
 </chapter>
