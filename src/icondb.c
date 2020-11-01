@@ -185,10 +185,13 @@ struct icondb_button *icondb_create_icon(struct icondb_block *instance, unsigned
 	button->key = key;
 	button->window = NULL;
 	button->icon = -1;
-	button->validation[0] = '\0';
 	button->text = NULL;
 	button->position.x = position->x;
 	button->position.y = position->y;
+	button->inset.x0 = 0;
+	button->inset.y0 = 0;
+	button->inset.x1 = 0;
+	button->inset.y1 = 0;
 
 	/* Link the icon into the database, in descending position order. */
 

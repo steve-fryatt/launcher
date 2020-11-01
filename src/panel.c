@@ -65,7 +65,9 @@
 /* Button Window */
 
 #define PANEL_ICON_SIDEBAR 0
-#define PANEL_ICON_TEMPLATE 1
+#define PANEL_ICON_BASE_TEMPLATE 1
+#define PANEL_ICON_SPRITE_TEMPLATE 2
+#define PANEL_ICON_TEXT_TEMPLATE 3
 
 /* Main Menu */
 
@@ -114,6 +116,18 @@ enum panel_status {
 	PANEL_STATUS_PANEL_DLOG_OPEN = 4,
 	PANEL_STATUS_BUTTON_DLOG_OPEN = 8
 };
+
+/**
+ * The offset between panel icons and the inset.
+ */
+
+#define PANEL_INSET_OFFSET 4
+
+/**
+ * The maximum size allocated to a validation string when plotting inset icons.
+ */
+
+#define PANEL_MAX_VALIDATION_LEN 24
 
 /**
  * The buttion instance data block.
@@ -264,7 +278,19 @@ static wimp_window *panel_window_def;
  * The Wimp icon definition for a button icon.
  */
 
-static wimp_icon_create panel_icon_def;
+static wimp_icon_create panel_icon_base_def;
+
+/**
+ * The Wimp icon definition for a name and sprite infill.
+ */
+
+static wimp_icon panel_icon_text_def;
+
+/**
+ * The Wimp icon definition for a sprite infill.
+ */
+
+static wimp_icon panel_icon_sprite_def;
 
 /**
  * The width of the current mode, in OS Units.
@@ -340,6 +366,7 @@ static osbool panel_pointer_leaving_callback(os_t time, void *data);
 static void panel_menu_prepare(wimp_w w, wimp_menu *menu, wimp_pointer *pointer);
 static void panel_menu_selection(wimp_w w, wimp_menu *menu, wimp_selection *selection);
 static void panel_menu_close(wimp_w w, wimp_menu *menu);
+static void panel_redraw_handler(wimp_draw *redraw);
 static osbool panel_message_mode_change(wimp_message *message);
 
 static void panel_update_mode_details(void);
@@ -393,7 +420,9 @@ void panel_initialise(void)
 
 	panel_window_def->icon_count = 1;
 
-	panel_icon_def.icon = panel_window_def->icons[PANEL_ICON_TEMPLATE];
+	panel_icon_base_def.icon = panel_window_def->icons[PANEL_ICON_BASE_TEMPLATE];
+	panel_icon_text_def = panel_window_def->icons[PANEL_ICON_TEXT_TEMPLATE];
+	panel_icon_sprite_def = panel_window_def->icons[PANEL_ICON_SPRITE_TEMPLATE];
 
 	/* Work out the size of the sidebar icon. */
 
@@ -469,6 +498,7 @@ static struct panel_block *panel_create_instance(unsigned key)
 	new->window = wimp_create_window(panel_window_def);
 	ihelp_add_window(new->window, "Launch", NULL);
 	event_add_window_user_data(new->window, new);
+	event_add_window_redraw_event(new->window, panel_redraw_handler);
 	event_add_window_open_event(new->window, panel_open_window);
 	event_add_window_mouse_event(new->window, panel_click_handler);
 	event_add_window_pointer_entering_event(new->window, panel_pointer_entering_handler);
@@ -910,6 +940,85 @@ static void panel_menu_close(wimp_w w, wimp_menu *menu)
 
 	if (windat->auto_mouseover)
 		event_add_single_callback(w, windat->auto_close_delay, panel_pointer_leaving_callback, windat);
+}
+
+
+/**
+ * Process redraw events in a Buttons window.
+ *
+ * \param *redraw		The redraw event block to handle.
+ */
+
+static void panel_redraw_handler(wimp_draw *redraw)
+{
+	osbool			more;
+	os_coord		origin;
+	os_box			area;
+	char			*sprite, validation[PANEL_MAX_VALIDATION_LEN];
+	struct panel_block	*windat;
+	struct icondb_button	*button;
+	struct appdb_entry	*app;
+
+	if (redraw == NULL)
+		return;
+
+	windat = event_get_window_user_data(redraw->w);
+	if (windat == NULL)
+		return;
+
+	/* Initialise the validation string. */
+
+	validation[0] = 'S';
+	panel_icon_text_def.data.indirected_text_and_sprite.validation = validation;
+
+	/* Perform the redraw. */
+
+	more = wimp_redraw_window(redraw);
+
+	while (more) {
+		origin.x = redraw->box.x0 - redraw->xscroll;
+		origin.y = redraw->box.y1 - redraw->yscroll;
+
+		area.x0 = redraw->clip.x0 - origin.x;
+		area.x1 = redraw->clip.x1 - origin.x;
+		area.y0 = redraw->clip.y0 - origin.y;
+		area.y1 = redraw->clip.y1 - origin.y;
+
+		button = icondb_get_list(windat->icondb);
+
+		while (button != NULL) {
+			if (area.x0 < button->inset.x1 && area.x1 > button->inset.x0 &&
+					area.y0 < button->inset.y1 && area.y1 > button->inset.y0) {
+				app = appdb_get_button_info(button->key, NULL);
+
+				sprite = app->sprite;
+
+				if (app != NULL) {
+					if (app->show_name) {
+						if (button->text != NULL)
+							panel_icon_text_def.data.indirected_text_and_sprite.text = button->text;
+						else
+							panel_icon_text_def.data.indirected_text_and_sprite.text = app->name;
+						panel_icon_text_def.data.indirected_text_and_sprite.size =
+								strlen(panel_icon_text_def.data.indirected_text_and_sprite.text) + 1;
+
+						string_copy(validation + 1, sprite, PANEL_MAX_VALIDATION_LEN - 1);
+						panel_icon_text_def.extent = button->inset;
+						wimp_plot_icon(&panel_icon_text_def);
+					} else {
+						panel_icon_sprite_def.data.indirected_sprite.id = (osspriteop_id) sprite;
+						panel_icon_sprite_def.data.indirected_sprite.size = strlen(sprite) + 1;
+						panel_icon_sprite_def.extent = button->inset;
+						wimp_plot_icon(&panel_icon_sprite_def);
+					}
+				}
+			}
+
+			button = button->next;
+		}
+
+		more = wimp_get_rectangle(redraw);
+	}
 }
 
 
@@ -1715,37 +1824,37 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 	if (app == NULL)
 		return;
 
-	panel_icon_def.w = windat->window;
+	panel_icon_base_def.w = windat->window;
 
 	/* Position the icon extent. */
 
 	switch (windat->location) {
 	case PANEL_POSITION_LEFT:
-		panel_icon_def.icon.extent.x1 = windat->origin.x - button->position.x * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.x0 = panel_icon_def.icon.extent.x1 - windat->slab_os_dimensions.x;
-		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - windat->slab_os_dimensions.y;
+		panel_icon_base_def.icon.extent.x1 = windat->origin.x - button->position.x * (windat->grid_square + windat->grid_spacing);
+		panel_icon_base_def.icon.extent.y1 = windat->origin.y - button->position.y * (windat->grid_square + windat->grid_spacing);
+		panel_icon_base_def.icon.extent.x0 = panel_icon_base_def.icon.extent.x1 - windat->slab_os_dimensions.x;
+		panel_icon_base_def.icon.extent.y0 = panel_icon_base_def.icon.extent.y1 - windat->slab_os_dimensions.y;
 		break;
 
 	case PANEL_POSITION_RIGHT:
-		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.x * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.y * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.x;
-		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - windat->slab_os_dimensions.y;
+		panel_icon_base_def.icon.extent.x0 = windat->origin.x + button->position.x * (windat->grid_square + windat->grid_spacing);
+		panel_icon_base_def.icon.extent.y1 = windat->origin.y - button->position.y * (windat->grid_square + windat->grid_spacing);
+		panel_icon_base_def.icon.extent.x1 = panel_icon_base_def.icon.extent.x0 + windat->slab_os_dimensions.x;
+		panel_icon_base_def.icon.extent.y0 = panel_icon_base_def.icon.extent.y1 - windat->slab_os_dimensions.y;
 		break;
 
 	case PANEL_POSITION_TOP:
-		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.y0 = windat->origin.y + button->position.x * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.y;
-		panel_icon_def.icon.extent.y1 = panel_icon_def.icon.extent.y0 + windat->slab_os_dimensions.x;
+		panel_icon_base_def.icon.extent.x0 = windat->origin.x + button->position.y * (windat->grid_square + windat->grid_spacing);
+		panel_icon_base_def.icon.extent.y0 = windat->origin.y + button->position.x * (windat->grid_square + windat->grid_spacing);
+		panel_icon_base_def.icon.extent.x1 = panel_icon_base_def.icon.extent.x0 + windat->slab_os_dimensions.y;
+		panel_icon_base_def.icon.extent.y1 = panel_icon_base_def.icon.extent.y0 + windat->slab_os_dimensions.x;
 		break;
 
 	case PANEL_POSITION_BOTTOM:
-		panel_icon_def.icon.extent.x0 = windat->origin.x + button->position.y * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.y1 = windat->origin.y - button->position.x * (windat->grid_square + windat->grid_spacing);
-		panel_icon_def.icon.extent.x1 = panel_icon_def.icon.extent.x0 + windat->slab_os_dimensions.y;
-		panel_icon_def.icon.extent.y0 = panel_icon_def.icon.extent.y1 - windat->slab_os_dimensions.x;
+		panel_icon_base_def.icon.extent.x0 = windat->origin.x + button->position.y * (windat->grid_square + windat->grid_spacing);
+		panel_icon_base_def.icon.extent.y1 = windat->origin.y - button->position.x * (windat->grid_square + windat->grid_spacing);
+		panel_icon_base_def.icon.extent.x1 = panel_icon_base_def.icon.extent.x0 + windat->slab_os_dimensions.y;
+		panel_icon_base_def.icon.extent.y0 = panel_icon_base_def.icon.extent.y1 - windat->slab_os_dimensions.x;
 		break;
 
 	case PANEL_POSITION_HORIZONTAL:
@@ -1754,15 +1863,17 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 		break;
 	}
 
-	/* Set up the validation string. */
+	/* Set up the inset bounds. */
 
-	string_printf(button->validation, ICONDB_VALIDATION_LENGTH, "R5,1;S%s;NButton", app->sprite);
-	panel_icon_def.icon.data.indirected_text_and_sprite.validation = button->validation;
+	button->inset.x0 = panel_icon_base_def.icon.extent.x0 + PANEL_INSET_OFFSET;
+	button->inset.y0 = panel_icon_base_def.icon.extent.y0 + PANEL_INSET_OFFSET;
+	button->inset.x1 = panel_icon_base_def.icon.extent.x1 - PANEL_INSET_OFFSET;
+	button->inset.y1 = panel_icon_base_def.icon.extent.y1 - PANEL_INSET_OFFSET;
 
 	/* Set up the icon text. */
 
 	if (app->show_name) {
-		width = panel_icon_def.icon.extent.x1 - panel_icon_def.icon.extent.x0 -10;
+		width = button->inset.x1 - button->inset.x0;
 		error = xwimptextop_truncate_with_ellipsis(app->name, text, APPDB_NAME_LENGTH, width, NULL);
 
 		/* At least copy the text across if the available Wimp doesn't
@@ -1777,20 +1888,12 @@ static void panel_create_icon(struct panel_block *windat, struct icondb_button *
 		 ***/
 
 		button->text = heap_strdup(text);
-
-		panel_icon_def.icon.data.indirected_text_and_sprite.text = button->text;
-		panel_icon_def.icon.data.indirected_text_and_sprite.size = strlen(text) + 1;
-		panel_icon_def.icon.flags &= ~wimp_ICON_VCENTRED;
-	} else {
-		panel_icon_def.icon.data.indirected_text_and_sprite.text = "";
-		panel_icon_def.icon.data.indirected_text_and_sprite.size = 1;
-		panel_icon_def.icon.flags |= wimp_ICON_VCENTRED;
 	}
 
 	/* Store the icon details. */
 
 	button->window = windat->window;
-	button->icon = wimp_create_icon(&panel_icon_def);
+	button->icon = wimp_create_icon(&panel_icon_base_def);
 }
 
 

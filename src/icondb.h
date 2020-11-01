@@ -29,12 +29,6 @@
 #define LAUNCHER_ICONDB
 
 /**
- * The maximum length allowed for an icon's validation string.
- */
-
-#define ICONDB_VALIDATION_LENGTH 40
-
-/**
  * An icon database instance.
  */
 
@@ -70,16 +64,16 @@ struct icondb_button {
 	char		*text;
 
 	/**
-	 * Storage for the icon's validation string.
-	 */
-
-	char		validation[ICONDB_VALIDATION_LENGTH];
-
-	/**
 	 * The actual position of the icon in the panel, after reflowing.
 	 */
 
 	os_coord	position;
+
+	/**
+	 * The position of the inset within the icon.
+	 */
+
+	os_box		inset;
 
 	/**
 	 * Pointer to the next button definition.
