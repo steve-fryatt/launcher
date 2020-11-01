@@ -53,10 +53,6 @@
 
 #define OBJUTIL_COMMAND_LEN 30
 
-/* Static Function Prototypes. */
-
-static osbool objutil_test_sprite(char *sprite);
-
 
 /**
  * Given an object referenced by a filename, find an appropriate sprite
@@ -159,7 +155,7 @@ osbool objutil_find_sprite(char *object, char *sprite, size_t length, osbool *bo
  * \return		TRUE if the sprite exists; else FALSE.
  */
 
-static osbool objutil_test_sprite(char *sprite)
+osbool objutil_test_sprite(char *sprite)
 {
 	if (sprite == NULL)
 		return FALSE;

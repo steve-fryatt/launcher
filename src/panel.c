@@ -979,10 +979,14 @@ static void panel_redraw_handler(wimp_draw *redraw)
 		origin.x = redraw->box.x0 - redraw->xscroll;
 		origin.y = redraw->box.y1 - redraw->yscroll;
 
+		/* Calculate the clip area in work-area coordinates. */
+
 		area.x0 = redraw->clip.x0 - origin.x;
 		area.x1 = redraw->clip.x1 - origin.x;
 		area.y0 = redraw->clip.y0 - origin.y;
 		area.y1 = redraw->clip.y1 - origin.y;
+
+		/* Scan the inset panels, to find those that intersect. */
 
 		button = icondb_get_list(windat->icondb);
 
@@ -991,7 +995,14 @@ static void panel_redraw_handler(wimp_draw *redraw)
 					area.y0 < button->inset.y1 && area.y1 > button->inset.y0) {
 				app = appdb_get_button_info(button->key, NULL);
 
+				/* Find a sprite that's in the pool. */
+
 				sprite = app->sprite;
+
+				if (!objutil_test_sprite(sprite))
+					sprite = "file_xxx";
+
+				/* Plot an appropriate icon. */
 
 				if (app != NULL) {
 					if (app->show_name) {

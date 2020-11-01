@@ -44,6 +44,16 @@ osbool objutil_find_sprite(char *object, char *sprite, size_t length, osbool *bo
 
 
 /**
+ * Test a sprite to see if it is in the Wimp Sprite Pool.
+ *
+ * \param *sprite	The name of the sprite to test.
+ * \return		TRUE if the sprite exists; else FALSE.
+ */
+
+osbool objutil_test_sprite(char *sprite);
+
+
+/**
  * Launch an object referenced by a supplied filename.
  * 
  * \param *object	The filename of the object to launch.
