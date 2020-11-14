@@ -94,12 +94,12 @@ Help.EditButton:\Tbutton editing \w.|MDrag files or applications to the \w to up
 Help.EditButton.OK:\Sclose the \w and keep the new settings.|M\Astore the settings and leave the \w open.
 Help.EditButton.Cancel:\Sdiscard the settings and close the \w.|M\Areset the window to the currently saved settings.
 Help.EditButton.Name:\Tname of the button.
-Help.EditButton.XPos:\Thorizontal position of the button on the grid.
-Help.EditButton.XUp:\Sincrease the X position of the buttOn.|M\Adecrease it.
-Help.EditButton.XDown:\Sdecrease the X position of the button.|M\Aincrease it.
-Help.EditButton.YPos:\Tvertical position of the button on the grid.
-Help.EditButton.YUp:\Sincrease the Y position of the button.|M\Adecrease it.
-Help.EditButton.YDown:\Sdecrease the Y position of the button.|M\Aincrease it.
+Help.EditButton.XPos:\Tposition of the button on the grid, moving from the sidebar towards the edge of the screen.|MLarger numbers are closer to the edge of the screen.
+Help.EditButton.XUp:\Smove the button towards the edge of the screen.|M\Amove it back towards the sidebar.
+Help.EditButton.XDown:\Smove the button towards the sidebar.|M\Amove it back towards the edge of the screen.
+Help.EditButton.YPos:\Tposition of the button on the grid, moving along the length of the sidebar and parallel to the edge of the screen.|MLarger numbers move the button down or right, smaller numbers up or left.
+Help.EditButton.YUp:\Smove the button down (for a vertical bar) or right (for a horizontal bar).|M\Amove it up (for a vertical bar) or left (for a horizontal bar).
+Help.EditButton.YDown:\Smove the button up (for a vertical bar) or left (for a horizontal bar).|M\Amove it down (for a vertical bar) or right (for a horizontal bar).
 Help.EditButton.Sprite:\Tname of the sprite used on the button.
 Help.EditButton.Target:\Tlocation of the target file or application which will be run when the button is clicked.
 Help.EditButton.Boot:\Taction taken for the file or application when Launcher starts.\Shave the application passed to *Filer_Boot.
