@@ -9,7 +9,7 @@
 =============================================================================
 Launcher - Yet Another RISC OS Application Launcher              Version $$version$$
 
-(C) Stephen Fryatt, 2003-2020                  $$date$$
+(C) Stephen Fryatt, 2003-2021                  $$date$$
 =============================================================================
 </literal>
 
@@ -20,7 +20,7 @@ Launcher - Yet Another RISC OS Application Launcher              Version $$versi
 <literal mode="HTML">
 <html>
 <head>
-<title>Locate</title>
+<title>Launcher</title>
 </head>
 
 <body>
@@ -201,9 +201,9 @@ Third public release.
 </list>
 
 
-<subhead title="Test Build">
+<subhead title="1.20 (12 January 2021)">
 
-Alpha release, for testing and feedback.
+Fourth public release.
 
 <list>
 <li>Update the licence from EUPL&nbsp;v1.1 to EUPL&nbsp;v1.2.
